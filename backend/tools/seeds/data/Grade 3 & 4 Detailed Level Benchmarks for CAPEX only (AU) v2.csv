@@ -1,0 +1,717 @@
+Jurisdiction,State/Territory,Emissions Category,Emissions Sub-Category,Emissions Source,UoM,Carbon Storage (tCO2e/UoM),Scope 1 Emissions Factor (tCO2e/UoM),Scope 3 Emissions Factor (tCO2e/UoM),Source/Comments
+Australia,National,Fuels,Gaseous Fuels,Natural gas distributed in a pipeline,m3,,0.002,,National Greenhouse Account Factors 2025 
+Australia,National,Fuels,Gaseous Fuels,Coal seam methane that is captured for combustion,m3,,0.002,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Coal mine waste gas that is captured for combustion,m3,,0.002,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Compressed natural gas (reverting to standard conditions),m3,,0.002,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Unprocessed natural gas,m3,,0.002,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Ethane ,m3,,0.004,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Coke oven gas,m3,,0.001,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Blast furnace gas,m3,,0.001,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Town gas ,m3,,0.002,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Liquefied natural gas,kL,,1.304,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Other gaseous fossil fuels ,m3,,0.002,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Landfill biogas that is captured for combustion (methane only),m3,,0.0002,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Sludge biogas that is captured for combustion (methane only),m3,,0.0002,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Other biogas that is captured for combustion,m3,,0.0002,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Hydrogen,m3,,0,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Petroleum based oils,kL,,0.539,0.698,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Petroleum based greases,kL,,0.136,0.698,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Crude oil including crude oil condensates,t,,3.166,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Other natural gas liquids ,t,,2.85,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Gasoline (other than for use as fuel in an aircraft),kL,,2.319,0.588,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Gasoline for use as fuel in an aircraft (avgas),kL,,2.231,0.596,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Kerosene (other than for use as fuel in an aircraft),kL,,2.592,0.675,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Kerosene for use as fuel in an aircraft (aviation turbine fuel),kL,,2.569,0.662,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Heating oil,kL,,2.601,0.671,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Diesel oil,kL,,2.71,0.668,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Fuel oil,kL,,2.931,0.715,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Liquefied aromatic hydrocarbons,kL,,2.406,0.619,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Solvents: mineral turpentine or white spirits,kL,,2.406,0.619,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Liquefied petroleum gas,kL,,1.557,0.519,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Naphtha,kL,,2.192,0.565,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Petroleum coke,kL,,3.176,0.616,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Refinery gas and liquids,kL,,2.349,0.772,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Refinery coke,kL,,3.176,0.616,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Other petroleum based products ,kL,,2.405,0.619,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Biodiesel ,kL,,0.01,1.305,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Ethanol for use as a fuel in an internal combustion engine,kL,,0.007,1.088,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Other biofuels,kL,,0.007,1.088,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Renewable aviation kerosene,kL,,0.008,1.088,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Renewable diesel,kL,,0.012,1.088,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Gasoline (Cars and light commercial vehicles),kL,,2.313,0.588,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Diesel oil (Cars and light commercial vehicles),kL,,2.718,0.668,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Liquefied petroleum gas (LPG) (Cars and light commercial vehicles),kL,,1.598,0.529,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Fuel oil (Cars and light commercial vehicles),kL,,2.945,0.715,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Ethanol (Cars and light commercial vehicles),kL,,0.009,1.088,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Biodiesel (Cars and light commercial vehicles),kL,,0.087,1.305,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Other biofuels (Cars and light commercial vehicles),kL,,0.059,1.088,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Compressed natural gas (Light duty vehicles),m3,,0.002,0.001,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Liquefied natural gas (Light duty vehicles),kL,,1.493,0.455,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Compressed natural gas (Heavy duty vehicles),kL,,0.002,0.001,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Liquefied natural gas (Heavy duty vehicles),kL,,1.379,0.455,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Diesel oil - Euro iv or higher (Heavy duty vehicles),kL,,2.716,0.668,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Diesel oil - Euro iii (Heavy duty vehicles),kL,,2.717,0.668,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Diesel oil - Euro i (Heavy duty vehicles),kL,,2.721,0.668,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Renewable diesel – Euro iv or higher (Heavy duty vehicles),kL,,0.018, -   ,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Renewable diesel – Euro iii (Heavy duty vehicles),kL,,0.019, -   ,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Renewable diesel – Euro I (Heavy duty vehicles),kL,,0.023, -   ,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Gasoline for use as fuel in an aircraft,kL,,2.24,0.596,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Kerosene for use as fuel in an aircraft,kL,,2.584,0.662,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Renewable aviation kerosene,kL,,0.022, -   ,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Bituminous coal ,t,,2.44,0.081,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Sub-bituminous coal ,t,,1.9,0.053,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Anthracite ,t,,2.62,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Brown coal,t,,0.96,0.004,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Coking coal,t,,2.76,0.192,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Coal briquettes,t,,2.11,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Coal coke,t,,2.9,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Coal tar,t,,3.08,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Other solid fossil fuels ,t,,2.11,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Industrial materials and tyres that are derived from fossil fuels,t,,2.15,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Non?biomass municipal materials,t,,0.93,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Dry wood,t,,0.02,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Green and air dried wood,t,,0.01,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Sulphite lyes,t,,0.01,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Bagasse,t,,0.01,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,"Biomass, municipal and industrial materials",t,,0.02,,National Greenhouse Account Factors 2025
+,,,,,,,,,
+Australia,National,Fuels,Solid Fuels,Charcoal,t,,0.2,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Primary solid biomass fuels,t,,0.02,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),E10 blend,t,,2.022,0.674,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),B5 blend,t,,2.561,0.682,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),B20 blend,t,,2.125,0.724,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),E10 blend,t,,2.017,0.674,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),B5 blend,t,,2.573,0.682,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),B20 blend,t,,2.148,0.724,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-23,t,,"12,400.00",,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-32,t,,677,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-41,t,,116,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-43-10mee,t,,"1,650.00",,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-125,t,,"3,170.00",,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-134,t,,"1,120.00",,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-134a,t,,"1,300.00",,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-143,t,,328,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-143a,t,,"4,800.00",,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-152a,t,,138,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-227ea,t,,"3,350.00",,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-236fa,t,,"8,060.00",,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-245ca,t,,716,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-245fa,t,,858,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-365mfc,t,,804,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Other gases,Methane,t,,28,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Other gases,Nitrous oxide,t,,265,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Other gases,Sulphur hexafluoride,t,,"23,500.00",,National Greenhouse Account Factors 2025
+Australia,National,Gases,Perfluorocarbons (PFCs),Perfluoromethane (tetrafluoromethane),t,,"6,630.00",,National Greenhouse Account Factors 2025
+Australia,National,Gases,Perfluorocarbons (PFCs),Perfluoroethane (hexafluoroethane),t,,"11,100.00",,National Greenhouse Account Factors 2025
+Australia,National,Gases,Perfluorocarbons (PFCs),Perfluoropropane,t,,"8,900.00",,National Greenhouse Account Factors 2025
+Australia,National,Gases,Perfluorocarbons (PFCs),Perfluorobutane,t,,"9,200.00",,National Greenhouse Account Factors 2025
+Australia,National,Gases,Perfluorocarbons (PFCs),Perfluorocyclobutane,t,,"9,540.00",,National Greenhouse Account Factors 2025
+Australia,National,Gases,Perfluorocarbons (PFCs),Perfluoropentane,t,,"8,550.00",,National Greenhouse Account Factors 2025
+Australia,National,Gases,Perfluorocarbons (PFCs),Perfluorohexane,t,,"7,910.00",,National Greenhouse Account Factors 2025
+Australia,National,Materials,Aggregate,Ballast,t,-   ,,0.0067,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,Crushed Rock,t,-   ,,0.0067,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,Crushed Slag Aggregate,t,-   ,,0.0179,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,General Fill,t,-   ,, -   ,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,General Sand,t,-   ,,0.0067,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,Gravel,t,-   ,,0.0067,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,Recycled Aggregates,t,-   ,,0.0038,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,Stabilised sand,m3,-   ,,0.185,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aluminium - extruded,Extruded aluminium - anodised,t,-   ,,19.3,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aluminium - extruded,Extruded aluminium - powder coated,t,-   ,,18.2,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aluminium - extruded,Extruded aluminium - uncoated,t,-   ,,17.4,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cladding/roofing,Aluminium sheeting,t,-   ,,11.8,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cladding/roofing,Clay and terracotta roof tiles,t,-   ,,0.31,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cladding/roofing,Concrete roof tiles,t,-   ,,0.159,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cladding/roofing,Fibre cement board,m2,-0.0251,,0.0126,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cladding/roofing,Glassfibre reinforced concrete cladding,t,-   ,,0.544,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cladding/roofing,Steel sheeting - metallic coat,m2,-   ,,0.0191,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cladding/roofing,Steel sheeting - painted,m2,-   ,,0.0148,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,AAC and steel based system - generic ,m2,-   ,,0.0456,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 1: 100% DGU 8T-16-44.2",m2,-   ,,0.264,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 2: aluminium cladding, 50% DGU 8T-16-44.2",m2,-   ,,0.382,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 3: aluminium cladding with vertical fins, 50% DGU 8T-16-44.2",m2,-   ,,0.509,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 4: aluminium cladding, 50% TGU 8T-16-6-16-44.2",m2,-   ,,0.39,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 5: insulated shadow box, 50% DGU 8T-16-44.2",m2,-   ,,0.342,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 6: GRC cladding, 50% DGU 8T-16-44.2",m2,-   ,,0.448,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 7: opaque panel, 100% aluminium cladding",m2,-   ,,0.68,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Double skin type 1: deep cavity aluminium façade, 100% single + DGU 66.2 + 8T-16-44.2",m2,-   ,,0.802,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Double skin type 2: narrow cavity aluminium façade, 100% single + DGU 66.2 + 8T-16-44.2",m2,-   ,,0.412,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,Wall system steel frame - 1 side plasterboard (150 mm stud),m2,-0.496,,0.0148,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,Wall system steel frame - 1 side plasterboard (92mm stud),m2,-0.496,,0.0106,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,Wall system steel frame - 2 sides plasterboard (150 mm stud),m2,-0.991,,0.0186,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,Wall system steel frame - 2 sides plasterboard (92mm stud),m2,-0.991,,0.0143,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,Wall system timber frame - 1 side plasterboard ,m2,-8.94,,0.0057,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,Wall system timber frame - 2 sides plasterboard ,m2,-9.43,,0.0094,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,External shading system,Aluminium frame shading system,t,-   ,,18.2,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,External shading system,Steel frame shading system,t,-   ,,3.01,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Glass,Glass (treated or untreated),t,-   ,,1.66,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Wall louvre system,Aluminium louvre ,t,-   ,,18.2,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Door - aluminium with glazing - generic,m2,-   ,,0.245,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Door - fully glazed - minor aluminium frame - generic,m2,-   ,,0.199,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Door - steel solid - generic,m2,-   ,,0.299,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Door - steel with glazing - generic,m2,-   ,,0.138,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Door - timber solid - generic,m2,-68.8,,0.0828,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Door - timber with glazing - generic,m2,-27.4,,0.0545,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,"Revolving door - glass, aluminium, steel - generic",m2,-26.3,,1.01,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Window - Aluminium frame - Generic,m2,-   ,,0.159,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Window - Timber frame - Generic,m2,-5.99,,0.194,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,AAC panel (inc. reinforced),t,-   ,,0.451,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Ceiling system aluminium frame suspended (powder coated aluminium),m2,-   ,,0.148,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Ceiling system steel frame suspended (fibre cement),m2,-0.0234,,0.0131,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Ceiling system steel frame suspended (mineral tile),m2,-   ,,0.0081,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Ceiling system steel frame suspended (plasterboard),m2,-0.496,,0.0074,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Fibre cement sheet,m2,-0.0251,,0.0126,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,MDF (Medium Density Fibreboard),m3,"-1,230.00",,0.815,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Particleboard wall/ceiling,m3,"-1,080.00",,0.433,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Plasterboard,m2,-0.393,,0.0034,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Steel frame,t,-   ,,3.01,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Timber framing,m3,-857,,0.188,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Access flooring,m2,-   ,,0.0382,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Carpet flooring,m2,-   ,,0.0133,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Epoxy flooring,t,-   ,,2.8,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Hybrid flooring,m2,-   ,,0.013,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Laminate flooring,m2,-   ,,0.0037,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Linoleum flooring,m2,-   ,,0.0036,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Rubber flooring,m2,-   ,,0.0087,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Vinyl flooring,m2,-   ,,0.0159,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Stick-framed wall /ceiling system,Ceiling tile,m2,-   ,,0.0043,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Wall ceiling Insulated Panel,Structural insulated panels>100mm,m2,-   ,,0.0556,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Wall ceiling Insulated Panel,Structural insulated panels?100mm,m2,-   ,,0.0423,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Roller doors,m2,-   ,,0.103,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Building and MEP services,"High rise office, hotel or retail building (>10 floors)",m2,-   ,,0.0626,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Building and MEP services,Hospital or high services intensity building,m2,-   ,,0.066,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Building and MEP services,"Low or mid rise office, hotel or retail building (?10 floors)",m2,-   ,,0.0553,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Building and MEP services,Residential building,m2,-   ,,0.0468,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Building and MEP services,Warehouse or industrial building,m2,-   ,,0.0126,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Escalator,Escalator,Each,-   ,,50.5,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Lifts,Lift (elevator) for 10+ floors,Each,-   ,,167,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Lifts,Lift (elevator) for 4-10 floors,Each,-   ,,41.5,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Lifts,Lift (elevator) for less than 4 floors,Each,-   ,,14.2,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Photovoltaic panels,Photovoltaic panel (monocrystalline),m2,-   ,,0.278,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Photovoltaic panels,Photovoltaic panel (polycrystalline),m2,-   ,,0.203,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,General concrete admixtures,t,-   ,,1.67,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Coarse Aggregates,t,-   ,,0.0067,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Concrete production process,m3,-   ,,0.0068,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Fine Aggregates,t,-   ,,0.0067,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Fly ash,t,-   ,, -   ,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Silica fume,t,-   ,,1.6,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,General purpose cement,t,-   ,,0.9006,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,GGBF slag,t,-   ,,0.1686,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Manufactured sand,t,-   ,,0.005,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Mortar or screed (1:3 cement: sand mix) (Using CEM I cement),t,-   ,,0.1789,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Mortar or screed (1:4 cement:sand mix) (Using CEM I cement),t,-   ,,0.146,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Portland Cement,t,-   ,,0.9491,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Recycled Aggregates,t,-   ,,0.0038,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Steel fibres for concrete reinforcement,t,-   ,,1.6,National Embodied Carbon Databook v1.00 2026
+Australia,National,Water,Wastewater,Wastewater treatment,kL,-   ,,0.0019,AusLCI version 1.45
+Australia,National,Water,Water Use,Mains Water,kL,-   ,,0.0004,National Embodied Carbon Databook v1.00 2026
+Australia,National,Water,Water Use,On-site recycled & captured water,kL,-   ,, -   ,NA
+Australia,National,Water,Water Use,Off-site recycled water,kL,-   ,,0.001,"Cook, S. Hall. M. and Gregory, A. (2012) Energy use in the provision and consumption of urban water in Australia: an update. CSIRO Water for a Healthy Country Flagship, Australia. Prepared for the Water Services Association of Australia."
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >10 MPa to ?20 MPa",m3,-   ,,0.201,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >20 MPa to ?25 MPa",m3,-   ,,0.222,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >25 MPa to ?32 MPa",m3,-   ,,0.249,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >32 MPa to ?40 MPa",m3,-   ,,0.305,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >40 MPa to ?50 MPa",m3,-   ,,0.354,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >50 MPa to ?65 MPa",m3,-   ,,0.402,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >65 MPa to ?80 MPa",m3,-   ,,0.425,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >80 MPa +",m3,-   ,,0.561,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, ?10 MPa",m3,-   ,,0.181,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Precast concrete,Autoclaved aerated concrete (AAC) block (no fill or reinforcing),m3,-   ,,0.19,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Precast concrete,Hollow core - precast concrete (inc. reinforcing),m3,-   ,,0.339,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Precast concrete,Precast concrete block (exc. core fill or reinforcing),t,-   ,,0.159,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Precast concrete,Wall panel - Precast concrete panel (inc. reinforcing),t,-   ,,0.233,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Masonry,Clay brick,t,-   ,,0.184,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Masonry,Stone brick,t,-   ,,0.239,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Paint,Paint - solvent based,t,-   ,,3.76,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Paint,Paint - Water based,t,-   ,,2.1518,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,General Asphalt,t,-   ,,0.0714,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, <2.5% virgin bitumen (>60% RAP)",t,-   ,,0.0371,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 2.5-3.4% virgin bitumen (40-60% RAP)",t,-   ,,0.0437,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 3.5% virgin bitumen (40% RAP)",t,-   ,,0.047,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 3.75% virgin bitumen (35% RAP)",t,-   ,,0.0486,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 4% virgin bitumen (30% RAP)",t,-   ,,0.0503,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 4.25% virgin bitumen (25% RAP)",t,-   ,,0.0519,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 4.5% virgin bitumen (20% RAP)",t,-   ,,0.0536,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 5% virgin bitumen (10% RAP)",t,-   ,,0.0569,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 5.25% virgin bitumen (5% RAP)",t,-   ,,0.0585,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",t,-   ,,0.0601,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, <2.5% virgin bitumen (>60% RAP)",t,-   ,,0.0325,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 2.5-3.4% virgin bitumen (40-60% RAP)",t,-   ,,0.0391,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 3.5% virgin bitumen (40% RAP)",t,-   ,,0.0424,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 3.75% virgin bitumen (35% RAP)",t,-   ,,0.044,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 4% virgin bitumen (30% RAP)",t,-   ,,0.0456,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 4.25% virgin bitumen (25% RAP)",t,-   ,,0.0473,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 4.5% virgin bitumen (20% RAP)",t,-   ,,0.049,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 4.75% virgin bitumen (15% RAP)",t,-   ,,0.0506,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 5% virgin bitumen (10% RAP)",t,-   ,,0.0523,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 5.25% virgin bitumen (5% RAP)",t,-   ,,0.0539,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",t,-   ,,0.0555,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Bitumen,Bitumen,t,-   ,,0.1909,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Bitumen,Cutback bitumen,kL,-   ,,0.72,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Pavers,Ceramic paver/tile,t,-   ,,0.548,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Pavers,Concrete paver/tile,t,-   ,,0.159,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Pavers,Stone paver/tile,t,-   ,,0.239,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Geopolymer pipes,Geopolymer pipes,t,-   ,,0.1375,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,PE Pipes,HDPE Pipes,t,-   ,,2.52,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,PVC Pipes,PVC Pipes,t,-   ,,3.23,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Steel pipes,Steel pipe (welded),t,-   ,,2.51,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Rubbers,Synthetic rubber,t,-   ,,2.5469,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Sealants and adhesives,Sealants and adhesives - Epoxy Resin,t,-   ,,5.7,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,High density polyethylene,t,-   ,,2.3776,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,Low density polyethylene,t,-   ,,3.5204,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,Nylon 6,t,-   ,,9.14,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,Polycarbonate,t,-   ,,7.62,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,Polyethylene,t,-   ,,2.54,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,Polypropylene,t,-   ,,2.6593,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,"Polystyrene, expanded",t,-   ,,3.29,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,"Polystyrene, general purpose",t,-   ,,3.43,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,"Polyurethane, flexible foam",t,-   ,,4.84,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,PVC General,t,-   ,,3.1,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cold rolled steel,"Hot rolled lightweight – painted structural steel (e.g. formwork, framing and decking steel)",t,-   ,,2.41,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cold rolled steel,Cold rolled lightweight - structural framing steel,t,-   ,,3.01,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cold rolled steel,"Cold rolled lightweight - structural steel (e.g. formwork, framing and decking steel)",t,-   ,,3.01,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Hot rolled steel,"Hot rolled - galvanised structural steel (welded beam, columns, angles, plates, piles etc) ",t,-   ,,2.4,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Hot rolled steel,"Hot rolled - structural steel (welded beam, columns, angles, plates, piles etc) ",t,-   ,,2.27,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Reinforcing steel,Bar & mesh reinforcing steel,t,-   ,,1.6,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Steel wire,Steel wire,t,-   ,,2.16,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Stainless steel,Stainless steel (general),t,-   ,,3.51,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (engineered),Glue laminated timber (GLT) and cross laminated timber (CLT) - hardwood,m3,"-1,090.00",,0.69,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (engineered),Glue laminated timber (GLT) and cross laminated timber (CLT) - softwood,m3,-823,,0.242,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (engineered),Laminated veer lumber,m3,-843,,0.298,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (engineered),Oriented strand board,m3,"-1,020.00",,0.194,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (engineered),Particleboard,m3,"-1,140.00",,0.65,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (engineered),Plywood,m3,-841,,0.498,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (engineered),Timber weatherboards (softwood),m3,-848,,0.195,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (sawn),Sawn hardwood,m3,"-1,170.00",,0.347,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (sawn),Sawn softwood,m3,-857,,0.188,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (sawn),Timber poles - piles,m3,"-1,170.00",,0.347,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to recycling,Inert waste - Concrete/ plastics / glass / rubble,t,,,0.0027,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to recycling,Inert waste - Metals,t,,,-   ,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to recycling,Food,t,,,0.028,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to recycling,Paper and cardboard,t,,,-   ,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to recycling,Garden and green,t,,,0.046,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to recycling,Wood,t,,,0.1,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to recycling,Textiles,t,,,-   ,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to recycling,Sludge,t,,,-   ,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to recycling,Rubber and leather,t,,,-   ,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to recycling,Mixed construction and demolition waste,t,,,0.0024,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to landfill,Inert waste - Concrete/ plastics / glass / rubble,t,,,0.0143,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to landfill,Inert waste - Metals,t,,,0.0143,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to landfill,Food,t,,,2.1,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to landfill,Paper and cardboard,t,,,3.3,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to landfill,Garden and green,t,,,1.6,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to landfill,Wood,t,,,0.7,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to landfill,Textiles,t,,,2,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to landfill,Sludge,t,,,0.4,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to landfill,Rubber and leather,t,,,3.3,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste to landfill,Mixed construction and demolition waste,t,,,0.2,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class A3,ha,,227,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class A4,ha,,384,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class A5,ha,,532,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class A6,ha,,594,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class A7,ha,,768,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class B3,ha,,237,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class B4,ha,,401,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class B5,ha,,554,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class B6,ha,,618,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class C1,ha,,77,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class C2,ha,,209,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class C3,ha,,307,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class C4,ha,,521,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class C5,ha,,718,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class D1,ha,,77,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class D2,ha,,209,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class D3,ha,,307,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class E1,ha,,80,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class E2,ha,,217,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class E3,ha,,316,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class F1,ha,,106,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class F2,ha,,287,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class G2,ha,,113,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class H1,ha,,115,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class H2,ha,,309,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Vegetation Class I,ha,,110,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Very large tree (DBH > 100cm) –Eucalypt,ha,,47.505,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Large tree (50cm<DBH<100cm) –Eucalypt,ha,,18.66,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Medium tree (20cm<DBH<50cm) –Eucalypt,ha,,4.287,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Vegetation,Land Clearing,Small tree (5cm<DBH<20cm) –Shrub,ha,,0.192,,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Transport,Heavy articulated truck,tkm,,,0.0001,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Transport,Articulated Truck,tkm,,,0.0001,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Transport,Concrete Agitator Truck,tkm,,,0.0002,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Transport,Light Commercial Vehicles,tkm,,,0.0022,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Transport,Rigid Truck,tkm,,,0.0004,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Transport,"Rail, Bulk Transport",tkm,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Transport,Shipping,tkm,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,National,Employee Commute,Rail Transport,Train,pkm,,,0,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,National,Employee Commute,Bus Transport,Bus,pkm,,,0.0001,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,National,Employee Commute,Ferry Transport,Motorbike/scooter,km,,,0.0001,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,National,Employee Commute,Rail Transport,Light rail and tram,pkm,,,0,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,National,Employee Commute,Private Car Transport,Large Car: unknown fuel,km,,,0.0003,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,National,Employee Commute,Private Car Transport,Medium Car: unknown fuel,km,,,0.0002,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,National,Employee Commute,Private Car Transport,Small Car: unknown fuel,km,,,0.0002,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,National,Employee Commute,Rail Transport,Metro train,pkm,,,0,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,National,Employee Commute,Ferry Transport,Ferry : Foot passenger,pkm,,,0,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,National,Employee Commute,Working from home,Working from home,days,,,,
+New Zealand,National,Fuels,Solid Fuels,Coal - Default,t,,2.1499,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Coal - Bituminous,t,,2.8847,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Coal - Sub-Bituminous,t,,2.1719,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Coal - Lignite,t,,1.5479,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Coal - Default,t,,2.0736,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Coal - Bituminous,t,,2.6564,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Coal - Sub-Bituminous,t,,2.0049,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Coal - Lignite,t,,1.4303,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Stationary),Diesel,kL,,2.6799,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,LPG,t,,2.9716,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Stationary),Heavy Fuel Oil,kL,,3.0536,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Stationary),Light Fuel Oil,kL,,2.9709,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Gaseous Fuels,Natural Gas (kWh),kWh,,0.1951,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Gaseous Fuels,Natural Gas (GJ),GJ,,54.2078,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Coal - Default,t,,1.9327,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Coal - Bituminous,t,,2.6564,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Coal - Sub-Bituminous,t,,2.0049,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Coal - Lignite,t,,1.4303,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Stationary),Diesel,kL,,2.6727,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,LPG,t,,2.9663,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Stationary),Heavy Fuel Oil,kL,,3.046,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Stationary),Light Fuel Oil,kL,,2.9633,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Gaseous Fuels,Natural Gas (kWh),kWh,,0.1948,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Gaseous Fuels,Natural Gas (GJ),GJ,,54.107,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Regular Petrol,kL,,2.3831,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Premium Petrol,kL,,2.4227,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Diesel,kL,,2.6807,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),LPG,kL,,1.6183,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Heavy Fuel Oil,kL,,3.0647,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Light Fuel Oil,kL,,2.9819,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Aviation fuel (Kerosene),GJ,,68.4508,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Aviation fuel (Kerosene),kL,,2.519,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Aviation gas,GJ,,66.4083,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Aviation gas,kL,,2.249,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Bioethanol,GJ,,2.518,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Bioethanol,kL,,0.0594,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Bioethanol blend E3,kL,,2.3134,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Bioethanol blend E10,kL,,2.1864,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Biodiesel,GJ,,1.4858,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Biodiesel,kL,,0.0541,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Biodiesel blend B5,kL,,2.5494,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Liquid Fuels (Transport),Biodiesel blend B20,kL,,2.1554,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Wood - Chips,t,,0.023,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Wood - Pellets,t,,0.0289,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Wood - Green,t,,0.0135,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Wood - Chips,t,,0.1147,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Fuels,Solid Fuels,Wood - Pellets,t,,0.1437,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,Carbon dioxide (R - 744),t,,1,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,Methane,t,,28,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,Propane (R-290),t,,0.06,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,Nitrous oxide (R-744a),t,,265,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,Isobutane(R-600a),t,,3,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,CFC-11  (R-11),t,,"4,660.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,CFC-12  (R-12),t,,"10,200.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,CFC-13  (R-13),t,,"13,900.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,CFC-113  (R-113),t,,"5,820.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,CFC-114  (R-114),t,,"8,590.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,CFC-115  (R-115),t,,"7,670.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,Halon-1301  (R-1301),t,,"6,290.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,Halon-1211  (R-1211),t,,"1,750.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,Halon-2402  (R-2402),t,,"1,470.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,Carbon tetrachloride  (R-10),t,,"1,730.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,Methyl bromide,t,,2,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,Methyl chloroform,t,,160,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HCFC-21,t,,148,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HCFC-22  (R-22),t,,"1,760.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HCFC-123  (R-123),t,,79,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HCFC-124  (R-124),t,,527,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HCFC-141b  (R-141b),t,,782,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HCFC-142b  (R-142b),t,,"1,980.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HCFC-225ca  (R-225ca),t,,127,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HCFC-225cb  (R- 225cb),t,,525,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-23  (R-23),t,,"12,400.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-32  (R-32),t,,677,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-41,t,,116,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-125  (R-125),t,,"3,170.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-134,t,,"1,120.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-134a  (R-134a),t,,"1,300.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-143,t,,328,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-143a  (R-143a),t,,"4,800.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-152,t,,16,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-152a  (R-152a),t,,138,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-161,t,,4,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-227ea  (R-227ea),t,,"3,350.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-236cb,t,,"1,210.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-236ea,t,,"1,330.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-236fa  (R-236fa),t,,"8,060.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-245ca,t,,716,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-245fa  (R - 245fa),t,,858,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-365mfc  (R- 365mfc),t,,804,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HFC-43-10mee,t,,"1,650.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Perfluorinated compounds,Sulphur hexafluoride,t,,"23,500.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Perfluorinated compounds,Nitrogen trifluoride,t,,"16,100.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Perfluorocarbons (PFCs),PFC-14,t,,"6,630.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Perfluorocarbons (PFCs),PFC-116,t,,"11,100.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Perfluorocarbons (PFCs),PFC-218,t,,"8,900.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Perfluorocarbons (PFCs),PFC-318,t,,"9,540.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Perfluorocarbons (PFCs),PFC-31-10,t,,"9,200.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Perfluorocarbons (PFCs),PFC-41-12,t,,"8,550.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Perfluorocarbons (PFCs),PFC-51-14,t,,"7,910.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Perfluorocarbons (PFCs),PFC-91-18,t,,"7,190.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,Trifluoromethyl sulphur pentafluoride,t,,"17,400.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,Perfluorocyclopropane,t,,"9,200.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-125,t,,"12,400.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-134,t,,"5,560.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-143a,t,,523,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-227ea,t,,"6,450.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HCFE-235da2 (Isoflurane),t,,491,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-236ea2,t,,"1,790.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-236fa,t,,979,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-245cb2,t,,654,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-245fa1,t,,828,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-245fa2,t,,812,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-254cb2,t,,301,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-263fb2,t,,1,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-329mcc2,t,,"3,070.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-338mcf2,t,,929,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-347mcc3,t,,530,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-347mcf2,t,,854,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-347pcf2,t,,889,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-356mec3,t,,387,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-356pcc3,t,,413,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-356pcf2,t,,719,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-356pcf3,t,,446,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-365mcf3,t,,1,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-374pc2,t,,627,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-449sl (HFE-7100),t,,421,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-569sf2 (HFE-7200),t,,57,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-43-10pccc124 (H-Galden 1040x),t,,"2,820.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-236ca12 (HG-10),t,,"5,350.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-338pcc13 (HG-01),t,,"2,910.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,PFPMIE,t,,"9,710.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),Chloroform,t,,16,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),Dimethylether,t,,1,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),Methylene chloride,t,,9,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),Halon-1201,t,,376,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),Methyl chloride,t,,12,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),ASHRAE Refrigerant designation,t,,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),403B,t,,"4,456.60",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),404A,t,,"3,942.80",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),406A,t,,"1,779.92",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),407C,t,,"1,624.21",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),407F,t,,"1,674.10",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),408A,t,,"3,257.10",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),409A,t,,"1,484.75",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),409B,t,,"1,473.75",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),410A,t,,"1,923.50",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),413A,t,,"1,945.09",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),416A,t,,975.21,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),417A,t,,"2,127.32",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),422A,t,,"2,847.27",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),436A,t,,1.3536,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),436B,t,,1.4712,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),502,t,,"4,785.92",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),507A,t,,"3,985.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-347mmz1 (Sevoflurane),t,,216,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Hydrofluorocarbons (HFCs),HCFE-235da2 (Isoflurane),t,,491,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,HFE-236ea2 (Desflurane),t,,"1,790.00",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Gases,Other gases,Entonox,t,,153.435,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill with gas recovery,Waste - Food,t,,,0.5914,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill with gas recovery,Waste - Garden,t,,,0.4838,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill with gas recovery,Waste - Paper,t,,,0.8602,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill with gas recovery,Waste - Wood (combined),t,,,0.3333,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill with gas recovery,Wood (treated),t,,,0.0538,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill with gas recovery,Wood (untreated),t,,,0.7526,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill with gas recovery,Waste - Textile,t,,,0.4301,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill with gas recovery,Waste - Nappies,t,,,0.215,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill with gas recovery,Waste - Sludge,t,,,0.1344,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill with gas recovery,Waste - Other (Inert),t,,,-   ,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill with gas recovery,General waste,t,,,0.2033,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill with gas recovery,Office waste,t,,,0.584,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill without gas recovery,Waste - Food,t,,,1.848,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill without gas recovery,Waste - Garden,t,,,1.512,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill without gas recovery,Waste - Paper,t,,,2.688,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill without gas recovery,Waste - Wood (combined),t,,,1.0416,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill without gas recovery,Wood (treated),t,,,0.168,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill without gas recovery,Wood (untreated),t,,,2.352,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill without gas recovery,Waste - Textile,t,,,1.344,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill without gas recovery,Waste - Nappies,t,,,0.672,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill without gas recovery,Waste - Sludge,t,,,0.42,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill without gas recovery,Waste - Other (Inert),t,,,-   ,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill without gas recovery,General waste,t,,,0.6353,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Waste to landfill without gas recovery,Office waste,t,,,1.8252,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Biological treatment of waste,Composting,t,,,0.1756,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Biological treatment of waste,Anaerobic digestion,t,,,0.0224,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Non municipal waste,Food,t,,,0.4312,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Non municipal waste,Green waste,t,,,0.3528,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Non municipal waste,Paper,t,,,0.6272,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Non municipal waste,Wood (timber),t,,,0.2352,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Non municipal waste,Textiles,t,,,0.3136,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Non municipal waste,Nappies,t,,,0.1568,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Non municipal waste,Sludge,t,,,0.196,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Non municipal waste,Inert (all other waste),t,,,-   ,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Waste,Non municipal waste,Average for non-municipal solid waste,t,,,0.1539,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Vegetation,Harvest or Deforestation - Stock change accounting,All Planted Forests,ha,,983.9323,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Vegetation,Harvest or Deforestation - Stock change accounting,Pinus Radiata,ha,,"1,023.83",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Vegetation,Harvest or Deforestation - Stock change accounting,Other Softwoods,ha,,"1,198.25",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Vegetation,Harvest or Deforestation - Stock change accounting,All Hardwoods,ha,,787.6911,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Vegetation,Harvest - Averaging accounting,All Planted Forests,ha,,-   ,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Vegetation,Deforestation - Averaging accounting,All Planted Forests,ha,,983.9323,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Vegetation,Harvest - Averaging accounting,Pinus Radiata,ha,,-   ,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Vegetation,Deforestation - Averaging accounting,Pinus Radiata,ha,,"1,023.83",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Vegetation,Harvest - Averaging accounting,Other Softwoods,ha,,-   ,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Vegetation,Deforestation - Averaging accounting,Other Softwoods,ha,,"1,198.25",,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Vegetation,Harvest - Averaging accounting,All Hardwoods,ha,,-   ,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Vegetation,Deforestation - Averaging accounting,All Hardwoods,ha,,787.6911,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Vegetation,Deforestation - Natural forests,Post-1989 Regenerating natural forest,ha,,141.35,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Vegetation,Deforestation - Natural forests,Pre-1990 Regenerating natural forest,ha,,280.2937,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Vegetation,Deforestation - Natural forests,Pre-1990 Tall natural forest,ha,,898.5773,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Bus Transport,National Average for Bus,pkm,,,0.0002,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Bus Transport,Electric Bus,pkm,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Bus Transport,Diesel Bus,pkm,,,0.0002,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Bus Transport,Hydrogen Bus,pkm,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Bus Transport,Average Bus,pkm,,,0.0002,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Rail Transport,Metropolitan Electric,pkm,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Rail Transport,Metropolitan Diesel,pkm,,,0.0003,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Rail Transport,Metropolitan Average,pkm,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Ferry Transport,Ferry Average,pkm,,,0.0003,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Private car default,Petrol,km,,,0.0002,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Private car default,Diesel,km,,,0.0003,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Private car default,Petrol hybrid,km,,,0.0002,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Private car default,Diesel hybrid,km,,,0.0002,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Private car default,PHEV (Petrol) - Petrol consumption,km,,,0.0001,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Private car default,PHEV (Petrol) - Electricity consumption,km,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Private car default,PHEV (Diesel) - Diesel consumption,km,,,0.0001,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Private car default,PHEV (Diesel) - Electricity consumption,km,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Private car default,Electric,km,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Working from home,Default,days,,,0.0005,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Working from home,Without heating,days,,,0.0001,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Employee Commute,Working from home,With heating,days,,,0.0011,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,National,Materials,Concrete In-situ,"In-situ 20 MPa, (OPC)",t,,,0.1128,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,"In-situ 20 MPa, (20% PFA)",t,,,0.0945,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,"In-situ 20 MPa, (30% PFA)",t,,,0.0854,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,"In-situ 20 MPa, (35% PFA)",t,,,0.0809,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,"In-situ 30 MPa, (OPC)",t,,,0.1331,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,"In-situ 30 MPa, (20% PFA)",t,,,0.1114,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,"In-situ 30 MPa, (30% PFA)",t,,,0.1004,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,"In-situ 30 MPa, (35% PFA)",t,,,0.0949,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,"In-situ 40 MPa, (OPC)",t,,,0.1722,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,"In-situ 40 MPa, (20% PFA)",t,,,0.1435,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,"In-situ 40 MPa, (30% PFA)",t,,,0.1291,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,"In-situ 40 MPa, (35% PFA)",t,,,0.1219,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,"In-situ 50 MPa, (OPC)",t,,,0.2034,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,"In-situ 50 MPa, (20% PFA)",t,,,0.1693,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,"In-situ 50 MPa, (30% PFA)",t,,,0.1522,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,"In-situ 50 MPa, (35% PFA)",t,,,0.1437,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete In-situ,In-situ Concrete (Generic),t,,,0.2034,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete Precast,"Precast 30 MPa, (OPC)",t,,,0.1504,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete Precast,"Precast 30 MPa, (20% PFA)",t,,,0.1288,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete Precast,"Precast 30 MPa, (30% PFA)",t,,,0.1028,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete Precast,"Precast 30 MPa, (35% PFA)",t,,,0.0898,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete Precast,"Precast 45 MPa, (OPC)",t,,,0.1988,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete Precast,"Precast 45 MPa, (20% PFA)",t,,,0.1685,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete Precast,"Precast 45 MPa, (30% PFA)",t,,,0.1533,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete Precast,"Precast 45 MPa, (35% PFA)",t,,,0.1457,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Concrete Precast,Precast Concrete (Generic),t,,,0.2439,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Cement,Cement - Generic,t,,,0.7784,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Cement,Cement - Emissions Reduced,t,,,0.6228,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Lime,Lime (hydraulic),t,,,0.8336,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Other Metal,Aluminium - NZ,t,,,5.61,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Other Metal,Aluminium - China,t,,,15.226,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Other Metal,Iron,t,,,1.4972,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Steel,Rail products,t,,,2.8142,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Steel,Steel Reinforcing Bar,t,,,3.88,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Steel,Steel Reinforcing Bar (Aus),t,,,1.8188,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Steel,Steel Coil,t,,,3.83,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Steel,Steel Coil (Aus),t,,,2.5588,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Steel,Steel Reinforcing Mesh,t,,,3.88,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Steel,Steel Reinforcing Mesh (Aus),t,,,2.2088,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Steel,Steel Structural,t,,,3.8688,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Steel,Stainless Steel,t,,,4.4026,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Fuels,Liquid Fuels (Transport),Diesel,kL,,,2.6775,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Fuels,Liquid Fuels (Transport),Diesel 5% Biodiesel Blend,kL,,,2.5464,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Fuels,Liquid Fuels (Transport),Biodiesel,kL,,,0.0541,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Fuels,Liquid Fuels (Transport),Diesel 20% Biodiesel Blend,kL,,,2.1529,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Fuels,Liquid Fuels (Transport),Petrol,kL,,,2.3726,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Aggregate,Aggregate,t,,,0.0053,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Aggregate,Ballast,t,-   ,,0.0043,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Aggregate,Natural Sand,t,,,0.0039,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Aggregate,Sealing Chip,t,,,0.0065,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Aggregate,RipRap,t,,,0.0041,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Aggregate,Topsoil,t,,,0.0041,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Aggregate,Recycled Crushed Glass,t,,,0.0025,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Aggregate,Recycled Crushed Concrete,t,,,0.0008,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Aggregate,Basalt,t,,,0.0041,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Earthworks,Strip and respread topsoil,m3,,,0.0032,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Earthworks,Cut to spoil,m3,,,0.0108,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Earthworks,Cut to fill,m3,,,0.0027,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Earthworks,Import and Place filling,m3,,,0.0094,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Earthworks,High Shrubs and Medium dense trees,m2,,,0.0008,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen 0% RAP",t,,,0.098,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Asphalt,"OGPA, HMA, 6% virgin bitumen 0% RAP",t,,,0.075,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Asphalt,"AC, HMA, 5% virgin bitumen 0% RAP",t,,,0.07,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen 0% RAP",t,,,0.08,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Asphalt,"EMSMA, HMA, 5% virgin bitumen 0% RAP",t,,,0.106,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (5%RAP)",t,,,0.069,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (10%RAP)",t,,,0.0679,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (15%RAP)",t,,,0.0669,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (20%RAP)",t,,,0.0659,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (25%RAP)",t,,,0.0648,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (30%RAP)",t,,,0.0638,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (35%RAP)",t,,,0.0627,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (40%RAP)",t,,,0.0617,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (50%RAP)",t,,,0.0596,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (70%RAP)",t,,,0.0555,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (5%RAP)",t,,,0.0787,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (10%RAP)",t,,,0.0773,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (15%RAP)",t,,,0.076,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (20%RAP)",t,,,0.0746,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (25%RAP)",t,,,0.0733,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (30%RAP)",t,,,0.0719,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (35%RAP)",t,,,0.0706,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (40%RAP)",t,,,0.0692,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (50%RAP)",t,,,0.0665,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (70%RAP)",t,,,0.0611,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (5%RAP)",t,,,0.0738,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (10%RAP)",t,,,0.0725,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (15%RAP)",t,,,0.0713,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (20%RAP)",t,,,0.07,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (25%RAP)",t,,,0.0688,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (30%RAP)",t,,,0.0675,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (35%RAP)",t,,,0.0663,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (40%RAP)",t,,,0.0651,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (50%RAP)",t,,,0.0626,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (70%RAP)",t,,,0.0576,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (5%RAP)",t,,,0.0971,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (10%RAP)",t,,,0.0961,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (15%RAP)",t,,,0.0952,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (20%RAP)",t,,,0.0943,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (25%RAP)",t,,,0.0933,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (30%RAP)",t,,,0.0924,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (35%RAP)",t,,,0.0915,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (40%RAP)",t,,,0.0905,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (50%RAP)",t,,,0.0887,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (70%RAP)",t,,,0.0849,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0 (consistent with the LCAP tool)
+New Zealand,National,Materials,Bitumen,Bitumen,t,-   ,,0.425,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Cable,Comms cable,t,,,2.151,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Cable,Aluminium Power Cable,t,,,5.2373,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Cable,Copper Power Cable,t,,,2.3328,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Glass,Glass,t,,,1.2105,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Plastic,HDPE,t,,,2.5836,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Plastic,PE Pipe,t,,,2.4033,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Plastic,PVC Pressure Pipe,t,,,2.56,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Plastic,PVC Gravity Pipe,t,,,2.32,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Plastic,Recycled Rubber,t,,,0.09,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Plastic,Virgin  Rubber,t,,,2.9901,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Plastic,Glass Fibre Reinforced Plastic (GFRP),t,,,2.4,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Wood,Softwood Timber ,t,,,0.1854,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Wood,Hardwood Timber,t,,,0.6017,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Wood,Glulam,t,,,0.4229,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Paint,Solvent based paint (t),t,,,2.7708,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Paint,Water based paint (t),t,,,2.6844,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Paint,Solvent based paint (m2),m2,,,0.0036,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Paint,Water based paint (m2),m2,,,0.0035,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Paint,Thermoplastic paint (t),t,,,1.37,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Paint,Thermoplastic paint (m2),m2,,,0.0082,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Transport,All Trucks,tkm,,,0.0001,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Transport,Electric Train,pkm,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Transport,Diesel Train,pkm,,,0.0003,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Transport,Average Train,pkm,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Transport,Freight Train (GTK),GTK,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Transport,Freight Train (tkm),tkm,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,National,Materials,Transport,Bulk Carrier,tkm,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0

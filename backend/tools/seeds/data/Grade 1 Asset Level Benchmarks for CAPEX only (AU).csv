@@ -1,0 +1,17 @@
+﻿Jurisdiction,Super Sector,Mastertype,Typecast,Material share of capex - Low,Material share of capex - Mid,Material share of capex - High,Product stage (A1-A3) Emission intensity (tCO2e/$ material spend) - Low,Product stage (A1-A3) Emission intensity (tCO2e/$ material spend) - Mid,Product stage (A1-A3) Emission intensity (tCO2e/$ material spend) - High,transport (A4) Emission intensity (tCO2e/$ material spend) - Low,transport (A4) Emission intensity (tCO2e/$ material spend) - Mid,transport (A4) Emission intensity (tCO2e/$ material spend) - High,Construction (A5) Emission intensity (tCO2e/$ material spend) - Low,Construction (A5) Emission intensity (tCO2e/$ material spend) - Mid,Construction (A5) Emission intensity (tCO2e/$ material spend) - High
+Australia,Building,Transport Building,Parking Facility,19%,26%,32%,0,0,0.001,0,0,0,0,0,0
+Australia,Building,Transport Building,Warehouse,29%,38%,48%,0,0.001,0.001,0,0,0,0,0,0
+Australia,Transport,Rail,Bridge (Rail),23%,31%,39%,0.001,0.002,0.002,0,0,0,0,0,0
+Australia,Transport,Rail,Light Rail,30%,40%,50%,0,0.001,0.001,0,0,0,0,0,0
+Australia,Transport,Rail,"Light Rail, Stabling, and Signalling Works",31%,41%,51%,0,0.001,0.001,0,0,0,0,0,0
+Australia,Transport,Rail,Main Line Works (Rail),14%,18%,23%,0,0,0,0,0,0,0,0,0
+Australia,Transport,Rail,Station (Rail),33%,45%,56%,0.001,0.001,0.001,0,0,0,0,0,0
+Australia,Transport,Rail,tunnel (Rail),13%,18%,22%,0.001,0.001,0.001,0,0,0,0,0,0
+Australia,Transport,Road,Bridge (Road),23%,31%,39%,0.001,0.002,0.002,0,0,0,0,0,0
+Australia,Transport,Road,Low Use Road,18%,23%,29%,0,0,0.001,0,0,0,0,0,0
+Australia,Transport,Road,Low Use Road Rehabilitation Maintenance,20%,27%,34%,0,0,0,0,0,0,0,0,0
+Australia,Transport,Road,Routine Road Maintenance,25%,33%,42%,0,0,0,0,0,0,0,0,0
+Australia,Transport,Road,State Road (Highway/Freeway),17%,20%,28%,0,0.001,0.001,0,0,0,0,0,0
+Australia,Transport,Road,State Road (Highway/Freeway) Rehabilitation Maintenance,23%,31%,38%,0,0,0,0,0,0,0,0,0
+Australia,Transport,Road,tunnel (Road),20%,26%,33%,0.001,0.001,0.001,0,0,0,0,0,0
+Australia,Transport,Road/Rail,Level Crossing,23%,30%,38%,0.001,0.001,0.001,0,0,0,0,0,0

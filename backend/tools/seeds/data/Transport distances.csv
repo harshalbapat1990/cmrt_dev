@@ -1,0 +1,91 @@
+﻿Jurisdiction,Emissions Sub-Category,Truck Transport Mode,Rail Transport Mode,Sea Transport Mode,Truck (km),Rail (km),Sea (km),Source
+Australia,Gaseous Fuels,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+Australia,Liquid Fuels (Stationary),Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+Australia,Liquid Fuels (Transport),Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+Australia,Solid Fuels,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+Australia,Hydrofluorocarbons (HFCs),Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+Australia,Other gases,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+Australia,Perfluorocarbons (PFCs),Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+Australia,Aggregate,Articulated Truck,"Rail, Bulk Transport",Shipping,40,0,0,National Embodied Carbon Databook v1.00 2026
+Australia,Aluminium - extruded,Articulated Truck,"Rail, Bulk Transport",Shipping,720,0,6800,National Embodied Carbon Databook v1.00 2026
+Australia,Cladding/roofing,Articulated Truck,"Rail, Bulk Transport",Shipping,370,0,2600,National Embodied Carbon Databook v1.00 2026
+Australia,Curtain wall,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+Australia,External shading system,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+Australia,Glass,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+Australia,Wall louvre system,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+Australia,Windows & doors,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+Australia,Ceilings & walls,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+Australia,Floors,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+Australia,Stick-framed wall /ceiling system,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+Australia,Wall ceiling Insulated Panel,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+Australia,Building and MEP services,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+Australia,Escalator,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,8300,National Embodied Carbon Databook v1.00 2026
+Australia,Lifts,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,8300,National Embodied Carbon Databook v1.00 2026
+Australia,Photovoltaic panels,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+Australia,Concrete components,Articulated Truck,"Rail, Bulk Transport",Shipping,350,0,3400,National Embodied Carbon Databook v1.00 2026
+Australia,Concrete in-situ,Concrete Agitator Truck,"Rail, Bulk Transport",Shipping,110,0,0,National Embodied Carbon Databook v1.00 2026
+Australia,Precast concrete,Articulated Truck,"Rail, Bulk Transport",Shipping,30,0,0,National Embodied Carbon Databook v1.00 2026
+Australia,Masonry,Articulated Truck,"Rail, Bulk Transport",Shipping,110,0,0,National Embodied Carbon Databook v1.00 2026
+Australia,Paint,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026
+Australia,Asphalt,Articulated Truck,"Rail, Bulk Transport",Shipping,80,0,0,National Embodied Carbon Databook v1.00 2026
+Australia,Bitumen,Articulated Truck,"Rail, Bulk Transport",Shipping,80,0,0,National Embodied Carbon Databook v1.00 2026
+Australia,Pavers,Articulated Truck,"Rail, Bulk Transport",Shipping,80,0,0,National Embodied Carbon Databook v1.00 2026
+Australia,Geopolymer pipes,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+Australia,PE Pipes,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+Australia,PVC Pipes,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+Australia,Steel pipes,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+Australia,Rubbers,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026
+Australia,Sealants and adhesives,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026
+Australia,Thermoplastics,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026
+Australia,Cold rolled steel,Articulated Truck,"Rail, Bulk Transport",Shipping,130,1400,900,National Embodied Carbon Databook v1.00 2026
+Australia,Hot rolled steel,Articulated Truck,"Rail, Bulk Transport",Shipping,130,1400,900,National Embodied Carbon Databook v1.00 2026
+Australia,Reinforcing steel,Articulated Truck,"Rail, Bulk Transport",Shipping,1200,0,2500,National Embodied Carbon Databook v1.00 2026
+Australia,Steel wire,Articulated Truck,"Rail, Bulk Transport",Shipping,1200,0,2500,National Embodied Carbon Databook v1.00 2026
+Australia,Stainless steel,Articulated Truck,"Rail, Bulk Transport",Shipping,1200,0,2500,National Embodied Carbon Databook v1.00 2026
+Australia,Timber (engineered),Articulated Truck,"Rail, Bulk Transport",Shipping,380,0,4700,National Embodied Carbon Databook v1.00 2026
+Australia,Timber (sawn),Articulated Truck,"Rail, Bulk Transport",Shipping,330,0,800,National Embodied Carbon Databook v1.00 2026
+New Zealand,Gaseous Fuels,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+New Zealand,Liquid Fuels (Stationary),Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+New Zealand,Liquid Fuels (Transport),Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+New Zealand,Solid Fuels,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+New Zealand,Hydrofluorocarbons (HFCs),Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+New Zealand,Other gases,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+New Zealand,Perfluorocarbons (PFCs),Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+New Zealand,Aggregate,Articulated Truck,"Rail, Bulk Transport",Shipping,40,0,0,National Embodied Carbon Databook v1.00 2026
+New Zealand,Aluminium - extruded,Articulated Truck,"Rail, Bulk Transport",Shipping,720,0,6800,National Embodied Carbon Databook v1.00 2026
+New Zealand,Cladding/roofing,Articulated Truck,"Rail, Bulk Transport",Shipping,370,0,2600,National Embodied Carbon Databook v1.00 2026
+New Zealand,Curtain wall,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+New Zealand,External shading system,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+New Zealand,Glass,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+New Zealand,Wall louvre system,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+New Zealand,Windows & doors,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+New Zealand,Ceilings & walls,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+New Zealand,Floors,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+New Zealand,Stick-framed wall /ceiling system,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+New Zealand,Wall ceiling Insulated Panel,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+New Zealand,Building and MEP services,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,National Embodied Carbon Databook v1.00 2026
+New Zealand,Escalator,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,8300,National Embodied Carbon Databook v1.00 2026
+New Zealand,Lifts,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,8300,National Embodied Carbon Databook v1.00 2026
+New Zealand,Photovoltaic panels,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+New Zealand,Concrete components,Articulated Truck,"Rail, Bulk Transport",Shipping,350,0,3400,National Embodied Carbon Databook v1.00 2026
+New Zealand,Concrete in-situ,Concrete Agitator Truck,"Rail, Bulk Transport",Shipping,110,0,0,National Embodied Carbon Databook v1.00 2026
+New Zealand,Precast concrete,Articulated Truck,"Rail, Bulk Transport",Shipping,30,0,0,National Embodied Carbon Databook v1.00 2026
+New Zealand,Masonry,Articulated Truck,"Rail, Bulk Transport",Shipping,110,0,0,National Embodied Carbon Databook v1.00 2026
+New Zealand,Paint,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026
+New Zealand,Asphalt,Articulated Truck,"Rail, Bulk Transport",Shipping,80,0,0,National Embodied Carbon Databook v1.00 2026
+New Zealand,Bitumen,Articulated Truck,"Rail, Bulk Transport",Shipping,80,0,0,National Embodied Carbon Databook v1.00 2026
+New Zealand,Pavers,Articulated Truck,"Rail, Bulk Transport",Shipping,80,0,0,National Embodied Carbon Databook v1.00 2026
+New Zealand,Geopolymer pipes,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+New Zealand,PE Pipes,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+New Zealand,PVC Pipes,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+New Zealand,Steel pipes,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026
+New Zealand,Rubbers,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026
+New Zealand,Sealants and adhesives,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026
+New Zealand,Thermoplastics,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026
+New Zealand,Cold rolled steel,Articulated Truck,"Rail, Bulk Transport",Shipping,130,1400,900,National Embodied Carbon Databook v1.00 2026
+New Zealand,Hot rolled steel,Articulated Truck,"Rail, Bulk Transport",Shipping,130,1400,900,National Embodied Carbon Databook v1.00 2026
+New Zealand,Reinforcing steel,Articulated Truck,"Rail, Bulk Transport",Shipping,1200,0,2500,National Embodied Carbon Databook v1.00 2026
+New Zealand,Steel wire,Articulated Truck,"Rail, Bulk Transport",Shipping,1200,0,2500,National Embodied Carbon Databook v1.00 2026
+New Zealand,Stainless steel,Articulated Truck,"Rail, Bulk Transport",Shipping,1200,0,2500,National Embodied Carbon Databook v1.00 2026
+New Zealand,Timber (engineered),Articulated Truck,"Rail, Bulk Transport",Shipping,380,0,4700,National Embodied Carbon Databook v1.00 2026
+New Zealand,Timber (sawn),Articulated Truck,"Rail, Bulk Transport",Shipping,330,0,800,National Embodied Carbon Databook v1.00 2026

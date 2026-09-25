@@ -1,0 +1,31 @@
+Jurisdiction,Activity Type,Item,Unit,Emissions intensity (tCO2e/UoM),Default frequency (years),Source/Comments
+Australia,Road resurface,Minor Road (chipseal) - Highways or Secondary Roads,m2,0.0413,10,NZ Transport Agency PEET
+Australia,Road resurface,Major Road - Open-Graded Porous Asphalt (OGPA),m2,0.0492,10,NZ Transport Agency PEET
+Australia,Road resurface,Major Road - Open-Graded Porous Asphalt (OGPA) with membrane seal,m2,0.0506,10,NZ Transport Agency PEET
+Australia,Road resurface,Major Road - Epoxy-Modified Open-Graded Porous Asphalt (EMOGPA),m2,0.052,10,NZ Transport Agency PEET
+Australia,Road resurface,Major Road - Epoxy-Modified Open-Graded Porous Asphalt (EMOGPA) with membrane seal,m2,0.054,10,NZ Transport Agency PEET
+Australia,Road resurface,Local road - urban,m2,0.0516,10,NZ Transport Agency PEET
+Australia,Road resurface,Local road - rural,m2,0.0425,10,NZ Transport Agency PEET
+Australia,Road reconstruction,Minor road - Unbound aggregate overlay and bound sub-base treatment,m2,0.0783,25,NZ Transport Agency PEET
+Australia,Road reconstruction,Minor road - Unbound aggregate overlay treatment,m2,0.0125,25,NZ Transport Agency PEET
+Australia,Road reconstruction,Minor road - recycle treatment,m2,0.0674,25,NZ Transport Agency PEET
+Australia,Road reconstruction,Major road - Structural Asphalt Overlay treatment,m2,0.0824,25,NZ Transport Agency PEET
+Australia,Road reconstruction,Major road - Structural Asphalt Inlay treatment ,m2,0.0803,25,NZ Transport Agency PEET
+Australia,Road reconstruction,Major road - Foamed Bitumen Basecourse treatment ,m2,0.071,25,NZ Transport Agency PEET
+Australia,Road reconstruction,Urban Reconstruction,m2,0.0894,25,NZ Transport Agency PEET
+Australia,Road reconstruction,Rural Reconstruction,m2,0.032,25,NZ Transport Agency PEET
+New Zealand,Road resurface,Minor Road (chipseal) - Highways or Secondary Roads,m2,0.0413,10,NZ Transport Agency PEET
+New Zealand,Road resurface,Major Road - Open-Graded Porous Asphalt (OGPA),m2,0.0492,10,NZ Transport Agency PEET
+New Zealand,Road resurface,Major Road - Open-Graded Porous Asphalt (OGPA) with membrane seal,m2,0.0506,10,NZ Transport Agency PEET
+New Zealand,Road resurface,Major Road - Epoxy-Modified Open-Graded Porous Asphalt (EMOGPA),m2,0.052,10,NZ Transport Agency PEET
+New Zealand,Road resurface,Major Road - Epoxy-Modified Open-Graded Porous Asphalt (EMOGPA) with membrane seal,m2,0.054,10,NZ Transport Agency PEET
+New Zealand,Road resurface,Local road - urban,m2,0.0516,10,NZ Transport Agency PEET
+New Zealand,Road resurface,Local road - rural,m2,0.0425,10,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Minor road - Unbound aggregate overlay and bound sub-base treatment,m2,0.0783,25,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Minor road - Unbound aggregate overlay treatment,m2,0.0125,25,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Minor road - recycle treatment,m2,0.0674,25,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Major road - Structural Asphalt Overlay treatment,m2,0.0824,25,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Major road - Structural Asphalt Inlay treatment ,m2,0.0803,25,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Major road - Foamed Bitumen Basecourse treatment ,m2,0.071,25,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Urban Reconstruction,m2,0.0894,25,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Rural Reconstruction,m2,0.032,25,NZ Transport Agency PEET

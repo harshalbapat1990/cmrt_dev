@@ -1,0 +1,132 @@
+name: Build and Push Frontend and Backend Docker Images to ACR
+
+on:
+  push:
+    branches:
+      - main
+      - development
+  workflow_dispatch:
+
+jobs:
+  backend:
+    name: Build & Push Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select ACR credentials & tag (backend)
+        shell: bash
+        run: |
+          echo "${GITHUB_REF_NAME}"
+
+          echo "AUSTROADS_ACR_SERVER=${{ secrets.AUSTROADS_ACR_SERVER }}" >> $GITHUB_ENV
+          echo "AUSTROADS_ACR_USERNAME=${{ secrets.AUSTROADS_ACR_USERNAME }}" >> $GITHUB_ENV
+          echo "AUSTROADS_ACR_PASSWORD=${{ secrets.AUSTROADS_ACR_PASSWORD }}" >> $GITHUB_ENV
+
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            echo "Main branch environment variables"
+            echo "ACR_SERVER=${{ secrets.ALLUVIAL_ACR_SERVER }}" >> $GITHUB_ENV
+            echo "ACR_USERNAME=${{ secrets.ALLUVIAL_ACR_USERNAME }}" >> $GITHUB_ENV
+            echo "ACR_PASSWORD=${{ secrets.ALLUVIAL_ACR_PASSWORD }}" >> $GITHUB_ENV
+            echo "IMAGE_TAG=latest" >> $GITHUB_ENV
+          else
+            echo "Development branch environment variables"
+            echo "ACR_SERVER=${{ secrets.ACR_SERVER_DEV }}" >> $GITHUB_ENV
+            echo "ACR_USERNAME=${{ secrets.ACR_USERNAME_DEV }}" >> $GITHUB_ENV
+            echo "ACR_PASSWORD=${{ secrets.ACR_PASSWORD_DEV }}" >> $GITHUB_ENV
+            echo "IMAGE_TAG=dev" >> $GITHUB_ENV
+          fi
+
+      - name: Login to selected ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.ACR_SERVER }}
+          username: ${{ env.ACR_USERNAME }}
+          password: ${{ env.ACR_PASSWORD }}
+
+      - name: Login to Austroads ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.AUSTROADS_ACR_SERVER }}
+          username: ${{ env.AUSTROADS_ACR_USERNAME }}
+          password: ${{ env.AUSTROADS_ACR_PASSWORD }}
+
+      - name: Build & Push Backend Image
+        run: |
+          docker build \
+            --file Dockerfile \
+            -t ${ACR_SERVER}/cmrt_backend_app:${IMAGE_TAG} \
+            -t ${ACR_SERVER}/cmrt_backend_app:${GITHUB_SHA} \
+            -t ${AUSTROADS_ACR_SERVER}/cmrt_backend_app:${IMAGE_TAG} \
+            -t ${AUSTROADS_ACR_SERVER}/cmrt_backend_app:${GITHUB_SHA} \
+            .
+
+          docker push ${ACR_SERVER}/cmrt_backend_app:${IMAGE_TAG}
+          docker push ${ACR_SERVER}/cmrt_backend_app:${GITHUB_SHA}
+          docker push ${AUSTROADS_ACR_SERVER}/cmrt_backend_app:${IMAGE_TAG}
+          docker push ${AUSTROADS_ACR_SERVER}/cmrt_backend_app:${GITHUB_SHA}
+
+  frontend:
+    name: Build & Push Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select ACR credentials & tag (frontend)
+        shell: bash
+        run: |
+          echo "${GITHUB_REF_NAME}"
+
+          echo "AUSTROADS_ACR_SERVER=${{ secrets.AUSTROADS_ACR_SERVER }}" >> $GITHUB_ENV
+          echo "AUSTROADS_ACR_USERNAME=${{ secrets.AUSTROADS_ACR_USERNAME }}" >> $GITHUB_ENV
+          echo "AUSTROADS_ACR_PASSWORD=${{ secrets.AUSTROADS_ACR_PASSWORD }}" >> $GITHUB_ENV
+
+          if [ "${GITHUB_REF_NAME}" = "main" ]; then
+            echo "Main branch environment variables"
+            echo "ACR_SERVER=${{ secrets.ALLUVIAL_ACR_SERVER }}" >> $GITHUB_ENV
+            echo "ACR_USERNAME=${{ secrets.ALLUVIAL_ACR_USERNAME }}" >> $GITHUB_ENV
+            echo "ACR_PASSWORD=${{ secrets.ALLUVIAL_ACR_PASSWORD }}" >> $GITHUB_ENV
+            echo "IMAGE_TAG=latest" >> $GITHUB_ENV
+          else
+            echo "Development branch environment variables"
+            echo "ACR_SERVER=${{ secrets.ACR_SERVER_DEV }}" >> $GITHUB_ENV
+            echo "ACR_USERNAME=${{ secrets.ACR_USERNAME_DEV }}" >> $GITHUB_ENV
+            echo "ACR_PASSWORD=${{ secrets.ACR_PASSWORD_DEV }}" >> $GITHUB_ENV
+            echo "IMAGE_TAG=dev" >> $GITHUB_ENV
+          fi
+
+      - name: Login to selected ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.ACR_SERVER }}
+          username: ${{ env.ACR_USERNAME }}
+          password: ${{ env.ACR_PASSWORD }}
+
+      - name: Login to Austroads ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ env.AUSTROADS_ACR_SERVER }}
+          username: ${{ env.AUSTROADS_ACR_USERNAME }}
+          password: ${{ env.AUSTROADS_ACR_PASSWORD }}
+
+      - name: Build & Push Frontend Image
+        run: |
+          docker build \
+            --file Dockerfile \
+            --build-arg VITE_API_URL=${{ secrets.VITE_API_URL }} \
+            -t ${ACR_SERVER}/cmrt_frontend_app:${IMAGE_TAG} \
+            -t ${ACR_SERVER}/cmrt_frontend_app:${GITHUB_SHA} \
+            -t ${AUSTROADS_ACR_SERVER}/cmrt_frontend_app:${IMAGE_TAG} \
+            -t ${AUSTROADS_ACR_SERVER}/cmrt_frontend_app:${GITHUB_SHA} \
+            .
+
+          docker push ${ACR_SERVER}/cmrt_frontend_app:${IMAGE_TAG}
+          docker push ${ACR_SERVER}/cmrt_frontend_app:${GITHUB_SHA}
+          docker push ${AUSTROADS_ACR_SERVER}/cmrt_frontend_app:${IMAGE_TAG}
+          docker push ${AUSTROADS_ACR_SERVER}/cmrt_frontend_app:${GITHUB_SHA}

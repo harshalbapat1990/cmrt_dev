@@ -1,0 +1,879 @@
+﻿Jurisdiction,Emissions Category,Emissions Sub-Category,Emissions Source,UoM,Carbon Storage (tCO2e/UoM),Scope 1 Emissions Factor (tCO2e/UoM),Scope 2 Emissions Factor (tCO2e/UoM),Scope 3 Emissions Factor (tCO2e/UoM),Source
+Australia,Fuels,Gaseous Fuels,Natural gas distributed in a pipeline,m3,,0,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Gaseous Fuels,Coal seam methane that is captured for combustion,m3,,0,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Gaseous Fuels,Coal mine waste gas that is captured for combustion,m3,,0,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Gaseous Fuels,Compressed natural gas (reverting to standard conditions),m3,,0,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Gaseous Fuels,Unprocessed natural gas,m3,,0,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Gaseous Fuels,Ethane ,m3,,0,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Gaseous Fuels,Coke oven gas,m3,,0,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Gaseous Fuels,Blast furnace gas,m3,,0,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Gaseous Fuels,Town gas ,m3,,0,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Gaseous Fuels,Liquefied natural gas,kL,,1.3,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Gaseous Fuels,Other gaseous fossil fuels ,m3,,0,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Gaseous Fuels,Landfill biogas that is captured for combustion (methane only),m3,,0,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Gaseous Fuels,Sludge biogas that is captured for combustion (methane only),m3,,0,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Gaseous Fuels,Other biogas that is captured for combustion,m3,,0,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Gaseous Fuels,Hydrogen,m3,,0,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Petroleum based oils,t,,0.54,,0.7,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Petroleum based greases,t,,0.14,,0.7,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Crude oil including crude oil condensates,t,,3.17,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Other natural gas liquids ,t,,2.85,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Gasoline (other than for use as fuel in an aircraft),t,,2.32,,0.59,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Gasoline for use as fuel in an aircraft (avgas),kL,,2.23,,0.6,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Kerosene (other than for use as fuel in an aircraft),kL,,2.59,,0.68,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Kerosene for use as fuel in an aircraft (aviation turbine fuel),kL,,2.57,,0.66,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Heating oil,kL,,2.6,,0.67,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Diesel oil,kL,,2.71,,0.67,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Fuel oil,kL,,2.93,,0.72,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Liquefied aromatic hydrocarbons,kL,,2.41,,0.62,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Solvents: mineral turpentine or white spirits,kL,,2.41,,0.62,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Liquefied petroleum gas,kL,,1.56,,0.52,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Naphtha,kL,,2.19,,0.57,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Petroleum coke,kL,,3.18,,0.62,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Refinery gas and liquids,kL,,2.35,,0.77,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Refinery coke,kL,,3.18,,0.62,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Other petroleum based products ,kL,,2.41,,0.62,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Biodiesel ,kL,,0.01,,1.31,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Ethanol for use as a fuel in an internal combustion engine,kL,,0.01,,1.09,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Other biofuels,kL,,0.01,,1.09,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Renewable aviation kerosene,kL,,0.01,,1.09,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),Renewable diesel,kL,,0.01,,1.09,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Gasoline (Cars and light commercial vehicles),kL,,2.31,,0.59,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Diesel oil (Cars and light commercial vehicles),kL,,2.72,,0.67,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Liquefied petroleum gas (LPG) (Cars and light commercial vehicles),kL,,1.6,,0.53,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Fuel oil (Cars and light commercial vehicles),kL,,2.95,,0.72,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Ethanol (Cars and light commercial vehicles),kL,,0.01,,1.09,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Biodiesel (Cars and light commercial vehicles),kL,,0.09,,1.31,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Other biofuels (Cars and light commercial vehicles),kL,,0.06,,1.09,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Compressed natural gas (Light duty vehicles),m3,,0,,0,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Liquefied natural gas (Light duty vehicles),kL,,1.49,,0.46,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Compressed natural gas (Heavy duty vehicles),kL,,0,,0,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Liquefied natural gas (Heavy duty vehicles),kL,,1.38,,0.46,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Diesel oil - Euro iv or higher (Heavy duty vehicles),kL,,2.72,,0.67,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Diesel oil - Euro iii (Heavy duty vehicles),kL,,2.72,,0.67,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Diesel oil - Euro i (Heavy duty vehicles),kL,,2.72,,0.67,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Renewable diesel – Euro iv or higher (Heavy duty vehicles),kL,,0.02,, -   ,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Renewable diesel – Euro iii (Heavy duty vehicles),kL,,0.02,, -   ,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Renewable diesel – Euro I (Heavy duty vehicles),kL,,0.02,, -   ,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Gasoline for use as fuel in an aircraft,kL,,2.24,,0.6,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Kerosene for use as fuel in an aircraft,kL,,2.58,,0.66,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),Renewable aviation kerosene,kL,,0.02,, -   ,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Bituminous coal ,t,,2.44,,0.08,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Sub-bituminous coal ,t,,1.9,,0.05,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Anthracite ,t,,2.62,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Brown coal,t,,0.96,,0,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Coking coal,t,,2.76,,0.19,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Coal briquettes,t,,2.11,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Coal coke,t,,2.9,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Coal tar,t,,3.08,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Other solid fossil fuels ,t,,2.11,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Industrial materials and tyres that are derived from fossil fuels,t,,2.15,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Non‑biomass municipal materials,t,,0.93,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Dry wood,t,,0.02,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Green and air dried wood,t,,0.01,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Sulphite lyes,t,,0.01,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Bagasse,t,,0.01,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,"Biomass, municipal and industrial materials",t,,0.02,,,National Greenhouse Account Factors 2025
+,,,,,,,,,
+Australia,Fuels,Solid Fuels,Charcoal,t,,0.2,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Solid Fuels,Primary solid biomass fuels,t,,0.02,,,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),E10 blend,t,,2.02,,0.67,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),B5 blend,t,,2.56,,0.68,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),B20 blend,t,,2.13,,0.72,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),E10 blend,t,,2.02,,0.67,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),B5 blend,t,,2.57,,0.68,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),B20 blend,t,,2.15,,0.72,National Greenhouse Account Factors 2025
+Australia,Electricity,Grid Electricity,Grid Electricity 2025,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2026,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2027,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2028,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2029,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2030,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2031,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2032,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2033,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2034,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2035,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2036,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2037,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2038,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2039,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2040,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2041,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2042,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2043,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2044,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2045,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2046,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2047,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2048,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2049,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity 2050,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Grid Electricity,Grid Electricity Post-2050,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2025,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2026,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2027,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2028,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2029,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2030,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2031,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2032,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2033,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2034,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2035,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2036,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2037,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2038,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2039,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2040,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2041,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2042,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2043,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2044,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2045,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2046,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2047,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2048,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2049,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity 2050,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,On-site renewables,On-site renewable electricity Post-2050,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2025,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2026,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2027,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2028,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2029,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2030,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2031,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2032,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2033,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2034,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2035,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2036,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2037,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2038,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2039,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2040,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2041,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2042,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2043,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2044,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2045,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2046,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2047,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2048,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2049,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity 2050,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Electricity,Off-site renewables,Off-site renewable electricity Post-2050,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+Australia,Gases,Hydrofluorocarbons (HFCs),HFC-23,t,,"12,400.00",,,National Greenhouse Account Factors 2025
+Australia,Gases,Hydrofluorocarbons (HFCs),HFC-32,t,,677,,,National Greenhouse Account Factors 2025
+Australia,Gases,Hydrofluorocarbons (HFCs),HFC-41,t,,116,,,National Greenhouse Account Factors 2025
+Australia,Gases,Hydrofluorocarbons (HFCs),HFC-43-10mee,t,,"1,650.00",,,National Greenhouse Account Factors 2025
+Australia,Gases,Hydrofluorocarbons (HFCs),HFC-125,t,,"3,170.00",,,National Greenhouse Account Factors 2025
+Australia,Gases,Hydrofluorocarbons (HFCs),HFC-134,t,,"1,120.00",,,National Greenhouse Account Factors 2025
+Australia,Gases,Hydrofluorocarbons (HFCs),HFC-134a,t,,"1,300.00",,,National Greenhouse Account Factors 2025
+Australia,Gases,Hydrofluorocarbons (HFCs),HFC-143,t,,328,,,National Greenhouse Account Factors 2025
+Australia,Gases,Hydrofluorocarbons (HFCs),HFC-143a,t,,"4,800.00",,,National Greenhouse Account Factors 2025
+Australia,Gases,Hydrofluorocarbons (HFCs),HFC-152a,t,,138,,,National Greenhouse Account Factors 2025
+Australia,Gases,Hydrofluorocarbons (HFCs),HFC-227ea,t,,"3,350.00",,,National Greenhouse Account Factors 2025
+Australia,Gases,Hydrofluorocarbons (HFCs),HFC-236fa,t,,"8,060.00",,,National Greenhouse Account Factors 2025
+Australia,Gases,Hydrofluorocarbons (HFCs),HFC-245ca,t,,716,,,National Greenhouse Account Factors 2025
+Australia,Gases,Hydrofluorocarbons (HFCs),HFC-245fa,t,,858,,,National Greenhouse Account Factors 2025
+Australia,Gases,Hydrofluorocarbons (HFCs),HFC-365mfc,t,,804,,,National Greenhouse Account Factors 2025
+Australia,Gases,Other gases,Methane,t,,28,,,National Greenhouse Account Factors 2025
+Australia,Gases,Other gases,Nitrous oxide,t,,265,,,National Greenhouse Account Factors 2025
+Australia,Gases,Other gases,Sulphur hexafluoride,t,,"23,500.00",,,National Greenhouse Account Factors 2025
+Australia,Gases,Perfluorocarbons (PFCs),Perfluoromethane (tetrafluoromethane),t,,"6,630.00",,,National Greenhouse Account Factors 2025
+Australia,Gases,Perfluorocarbons (PFCs),Perfluoroethane (hexafluoroethane),t,,"11,100.00",,,National Greenhouse Account Factors 2025
+Australia,Gases,Perfluorocarbons (PFCs),Perfluoropropane,t,,"8,900.00",,,National Greenhouse Account Factors 2025
+Australia,Gases,Perfluorocarbons (PFCs),Perfluorobutane,t,,"9,200.00",,,National Greenhouse Account Factors 2025
+Australia,Gases,Perfluorocarbons (PFCs),Perfluorocyclobutane,t,,"9,540.00",,,National Greenhouse Account Factors 2025
+Australia,Gases,Perfluorocarbons (PFCs),Perfluoropentane,t,,"8,550.00",,,National Greenhouse Account Factors 2025
+Australia,Gases,Perfluorocarbons (PFCs),Perfluorohexane,t,,"7,910.00",,,National Greenhouse Account Factors 2025
+Australia,Materials,Aggregate,Ballast,t,0,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Aggregate,Crushed Rock,t,0,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Aggregate,Crushed Slag Aggregate,t,0,,,0.02,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Aggregate,General Fill,t,0,,,-   ,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Aggregate,General Sand,t,0,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Aggregate,Gravel,t,0,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Aggregate,Recycled Aggregates,t,0,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Aggregate,Stabilised sand,m3,0,,,0.19,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Aluminium - extruded,Extruded aluminium - anodised,t,0,,,19.3,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Aluminium - extruded,Extruded aluminium - powder coated,t,0,,,18.2,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Aluminium - extruded,Extruded aluminium - uncoated,t,0,,,17.4,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Cladding/roofing,Aluminium sheeting,t,0,,,11.8,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Cladding/roofing,Clay and terracotta roof tiles,t,0,,,0.31,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Cladding/roofing,Concrete roof tiles,t,0,,,0.16,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Cladding/roofing,Fibre cement board,m2,-0.0251,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Cladding/roofing,Glassfibre reinforced concrete cladding,t,0,,,0.54,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Cladding/roofing,Steel sheeting - metallic coat,m2,0,,,0.02,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Cladding/roofing,Steel sheeting - painted,m2,0,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,AAC and steel based system - generic ,m2,0,,,0.05,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 1: 100% DGU 8T-16-44.2",m2,0,,,0.26,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 2: aluminium cladding, 50% DGU 8T-16-44.2",m2,0,,,0.38,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 3: aluminium cladding with vertical fins, 50% DGU 8T-16-44.2",m2,0,,,0.51,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 4: aluminium cladding, 50% TGU 8T-16-6-16-44.2",m2,0,,,0.39,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 5: insulated shadow box, 50% DGU 8T-16-44.2",m2,0,,,0.34,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 6: GRC cladding, 50% DGU 8T-16-44.2",m2,0,,,0.45,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 7: opaque panel, 100% aluminium cladding",m2,0,,,0.68,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,"Curtain wall, Double skin type 1: deep cavity aluminium façade, 100% single + DGU 66.2 + 8T-16-44.2",m2,0,,,0.8,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,"Curtain wall, Double skin type 2: narrow cavity aluminium façade, 100% single + DGU 66.2 + 8T-16-44.2",m2,0,,,0.41,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,Wall system steel frame - 1 side plasterboard (150 mm stud),m2,-0.496,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,Wall system steel frame - 1 side plasterboard (92mm stud),m2,-0.496,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,Wall system steel frame - 2 sides plasterboard (150 mm stud),m2,-0.991,,,0.02,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,Wall system steel frame - 2 sides plasterboard (92mm stud),m2,-0.991,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,Wall system timber frame - 1 side plasterboard ,m2,-8.94,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Curtain wall,Wall system timber frame - 2 sides plasterboard ,m2,-9.43,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,External shading system,Aluminium frame shading system,t,0,,,18.2,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,External shading system,Steel frame shading system,t,0,,,3.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Glass,Glass (treated or untreated),t,0,,,1.66,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Wall louvre system,Aluminium louvre ,t,0,,,18.2,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Windows & doors,Door - aluminium with glazing - generic,m2,0,,,0.25,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Windows & doors,Door - fully glazed - minor aluminium frame - generic,m2,0,,,0.2,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Windows & doors,Door - steel solid - generic,m2,0,,,0.3,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Windows & doors,Door - steel with glazing - generic,m2,0,,,0.14,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Windows & doors,Door - timber solid - generic,m2,-68.8,,,0.08,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Windows & doors,Door - timber with glazing - generic,m2,-27.4,,,0.05,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Windows & doors,"Revolving door - glass, aluminium, steel - generic",m2,-26.3,,,1.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Windows & doors,Window - Aluminium frame - Generic,m2,0,,,0.16,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Windows & doors,Window - Timber frame - Generic,m2,-5.99,,,0.19,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Ceilings & walls,AAC panel (inc. reinforced),t,0,,,0.45,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Ceilings & walls,Ceiling system aluminium frame suspended (powder coated aluminium),m2,0,,,0.15,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Ceilings & walls,Ceiling system steel frame suspended (fibre cement),m2,-0.0234,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Ceilings & walls,Ceiling system steel frame suspended (mineral tile),m2,0,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Ceilings & walls,Ceiling system steel frame suspended (plasterboard),m2,-0.496,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Ceilings & walls,Fibre cement sheet,m2,-0.0251,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Ceilings & walls,MDF (Medium Density Fibreboard),m3,-1230,,,0.82,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Ceilings & walls,Particleboard wall/ceiling,m3,-1080,,,0.43,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Ceilings & walls,Plasterboard,m2,-0.393,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Ceilings & walls,Steel frame,t,0,,,3.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Ceilings & walls,Timber framing,m3,-857,,,0.19,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Floors,Access flooring,m2,0,,,0.04,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Floors,Carpet flooring,m2,0,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Floors,Epoxy flooring,t,0,,,2.8,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Floors,Hybrid flooring,m2,0,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Floors,Laminate flooring,m2,0,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Floors,Linoleum flooring,m2,0,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Floors,Rubber flooring,m2,0,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Floors,Vinyl flooring,m2,0,,,0.02,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Stick-framed wall /ceiling system,Ceiling tile,m2,0,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Wall ceiling Insulated Panel,Structural insulated panels>100mm,m2,0,,,0.06,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Wall ceiling Insulated Panel,Structural insulated panels≤100mm,m2,0,,,0.04,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Windows & doors,Roller doors,m2,0,,,0.1,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Building and MEP services,"High rise office, hotel or retail building (>10 floors)",m2,0,,,0.06,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Building and MEP services,Hospital or high services intensity building,m2,0,,,0.07,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Building and MEP services,"Low or mid rise office, hotel or retail building (≤10 floors)",m2,0,,,0.06,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Building and MEP services,Residential building,m2,0,,,0.05,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Building and MEP services,Warehouse or industrial building,m2,0,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Escalator,Escalator,Each,0,,,50.5,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Lifts,Lift (elevator) for 10+ floors,Each,0,,,167,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Lifts,Lift (elevator) for 4-10 floors,Each,0,,,41.5,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Lifts,Lift (elevator) for less than 4 floors,Each,0,,,14.2,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Photovoltaic panels,Photovoltaic panel (monocrystalline),m2,0,,,0.28,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Photovoltaic panels,Photovoltaic panel (polycrystalline),m2,0,,,0.2,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete components,General concrete admixtures,t,0,,,1.67,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete components,Coarse Aggregates,t,0,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete components,Concrete production process,m3,0,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete components,Fine Aggregates,t,0,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete components,Fly ash,t,0,,,-   ,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete components,Silica fume,t,0,,,1.6,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete components,General purpose cement,t,0,,,0.9,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete components,GGBF slag,t,0,,,0.17,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete components,Manufactured sand,t,0,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete components,Mortar or screed (1:3 cement: sand mix) (Using CEM I cement),t,0,,,0.18,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete components,Mortar or screed (1:4 cement:sand mix) (Using CEM I cement),t,0,,,0.15,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete components,Portland Cement,t,0,,,0.95,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete components,Recycled Aggregates,t,0,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete components,Steel fibres for concrete reinforcement,t,0,,,1.6,National Embodied Carbon Databook v1.00 2026
+Australia,Water,Wastewater,Wastewater treatment,kL,0,,,0,AusLCI version 1.45
+Australia,Water,Water Use,Mains Water,kL,0,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Water,Water Use,On-site recycled & captured water,kL,0,,,-   ,NA
+Australia,Water,Water Use,Off-site recycled water,kL,0,,,0,"Cook, S. Hall. M. and Gregory, A. (2012) Energy use in the provision and consumption of urban water in Australia: an update. CSIRO Water for a Healthy Country Flagship, Australia. Prepared for the Water Services Association of Australia."
+Australia,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >10 MPa to ≤20 MPa",m3,0,,,0.2,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >20 MPa to ≤25 MPa",m3,0,,,0.22,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >25 MPa to ≤32 MPa",m3,0,,,0.25,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >32 MPa to ≤40 MPa",m3,0,,,0.31,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >40 MPa to ≤50 MPa",m3,0,,,0.35,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >50 MPa to ≤65 MPa",m3,0,,,0.4,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >65 MPa to ≤80 MPa",m3,0,,,0.43,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >80 MPa +",m3,0,,,0.56,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Concrete in-situ,"Normal class: Concrete in-situ, ≤10 MPa",m3,0,,,0.18,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Precast concrete,Autoclaved aerated concrete (AAC) block (no fill or reinforcing),m3,0,,,0.19,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Precast concrete,Hollow core - precast concrete (inc. reinforcing),m3,0,,,0.34,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Precast concrete,Precast concrete block (exc. core fill or reinforcing),t,0,,,0.16,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Precast concrete,Wall panel - Precast concrete panel (inc. reinforcing),t,0,,,0.23,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Masonry,Clay brick,t,0,,,0.18,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Masonry,Stone brick,t,0,,,0.24,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Paint,Paint - solvent based,t,0,,,3.76,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Paint,Paint - Water based,t,0,,,2.15,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,General Asphalt,t,0,,,0.07,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Hot mix asphalt, <2.5% virgin bitumen (>60% RAP)",t,0,,,0.04,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Hot mix asphalt, 2.5-3.4% virgin bitumen (40-60% RAP)",t,0,,,0.04,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Hot mix asphalt, 3.5% virgin bitumen (40% RAP)",t,0,,,0.05,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Hot mix asphalt, 3.75% virgin bitumen (35% RAP)",t,0,,,0.05,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Hot mix asphalt, 4% virgin bitumen (30% RAP)",t,0,,,0.05,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Hot mix asphalt, 4.25% virgin bitumen (25% RAP)",t,0,,,0.05,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Hot mix asphalt, 4.5% virgin bitumen (20% RAP)",t,0,,,0.05,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Hot mix asphalt, 5% virgin bitumen (10% RAP)",t,0,,,0.06,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Hot mix asphalt, 5.25% virgin bitumen (5% RAP)",t,0,,,0.06,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",t,0,,,0.06,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Warm mix asphalt, <2.5% virgin bitumen (>60% RAP)",t,0,,,0.03,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Warm mix asphalt, 2.5-3.4% virgin bitumen (40-60% RAP)",t,0,,,0.04,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Warm mix asphalt, 3.5% virgin bitumen (40% RAP)",t,0,,,0.04,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Warm mix asphalt, 3.75% virgin bitumen (35% RAP)",t,0,,,0.04,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Warm mix asphalt, 4% virgin bitumen (30% RAP)",t,0,,,0.05,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Warm mix asphalt, 4.25% virgin bitumen (25% RAP)",t,0,,,0.05,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Warm mix asphalt, 4.5% virgin bitumen (20% RAP)",t,0,,,0.05,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Warm mix asphalt, 4.75% virgin bitumen (15% RAP)",t,0,,,0.05,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Warm mix asphalt, 5% virgin bitumen (10% RAP)",t,0,,,0.05,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Warm mix asphalt, 5.25% virgin bitumen (5% RAP)",t,0,,,0.05,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Asphalt,"Warm mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",t,0,,,0.06,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Bitumen,Bitumen,t,0,,,0.19,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Bitumen,Cutback bitumen,kL,0,,,0.72,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Pavers,Ceramic paver/tile,t,0,,,0.55,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Pavers,Concrete paver/tile,t,0,,,0.16,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Pavers,Stone paver/tile,t,0,,,0.24,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Geopolymer pipes,Geopolymer pipes,t,0,,,0.14,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,PE Pipes,HDPE Pipes,t,0,,,2.52,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,PVC Pipes,PVC Pipes,t,0,,,3.23,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Steel pipes,Steel pipe (welded),t,0,,,2.51,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Rubbers,Synthetic rubber,t,0,,,2.55,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Sealants and adhesives,Sealants and adhesives - Epoxy Resin,t,0,,,5.7,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Thermoplastics,High density polyethylene,t,0,,,2.38,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Thermoplastics,Low density polyethylene,t,0,,,3.52,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Thermoplastics,Nylon 6,t,0,,,9.14,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Thermoplastics,Polycarbonate,t,0,,,7.62,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Thermoplastics,Polyethylene,t,0,,,2.54,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Thermoplastics,Polypropylene,t,0,,,2.66,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Thermoplastics,"Polystyrene, expanded",t,0,,,3.29,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Thermoplastics,"Polystyrene, general purpose",t,0,,,3.43,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Thermoplastics,"Polyurethane, flexible foam",t,0,,,4.84,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Thermoplastics,PVC General,t,0,,,3.1,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Cold rolled steel,"Hot rolled lightweight – painted structural steel (e.g. formwork, framing and decking steel)",t,0,,,2.41,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Cold rolled steel,Cold rolled lightweight - structural framing steel,t,0,,,3.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Cold rolled steel,"Cold rolled lightweight - structural steel (e.g. formwork, framing and decking steel)",t,0,,,3.01,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Hot rolled steel,"Hot rolled - galvanised structural steel (welded beam, columns, angles, plates, piles etc) ",t,0,,,2.4,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Hot rolled steel,"Hot rolled - structural steel (welded beam, columns, angles, plates, piles etc) ",t,0,,,2.27,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Reinforcing steel,Bar & mesh reinforcing steel,t,0,,,1.6,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Steel wire,Steel wire,t,0,,,2.16,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Stainless steel,Stainless steel (general),t,0,,,3.51,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Timber (engineered),Glue laminated timber (GLT) and cross laminated timber (CLT) - hardwood,m3,-1090,,,0.69,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Timber (engineered),Glue laminated timber (GLT) and cross laminated timber (CLT) - softwood,m3,-823,,,0.24,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Timber (engineered),Laminated veer lumber,m3,-843,,,0.3,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Timber (engineered),Oriented strand board,m3,-1020,,,0.19,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Timber (engineered),Particleboard,m3,-1140,,,0.65,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Timber (engineered),Plywood,m3,-841,,,0.5,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Timber (engineered),Timber weatherboards (softwood),m3,-848,,,0.2,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Timber (sawn),Sawn hardwood,m3,-1170,,,0.35,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Timber (sawn),Sawn softwood,m3,-857,,,0.19,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Timber (sawn),Timber poles - piles,m3,-1170,,,0.35,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to recycling,Inert waste - Concrete/ plastics / glass / rubble,t,,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to recycling,Inert waste - Metals,t,,,,-   ,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to recycling,Food,t,,,,0.03,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to recycling,Paper and cardboard,t,,,,-   ,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to recycling,Garden and green,t,,,,0.05,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to recycling,Wood,t,,,,0.1,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to recycling,Textiles,t,,,,-   ,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to recycling,Sludge,t,,,,-   ,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to recycling,Rubber and leather,t,,,,-   ,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to recycling,Mixed construction and demolition waste,t,,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to landfill,Inert waste - Concrete/ plastics / glass / rubble,t,,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to landfill,Inert waste - Metals,t,,,,0.01,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to landfill,Food,t,,,,2.1,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to landfill,Paper and cardboard,t,,,,3.3,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to landfill,Garden and green,t,,,,1.6,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to landfill,Wood,t,,,,0.7,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to landfill,Textiles,t,,,,2,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to landfill,Sludge,t,,,,0.4,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to landfill,Rubber and leather,t,,,,3.3,National Embodied Carbon Databook v1.00 2026
+Australia,Waste,Waste to landfill,Mixed construction and demolition waste,t,,,,0.2,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class A3,ha,,227,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class A4,ha,,384,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class A5,ha,,532,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class A6,ha,,594,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class A7,ha,,768,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class B3,ha,,237,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class B4,ha,,401,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class B5,ha,,554,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class B6,ha,,618,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class C1,ha,,77,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class C2,ha,,209,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class C3,ha,,307,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class C4,ha,,521,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class C5,ha,,718,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class D1,ha,,77,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class D2,ha,,209,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class D3,ha,,307,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class E1,ha,,80,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class E2,ha,,217,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class E3,ha,,316,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class F1,ha,,106,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class F2,ha,,287,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class G2,ha,,113,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class H1,ha,,115,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class H2,ha,,309,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Vegetation Class I,ha,,110,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Very large tree (DBH > 100cm) –Eucalypt,ha,,47.51,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Large tree (50cm<DBH<100cm) –Eucalypt,ha,,18.66,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Medium tree (20cm<DBH<50cm) –Eucalypt,ha,,4.29,,,National Embodied Carbon Databook v1.00 2026
+Australia,Vegetation,Land Clearing,Small tree (5cm<DBH<20cm) –Shrub,ha,,0.19,,,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Transport,Heavy articulated truck,tkm,,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Transport,Articulated Truck,tkm,,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Transport,Concrete Agitator Truck,tkm,,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Transport,Light Commercial Vehicles,tkm,,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Transport,Rigid Truck,tkm,,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Transport,"Rail, Bulk Transport",tkm,,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Materials,Transport,Shipping,tkm,,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,Employee Commute,Rail Transport,Train,pkm,,,,0,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,Employee Commute,Bus Transport,Bus,pkm,,,,0,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,Employee Commute,Ferry Transport,Motorbike/scooter,km,,,,0,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,Employee Commute,Rail Transport,Light rail and tram,pkm,,,,0,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,Employee Commute,Private Car Transport,Large Car: unknown fuel,km,,,,0,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,Employee Commute,Private Car Transport,Medium Car: unknown fuel,km,,,,0,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,Employee Commute,Private Car Transport,Small Car: unknown fuel,km,,,,0,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,Employee Commute,Rail Transport,Metro train,pkm,,,,0,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,Employee Commute,Ferry Transport,Ferry : Foot passenger,pkm,,,,0,"UK Department for Energy Security & Net Zero and Department for Environment Food & Rural Affairs (2024), ""Greenhouse gas reporting: conversion factors 2024"", last updated 8 July 2023, https://www.gov.uk/government/publications/greenhouse-gas-reporting-conversion-factors-2024"
+Australia,Employee Commute,Working from home,Working from home,days,,,,,
+New Zealand,Fuels,Solid Fuels,Coal - Default,t,,2.15,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Coal - Bituminous,t,,2.88,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Coal - Sub-Bituminous,t,,2.17,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Coal - Lignite,t,,1.55,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Coal - Default,t,,2.07,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Coal - Bituminous,t,,2.66,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Coal - Sub-Bituminous,t,,2,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Coal - Lignite,t,,1.43,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Stationary),Diesel,kL,,2.68,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,LPG,t,,2.97,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Stationary),Heavy Fuel Oil,kL,,3.05,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Stationary),Light Fuel Oil,kL,,2.97,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Gaseous Fuels,Natural Gas (kWh),kWh,,0.2,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Gaseous Fuels,Natural Gas (GJ),GJ,,54.21,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Coal - Default,t,,1.93,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Coal - Bituminous,t,,2.66,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Coal - Sub-Bituminous,t,,2,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Coal - Lignite,t,,1.43,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Stationary),Diesel,kL,,2.67,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,LPG,t,,2.97,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Stationary),Heavy Fuel Oil,kL,,3.05,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Stationary),Light Fuel Oil,kL,,2.96,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Gaseous Fuels,Natural Gas (kWh),kWh,,0.19,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Gaseous Fuels,Natural Gas (GJ),GJ,,54.11,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Regular Petrol,kL,,2.38,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Premium Petrol,kL,,2.42,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Diesel,kL,,2.68,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),LPG,kL,,1.62,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Heavy Fuel Oil,kL,,3.06,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Light Fuel Oil,kL,,2.98,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Aviation fuel (Kerosene),GJ,,68.45,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Aviation fuel (Kerosene),kL,,2.52,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Aviation gas,GJ,,66.41,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Aviation gas,kL,,2.25,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Bioethanol,GJ,,2.52,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Bioethanol,kL,,0.06,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Bioethanol blend E3,kL,,2.31,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Bioethanol blend E10,kL,,2.19,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Biodiesel,GJ,,1.49,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Biodiesel,kL,,0.05,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Biodiesel blend B5,kL,,2.55,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Liquid Fuels (Transport),Biodiesel blend B20,kL,,2.16,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Wood - Chips,t,,0.02,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Wood - Pellets,t,,0.03,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Wood - Green,t,,0.01,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Wood - Chips,t,,0.11,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Fuels,Solid Fuels,Wood - Pellets,t,,0.14,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2025,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2026,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2027,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2028,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2029,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2030,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2031,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2032,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2033,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2034,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2035,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2036,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2037,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2038,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2039,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2040,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2041,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2042,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2043,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2044,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2045,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2046,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2047,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2048,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2049,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity 2050,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Grid Electricity,Grid Electricity Post-2050,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2025,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2026,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2027,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2028,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2029,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2030,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2031,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2032,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2033,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2034,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2035,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2036,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2037,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2038,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2039,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2040,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2041,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2042,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2043,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2044,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2045,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2046,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2047,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2048,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2049,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity 2050,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,On-site renewables,On-site renewable electricity Post-2050,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2025,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2026,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2027,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2028,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2029,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2030,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2031,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2032,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2033,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2034,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2035,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2036,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2037,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2038,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2039,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2040,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2041,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2042,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2043,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2044,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2045,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2046,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2047,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2048,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2049,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity 2050,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Electricity,Off-site renewables,Off-site renewable electricity Post-2050,MWh,,,,,Dynamic based on the state of the project and location vs market based accounting. Values are based on Electricity Decarbonisation Scenarios. These values will not be editable as part of the Grade 3-4 EF dataset directly on the front end but rather will be managed via the Electricity Decarbonisation Scenarios front end dataset editing.
+New Zealand,Gases,Other gases,Carbon dioxide (R - 744),t,,1,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,Methane,t,,28,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,Propane (R-290),t,,0.06,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,Nitrous oxide (R-744a),t,,265,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,Isobutane(R-600a),t,,3,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,CFC-11  (R-11),t,,"4,660.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,CFC-12  (R-12),t,,"10,200.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,CFC-13  (R-13),t,,"13,900.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,CFC-113  (R-113),t,,"5,820.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,CFC-114  (R-114),t,,"8,590.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,CFC-115  (R-115),t,,"7,670.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,Halon-1301  (R-1301),t,,"6,290.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,Halon-1211  (R-1211),t,,"1,750.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,Halon-2402  (R-2402),t,,"1,470.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,Carbon tetrachloride  (R-10),t,,"1,730.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,Methyl bromide,t,,2,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,Methyl chloroform,t,,160,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HCFC-21,t,,148,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HCFC-22  (R-22),t,,"1,760.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HCFC-123  (R-123),t,,79,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HCFC-124  (R-124),t,,527,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HCFC-141b  (R-141b),t,,782,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HCFC-142b  (R-142b),t,,"1,980.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HCFC-225ca  (R-225ca),t,,127,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HCFC-225cb  (R- 225cb),t,,525,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-23  (R-23),t,,"12,400.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-32  (R-32),t,,677,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-41,t,,116,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-125  (R-125),t,,"3,170.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-134,t,,"1,120.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-134a  (R-134a),t,,"1,300.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-143,t,,328,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-143a  (R-143a),t,,"4,800.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-152,t,,16,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-152a  (R-152a),t,,138,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-161,t,,4,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-227ea  (R-227ea),t,,"3,350.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-236cb,t,,"1,210.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-236ea,t,,"1,330.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-236fa  (R-236fa),t,,"8,060.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-245ca,t,,716,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-245fa  (R - 245fa),t,,858,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-365mfc  (R- 365mfc),t,,804,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HFC-43-10mee,t,,"1,650.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Perfluorinated compounds,Sulphur hexafluoride,t,,"23,500.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Perfluorinated compounds,Nitrogen trifluoride,t,,"16,100.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Perfluorocarbons (PFCs),PFC-14,t,,"6,630.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Perfluorocarbons (PFCs),PFC-116,t,,"11,100.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Perfluorocarbons (PFCs),PFC-218,t,,"8,900.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Perfluorocarbons (PFCs),PFC-318,t,,"9,540.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Perfluorocarbons (PFCs),PFC-31-10,t,,"9,200.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Perfluorocarbons (PFCs),PFC-41-12,t,,"8,550.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Perfluorocarbons (PFCs),PFC-51-14,t,,"7,910.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Perfluorocarbons (PFCs),PFC-91-18,t,,"7,190.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,Trifluoromethyl sulphur pentafluoride,t,,"17,400.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,Perfluorocyclopropane,t,,"9,200.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-125,t,,"12,400.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-134,t,,"5,560.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-143a,t,,523,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-227ea,t,,"6,450.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HCFE-235da2 (Isoflurane),t,,491,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-236ea2,t,,"1,790.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-236fa,t,,979,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-245cb2,t,,654,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-245fa1,t,,828,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-245fa2,t,,812,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-254cb2,t,,301,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-263fb2,t,,1,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-329mcc2,t,,"3,070.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-338mcf2,t,,929,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-347mcc3,t,,530,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-347mcf2,t,,854,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-347pcf2,t,,889,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-356mec3,t,,387,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-356pcc3,t,,413,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-356pcf2,t,,719,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-356pcf3,t,,446,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-365mcf3,t,,1,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-374pc2,t,,627,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-449sl (HFE-7100),t,,421,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-569sf2 (HFE-7200),t,,57,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-43-10pccc124 (H-Galden 1040x),t,,"2,820.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-236ca12 (HG-10),t,,"5,350.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-338pcc13 (HG-01),t,,"2,910.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,PFPMIE,t,,"9,710.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),Chloroform,t,,16,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),Dimethylether,t,,1,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),Methylene chloride,t,,9,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),Halon-1201,t,,376,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),Methyl chloride,t,,12,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),ASHRAE Refrigerant designation,t,,,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),403B,t,,"4,456.60",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),404A,t,,"3,942.80",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),406A,t,,"1,779.92",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),407C,t,,"1,624.21",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),407F,t,,"1,674.10",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),408A,t,,"3,257.10",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),409A,t,,"1,484.75",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),409B,t,,"1,473.75",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),410A,t,,"1,923.50",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),413A,t,,"1,945.09",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),416A,t,,975.21,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),417A,t,,"2,127.32",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),422A,t,,"2,847.27",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),436A,t,,1.35,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),436B,t,,1.47,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),502,t,,"4,785.92",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),507A,t,,"3,985.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-347mmz1 (Sevoflurane),t,,216,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Hydrofluorocarbons (HFCs),HCFE-235da2 (Isoflurane),t,,491,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,HFE-236ea2 (Desflurane),t,,"1,790.00",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Gases,Other gases,Entonox,t,,153.44,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill with gas recovery,Waste - Food,t,,,,0.59,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill with gas recovery,Waste - Garden,t,,,,0.48,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill with gas recovery,Waste - Paper,t,,,,0.86,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill with gas recovery,Waste - Wood (combined),t,,,,0.33,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill with gas recovery,Wood (treated),t,,,,0.05,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill with gas recovery,Wood (untreated),t,,,,0.75,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill with gas recovery,Waste - Textile,t,,,,0.43,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill with gas recovery,Waste - Nappies,t,,,,0.22,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill with gas recovery,Waste - Sludge,t,,,,0.13,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill with gas recovery,Waste - Other (Inert),t,,,,-   ,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill with gas recovery,General waste,t,,,,0.2,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill with gas recovery,Office waste,t,,,,0.58,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill without gas recovery,Waste - Food,t,,,,1.85,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill without gas recovery,Waste - Garden,t,,,,1.51,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill without gas recovery,Waste - Paper,t,,,,2.69,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill without gas recovery,Waste - Wood (combined),t,,,,1.04,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill without gas recovery,Wood (treated),t,,,,0.17,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill without gas recovery,Wood (untreated),t,,,,2.35,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill without gas recovery,Waste - Textile,t,,,,1.34,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill without gas recovery,Waste - Nappies,t,,,,0.67,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill without gas recovery,Waste - Sludge,t,,,,0.42,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill without gas recovery,Waste - Other (Inert),t,,,,-   ,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill without gas recovery,General waste,t,,,,0.64,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Waste to landfill without gas recovery,Office waste,t,,,,1.83,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Biological treatment of waste,Composting,t,,,,0.18,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Biological treatment of waste,Anaerobic digestion,t,,,,0.02,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Non municipal waste,Food,t,,,,0.43,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Non municipal waste,Green waste,t,,,,0.35,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Non municipal waste,Paper,t,,,,0.63,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Non municipal waste,Wood (timber),t,,,,0.24,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Non municipal waste,Textiles,t,,,,0.31,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Non municipal waste,Nappies,t,,,,0.16,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Non municipal waste,Sludge,t,,,,0.2,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Non municipal waste,Inert (all other waste),t,,,,-   ,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Waste,Non municipal waste,Average for non-municipal solid waste,t,,,,0.15,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Vegetation,Harvest or Deforestation - Stock change accounting,All Planted Forests,ha,,983.93,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Vegetation,Harvest or Deforestation - Stock change accounting,Pinus Radiata,ha,,"1,023.83",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Vegetation,Harvest or Deforestation - Stock change accounting,Other Softwoods,ha,,"1,198.25",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Vegetation,Harvest or Deforestation - Stock change accounting,All Hardwoods,ha,,787.69,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Vegetation,Harvest - Averaging accounting,All Planted Forests,ha,,-   ,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Vegetation,Deforestation - Averaging accounting,All Planted Forests,ha,,983.93,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Vegetation,Harvest - Averaging accounting,Pinus Radiata,ha,,-   ,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Vegetation,Deforestation - Averaging accounting,Pinus Radiata,ha,,"1,023.83",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Vegetation,Harvest - Averaging accounting,Other Softwoods,ha,,-   ,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Vegetation,Deforestation - Averaging accounting,Other Softwoods,ha,,"1,198.25",,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Vegetation,Harvest - Averaging accounting,All Hardwoods,ha,,-   ,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Vegetation,Deforestation - Averaging accounting,All Hardwoods,ha,,787.69,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Vegetation,Deforestation - Natural forests,Post-1989 Regenerating natural forest,ha,,141.35,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Vegetation,Deforestation - Natural forests,Pre-1990 Regenerating natural forest,ha,,280.29,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Vegetation,Deforestation - Natural forests,Pre-1990 Tall natural forest,ha,,898.58,,,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Bus Transport,National Average for Bus,pkm,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Bus Transport,Electric Bus,pkm,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Bus Transport,Diesel Bus,pkm,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Bus Transport,Hydrogen Bus,pkm,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Bus Transport,Average Bus,pkm,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Rail Transport,Metropolitan Electric,pkm,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Rail Transport,Metropolitan Diesel,pkm,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Rail Transport,Metropolitan Average,pkm,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Ferry Transport,Ferry Average,pkm,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Private car default,Petrol,km,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Private car default,Diesel,km,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Private car default,Petrol hybrid,km,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Private car default,Diesel hybrid,km,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Private car default,PHEV (Petrol) - Petrol consumption,km,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Private car default,PHEV (Petrol) - Electricity consumption,km,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Private car default,PHEV (Diesel) - Diesel consumption,km,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Private car default,PHEV (Diesel) - Electricity consumption,km,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Private car default,Electric,km,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Working from home,Default,days,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Working from home,Without heating,days,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Employee Commute,Working from home,With heating,days,,,,0,MfE Measuring Emissions: A guide for organisations – 2025
+New Zealand,Materials,Concrete In-situ,"In-situ 20 MPa, (OPC)",t,,,,0.11,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,"In-situ 20 MPa, (20% PFA)",t,,,,0.09,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,"In-situ 20 MPa, (30% PFA)",t,,,,0.09,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,"In-situ 20 MPa, (35% PFA)",t,,,,0.08,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,"In-situ 30 MPa, (OPC)",t,,,,0.13,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,"In-situ 30 MPa, (20% PFA)",t,,,,0.11,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,"In-situ 30 MPa, (30% PFA)",t,,,,0.1,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,"In-situ 30 MPa, (35% PFA)",t,,,,0.09,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,"In-situ 40 MPa, (OPC)",t,,,,0.17,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,"In-situ 40 MPa, (20% PFA)",t,,,,0.14,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,"In-situ 40 MPa, (30% PFA)",t,,,,0.13,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,"In-situ 40 MPa, (35% PFA)",t,,,,0.12,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,"In-situ 50 MPa, (OPC)",t,,,,0.2,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,"In-situ 50 MPa, (20% PFA)",t,,,,0.17,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,"In-situ 50 MPa, (30% PFA)",t,,,,0.15,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,"In-situ 50 MPa, (35% PFA)",t,,,,0.14,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete In-situ,In-situ Concrete (Generic),t,,,,0.2,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete Precast,"Precast 30 MPa, (OPC)",t,,,,0.15,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete Precast,"Precast 30 MPa, (20% PFA)",t,,,,0.13,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete Precast,"Precast 30 MPa, (30% PFA)",t,,,,0.1,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete Precast,"Precast 30 MPa, (35% PFA)",t,,,,0.09,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete Precast,"Precast 45 MPa, (OPC)",t,,,,0.2,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete Precast,"Precast 45 MPa, (20% PFA)",t,,,,0.17,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete Precast,"Precast 45 MPa, (30% PFA)",t,,,,0.15,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete Precast,"Precast 45 MPa, (35% PFA)",t,,,,0.15,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Concrete Precast,Precast Concrete (Generic),t,,,,0.24,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Cement,Cement - Generic,t,,,,0.78,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Cement,Cement - Emissions Reduced,t,,,,0.62,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Lime,Lime (hydraulic),t,,,,0.83,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Other Metal,Aluminium - NZ,t,,,,5.61,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Other Metal,Aluminium - China,t,,,,15.23,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Other Metal,Iron,t,,,,1.5,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Steel,Rail products,t,,,,2.81,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Steel,Steel Reinforcing Bar,t,,,,3.88,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Steel,Steel Reinforcing Bar (Aus),t,,,,1.82,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Steel,Steel Coil,t,,,,3.83,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Steel,Steel Coil (Aus),t,,,,2.56,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Steel,Steel Reinforcing Mesh,t,,,,3.88,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Steel,Steel Reinforcing Mesh (Aus),t,,,,2.21,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Steel,Steel Structural,t,,,,3.87,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Steel,Stainless Steel,t,,,,4.4,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Fuels,Liquid Fuels (Transport),Diesel,kL,,,,2.68,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Fuels,Liquid Fuels (Transport),Diesel 5% Biodiesel Blend,kL,,,,2.55,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Fuels,Liquid Fuels (Transport),Biodiesel,kL,,,,0.05,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Fuels,Liquid Fuels (Transport),Diesel 20% Biodiesel Blend,kL,,,,2.15,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Fuels,Liquid Fuels (Transport),Petrol,kL,,,,2.37,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Aggregate,Aggregate,t,,,,0.01,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Aggregate,Ballast,t,0,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Aggregate,Natural Sand,t,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Aggregate,Sealing Chip,t,,,,0.01,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Aggregate,RipRap,t,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Aggregate,Topsoil,t,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Aggregate,Recycled Crushed Glass,t,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Aggregate,Recycled Crushed Concrete,t,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Aggregate,Basalt,t,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Earthworks,Strip and respread topsoil,m3,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Earthworks,Cut to spoil,m3,,,,0.01,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Earthworks,Cut to fill,m3,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Earthworks,Import and Place filling,m3,,,,0.01,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Earthworks,High Shrubs and Medium dense trees,m2,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen 0% RAP",t,,,,0.1,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Asphalt,"OGPA, HMA, 6% virgin bitumen 0% RAP",t,,,,0.08,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Asphalt,"AC, HMA, 5% virgin bitumen 0% RAP",t,,,,0.07,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen 0% RAP",t,,,,0.08,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Asphalt,"EMSMA, HMA, 5% virgin bitumen 0% RAP",t,,,,0.11,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (5%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (10%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (15%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (20%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (25%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (30%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (35%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (40%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (50%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"AC, HMA, 5% virgin bitumen (70%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (5%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (10%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (15%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (20%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (25%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (30%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (35%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (40%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (50%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"SMA, HMA, 6.5% virgin bitumen (70%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (5%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (10%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (15%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (20%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (25%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (30%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (35%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (40%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (50%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (70%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (5%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (10%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (15%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (20%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (25%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (30%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (35%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (40%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (50%RAP)",t,,,,,
+New Zealand,Materials,Asphalt,"EMOGPA, HMA, 4.5% virgin bitumen (70%RAP)",t,,,,,
+New Zealand,Materials,Bitumen,Bitumen,t,0,,,0.43,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Cable,Comms cable,t,,,,2.15,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Cable,Aluminium Power Cable,t,,,,5.24,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Cable,Copper Power Cable,t,,,,2.33,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Glass,Glass,t,,,,1.21,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Plastic,HDPE,t,,,,2.58,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Plastic,PE Pipe,t,,,,2.4,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Plastic,PVC Pressure Pipe,t,,,,2.56,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Plastic,PVC Gravity Pipe,t,,,,2.32,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Plastic,Recycled Rubber,t,,,,0.09,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Plastic,Virgin  Rubber,t,,,,2.99,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Plastic,Glass Fibre Reinforced Plastic (GFRP),t,,,,2.4,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Wood,Softwood Timber ,t,,,,0.19,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Wood,Hardwood Timber,t,,,,0.6,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Wood,Glulam,t,,,,0.42,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Paint,Solvent based paint,t,,,,2.77,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Paint,Water based paint,t,,,,2.68,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Paint,Solvent based paint,m2,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Paint,Water based paint,m2,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Paint,Thermoplastic paint,t,,,,1.37,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Paint,Thermoplastic paint,m2,,,,0.01,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Transport,All Trucks,tkm,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Transport,Electric Train,pkm,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Transport,Diesel Train,pkm,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Transport,Average Train,pkm,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Transport,Freight Train (GTK),GTK,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Transport,Freight Train (tkm),tkm,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0
+New Zealand,Materials,Transport,Bulk Carrier,tkm,,,,0,New Zealand Transport Agency & KiwiRail Project Emissions Estimation Tool (PEET) Version 6.0

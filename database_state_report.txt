@@ -1,0 +1,748 @@
+DATABASE & DATA MODEL STATE REPORT
+Generated: 2026-04-07
+Branch: development
+================================================================================
+
+================================================================================
+SECTION 1 — TABLE INVENTORY
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+DATASET-RELATED TABLES
+────────────────────────────────────────────────────────────────────────────────
+
+Table: dataset_revisions
+  Description : Named, versioned dataset containers with lifecycle status and scope tier
+  PK          : id (UUID)
+  Foreign Keys: created_by → users.id
+
+Table: dataset_revision_changes
+  Description : Audit log of individual metric value changes within a revision
+  PK          : id (UUID)
+  Foreign Keys: dataset_revision_id → dataset_revisions.id
+                metric_id → background_grade_metrics.id
+                changed_by → users.id
+
+Table: project_dataset_revisions
+  Description : Join table binding a project to one or more dataset revisions
+  PK          : id (UUID)
+  Foreign Keys: project_id → project.id
+                dataset_revision_id → dataset_revisions.id
+
+Table: project_dataset_exclusions
+  Description : Records a metric explicitly excluded from a project's revision binding
+  PK          : id (UUID)
+  Foreign Keys: project_id → project.id
+                metric_id → background_grade_metrics.id
+
+────────────────────────────────────────────────────────────────────────────────
+EMISSIONS FACTOR TABLES
+────────────────────────────────────────────────────────────────────────────────
+
+Table: emissions_factor_sets
+  Description : Named grouping of emission factor metrics; belongs to a revision
+  PK          : id (UUID)
+  Foreign Keys: jurisdiction_id → jurisdictions.id
+                dataset_revision_id → dataset_revisions.id
+                created_by → users.id
+
+Table: background_grade_metrics
+  Description : Individual emission factor records (the actual factor rows)
+  PK          : id (UUID)
+  Foreign Keys: factor_set_id → emissions_factor_sets.id
+                grade_id → grade_definitions.id
+                jurisdiction_id → jurisdictions.id
+                mastertype_id → benchmark_mastertypes.id
+                typecast_id → benchmark_typecasts.id
+                emissions_category_id → emissions_categories.id
+                emissions_subcategory_id → emissions_categories.id
+                lifecycle_module_code → lifecycle_modules.code
+                ghg_scope_id → ghg_scopes.id
+                metric_type_id → metric_types.id
+                band_code → value_bands.code
+                unit_id → units.id
+
+Table: emission_factor
+  Description : LEGACY — factor table from lookup_data.py; maps to emission_source
+  PK          : id (UUID)
+  Foreign Keys: emission_source_id → emission_source.id
+                measurement_unit_id → units.id
+
+Table: emission_factor_value
+  Description : LEGACY — per-stage factor values from lookup_data.py
+  PK          : id (UUID)
+  Foreign Keys: emission_factor_id → emission_factor.id
+
+Table: electric_decarb_factors
+  Description : Electricity decarbonisation factors by year, jurisdiction, region
+  PK          : id (UUID)
+  Foreign Keys: dataset_revision_id → dataset_revisions.id
+                factor_type_code → decarb_factor_types.code
+                jurisdiction_id → jurisdictions.id
+                region_id → grid_regions.id
+
+Table: ev_uptake_factors
+  Description : EV fleet uptake percentage by year, jurisdiction, scenario, vehicle category
+  PK          : id (UUID)
+  Foreign Keys: dataset_revision_id → dataset_revisions.id
+                jurisdiction_id → jurisdictions.id
+                scenario_code → ev_scenario_types.code
+                vehicle_category_code → ev_vehicle_categories.code
+                energy_type_code → ev_energy_types.code
+
+Table: freight_rail_factors
+  Description : Fuel consumption by train type and terrain
+  PK          : id (UUID)
+  Foreign Keys: dataset_revision_id → dataset_revisions.id
+
+Table: vepm_factors
+  Description : VEPM fleet CO2e per km by year and speed
+  PK          : id (UUID)
+  Foreign Keys: dataset_revision_id → dataset_revisions.id
+
+Table: maintenance_replacement_factors
+  Description : Emissions intensity per activity type / item for maintenance/replacement
+  PK          : id (UUID)
+  Foreign Keys: dataset_revision_id → dataset_revisions.id
+                jurisdiction_id → jurisdictions.id
+
+Table: fugitives
+  Description : Default annual leakage rate per equipment type and jurisdiction
+  PK          : id (UUID)
+  Foreign Keys: dataset_revision_id → dataset_revisions.id
+                jurisdiction_id → jurisdictions.id
+
+────────────────────────────────────────────────────────────────────────────────
+CALCULATION REFERENCE TABLES
+────────────────────────────────────────────────────────────────────────────────
+
+Table: densities
+  Description : Material/category density values used in calculations
+  PK          : id (UUID)
+  Foreign Keys: dataset_revision_id → dataset_revisions.id
+                jurisdiction_id → jurisdictions.id
+                emissions_category_id → emissions_categories.id
+                unit_id → units.id
+
+Table: default_transport_distances
+  Description : Default truck/rail/sea distances by material or category and jurisdiction
+  PK          : id (UUID)
+  Foreign Keys: dataset_revision_id → dataset_revisions.id
+                material_id → materials.id
+                emissions_category_id → emissions_categories.id
+                jurisdiction_id → jurisdictions.id
+
+Table: default_waste_rates
+  Description : Waste disposal rates by material, treatment, jurisdiction
+  PK          : id (UUID)
+  Foreign Keys: dataset_revision_id → dataset_revisions.id
+                jurisdiction_id → jurisdictions.id
+                material_id → materials.id
+                waste_treatment_id → waste_treatments.id
+                applicable_lifecycle_module_code → lifecycle_modules.code
+
+Table: energy_density_conversions
+  Description : Fuel-to-energy density conversion factors
+  PK          : id (UUID)
+  Foreign Keys: dataset_revision_id → dataset_revisions.id
+                unit_id → units.id
+
+Table: material_recycled_content
+  Description : Recycled content percentage by material and jurisdiction
+  PK          : id (UUID)
+  Foreign Keys: dataset_revision_id → dataset_revisions.id
+                material_id → materials.id
+                jurisdiction_id → jurisdictions.id
+
+Table: operational_equipment
+  Description : Power, hours, and days-per-year for operational equipment types
+  PK          : id (UUID)
+  Foreign Keys: dataset_revision_id — column exists but NO FK constraint defined in ORM model
+
+Table: carbon_values
+  Description : Social carbon value ($/tCO2e) by jurisdiction, range code, and year
+  PK          : id (UUID)
+  Foreign Keys: dataset_revision_id → dataset_revisions.id
+                jurisdiction_id → jurisdictions.id
+                range_code → carbon_value_ranges.code
+
+Table: base_case_assumptions
+  Description : Default assumption values by emissions category
+  PK          : id (UUID)
+  Foreign Keys: dataset_revision_id → dataset_revisions.id
+                emissions_category_id → emissions_categories.id
+                unit_id → units.id
+
+Table: proponent_assumption_overrides
+  Description : Org-specific overrides of base-case assumptions with effective date range
+  PK          : id (UUID)
+  Foreign Keys: proponent_org_id → organization.id
+                assumption_id → base_case_assumptions.id
+                unit_id → units.id
+
+Table: interrupted_vehicles
+  Description : Polynomial coefficients for interrupted vehicle fuel use
+  PK          : id (UUID)
+  Foreign Keys: vehicle_class_id → vehicle_classes.id
+
+Table: uninterrupted_vehicles
+  Description : Gradient/curvature fuel consumption coefficients
+  PK          : id (UUID)
+  Foreign Keys: vehicle_class_id → vehicle_classes.id
+
+Table: vehicle_energy_conversion_rates
+  Description : EV energy conversion ratios by vehicle class
+  PK          : id (UUID)
+  Foreign Keys: vehicle_class_id → vehicle_classes.id
+
+Table: vehicle_masses
+  Description : Reference mass, payload, GVM by vehicle class
+  PK          : id (UUID)
+  Foreign Keys: vehicle_class_id → vehicle_classes.id
+
+────────────────────────────────────────────────────────────────────────────────
+ACTIVITY TABLES
+────────────────────────────────────────────────────────────────────────────────
+
+Table: activity_data
+  Description : User-entered activity rows (quantities per metric per stage)
+  PK          : id (UUID)
+  Foreign Keys: project_id → project.id (CASCADE)
+                project_stage_instance_id → project_stage_instances.id (CASCADE)
+                project_option_id → project_options.id (SET NULL, nullable)
+                metric_id → background_grade_metrics.id (RESTRICT, nullable)
+                unit_id → units.id (RESTRICT, nullable)
+                lifecycle_module_code → lifecycle_modules.code (nullable)
+                created_by → users.id (SET NULL)
+  Note        : component_id is UUID nullable with NO FK constraint
+
+Table: emission_entry
+  Description : LEGACY — activity-entry table with direct emission_factor_id
+  PK          : id (UUID)
+  Foreign Keys: project_id → project.id
+                project_reporting_submission_id → project_reporting_submission.id
+                emission_factor_id → emission_factor.id
+                measurement_unit_id → units.id
+                submitted_by_user_id → users.id
+
+Table: emission_entry_summary
+  Description : LEGACY — summary rollup per project and submission
+  PK          : id (UUID)
+  Foreign Keys: project_id → project.id
+                project_reporting_submission_id → project_reporting_submission.id
+
+────────────────────────────────────────────────────────────────────────────────
+RESULTS TABLES
+────────────────────────────────────────────────────────────────────────────────
+
+Table: emissions_results
+  Description : Stored calculated tCO2e per activity_data row and lifecycle module
+  PK          : id (UUID)
+  Foreign Keys: project_id → project.id (CASCADE)
+                project_stage_instance_id → project_stage_instances.id (CASCADE)
+                activity_data_id → activity_data.id (CASCADE)
+                lifecycle_module_code → lifecycle_modules.code (nullable)
+  Note        : unit_id column present but NO FK constraint defined in ORM model
+
+────────────────────────────────────────────────────────────────────────────────
+PROJECT TABLES
+────────────────────────────────────────────────────────────────────────────────
+
+Table: project
+  Description : Core project record
+  PK          : id (UUID)
+  Foreign Keys: proponent_org_id → organization.id
+                created_by_user_id → users.id
+                last_updated_by_user_id → users.id
+
+Table: project_stage_config
+  Description : Stage enablement and reporting configuration per project
+  PK          : id (UUID)
+  Foreign Keys: project_id → project.id
+
+Table: project_stage_instances
+  Description : Live stage instance with approval workflow state
+  PK          : id (UUID)
+  Foreign Keys: project_id → project.id
+                approved_by → users.id (SET NULL)
+                submitted_by → users.id (SET NULL)
+
+Table: project_options
+  Description : Design options within a stage instance (option number, label)
+  PK          : id (UUID)
+  Foreign Keys: project_id → project.id (CASCADE)
+                stage_instance_id → project_stage_instances.id (CASCADE)
+
+Table: project_organizations
+  Description : Organizations linked to a project with a role
+  PK          : id (UUID)
+  Foreign Keys: project_id → project.id
+                organization_id → organization.id
+
+Table: project_parties
+  Description : Individual party (org or JV) records on a project
+  PK          : id (UUID)
+  Foreign Keys: project_id → project.id
+                organization_id → organization.id
+                joint_venture_id → joint_ventures.id
+
+Table: project_stage_parties
+  Description : Party assignments per stage instance
+  PK          : id (UUID)
+  Foreign Keys: project_stage_instance_id → project_stage_instances.id
+                organization_id → organization.id
+                joint_venture_id → joint_ventures.id
+
+Table: project_reporting_submission
+  Description : LEGACY — reporting period submissions per project
+  PK          : id (UUID)
+  Foreign Keys: project_id → project.id
+
+Table: project_postcode
+  Description : Postcodes associated with a project
+  PK          : id (UUID)
+  Foreign Keys: project_id → project.id
+
+────────────────────────────────────────────────────────────────────────────────
+STAGE / LIFECYCLE PHASE TABLES
+────────────────────────────────────────────────────────────────────────────────
+
+Table: lifecycle_modules
+  Description : Lookup of lifecycle module codes (e.g. A1-A3, A4, A5, B2-5)
+  PK          : code (String)
+  Foreign Keys: — (none)
+
+Table: anz_reporting_stages
+  Description : ANZ standard reporting stage names and sequence
+  PK          : id (UUID)
+  Foreign Keys: — (none)
+
+Table: jurisdiction_reporting_stages
+  Description : Jurisdiction-specific reporting stages linked to ANZ stages
+  PK          : id (UUID)
+  Foreign Keys: jurisdiction_id → jurisdictions.id
+                anz_reporting_stage_id → anz_reporting_stages.id
+
+Table: stage_approval_events
+  Description : Immutable event log for stage approval workflow transitions
+  PK          : id (UUID)
+  Foreign Keys: stage_instance_id → project_stage_instances.id (CASCADE)
+                project_id → project.id (CASCADE)
+                performed_by → users.id (SET NULL)
+
+
+================================================================================
+SECTION 2 — EMISSIONS FACTOR STORAGE
+================================================================================
+
+Primary factor table: background_grade_metrics
+
+- Each row has a UUID id (the factor identifier).
+  This is the metric_id referenced by activity_data.
+
+- Factors are NOT stored as simple key-value pairs.
+  Each row carries multiple classification attributes:
+    factor_set_id, grade_id, jurisdiction_id, mastertype_id, typecast_id,
+    emissions_category_id, emissions_subcategory_id, emissions_source,
+    lifecycle_module_code, ghg_scope_id, metric_type_id, band_code, unit_id.
+
+- The numeric factor value is in the `value` column (Numeric, nullable).
+
+- background_grade_metrics rows belong to an emissions_factor_sets record,
+  which in turn belongs to a dataset_revisions record.
+
+- Reference by ID:
+  activity_data.metric_id is a direct UUID FK to background_grade_metrics.id.
+  No dynamic resolution by attributes at the ORM layer during calculation;
+  the calculator fetches the metric by its ID directly.
+
+- Versioning:
+  Multiple versions coexist. Old metric rows are NOT overwritten.
+  A new EmissionsFactorSet is created under a new DatasetRevision.
+  The is_active boolean on background_grade_metrics marks current rows.
+
+- Legacy factor tables:
+  emission_factor, emission_factor_value, emission_source exist in lookup_data.py
+  and are referenced by the legacy emission_entry model.
+  These are SEPARATE from the active background_grade_metrics system.
+
+- Other factor-type tables (electric_decarb_factors, ev_uptake_factors,
+  freight_rail_factors, vepm_factors, maintenance_replacement_factors, fugitives)
+  each carry their own dataset_revision_id FK and are NOT linked through
+  emissions_factor_sets.
+
+
+================================================================================
+SECTION 3 — VERSIONING / TIME HANDLING
+================================================================================
+
+dataset_revisions:
+  - status         : String(20), values: draft | published | deprecated | archived
+                     Server default: "draft"
+  - applicable_from: Date, nullable
+  - applicable_to  : Date, nullable
+  - scope_type     : String(20), values: DEFAULT | ORG | PROJECT
+                     Server default: "DEFAULT"
+  - created_at     : TIMESTAMP
+
+emissions_factor_sets:
+  - version    : String, nullable (free-text label)
+  - valid_from : Date, nullable
+  - valid_to   : Date, nullable
+  - is_locked  : Boolean, server default false
+
+background_grade_metrics:
+  - is_active  : Boolean, server default true
+  - created_at : TIMESTAMP
+  NOTE: No effective_from / effective_to date fields on this table.
+
+default_transport_distances / default_waste_rates / material_recycled_content:
+  - effective_from : Date, nullable
+  - effective_to   : Date, nullable
+  - is_active      : Boolean
+
+proponent_assumption_overrides:
+  - effective_from : Date, NOT NULL
+  - effective_to   : Date, nullable
+
+project_stage_instances:
+  - approval_status      : String(20)
+    Values: draft | submitted | in_review | tech_approved | final_approved
+  - approved_at          : TIMESTAMP, nullable
+  - technical_approved_at: TIMESTAMP, nullable
+  - submitted_at         : TIMESTAMP, nullable
+
+Effect of factor changes on historical calculations:
+  - emissions_results stores the computed value (tCO2e) as a plain Numeric.
+  - It does NOT store: the factor value used, the metric_id, or the
+    dataset_revision_id at the time of calculation.
+  - There is NO FK from emissions_results to background_grade_metrics
+    or dataset_revisions.
+  - If a metric row value is edited in-place, previous emissions_results rows
+    are unaffected (they store the result, not the factor).
+  - If a metric row is deactivated and a new one created (different UUID),
+    activity_data.metric_id still points to the old row unless explicitly re-linked.
+
+
+================================================================================
+SECTION 4 — ACTIVITY DATA MODEL
+================================================================================
+
+Primary table: activity_data
+
+  Column                      | Type                | Notes
+  ----------------------------|---------------------|----------------------------------
+  id                          | UUID PK             |
+  project_id                  | UUID FK             | → project.id (CASCADE)
+  project_stage_instance_id   | UUID FK             | → project_stage_instances.id (CASCADE)
+  project_option_id           | UUID FK, nullable   | → project_options.id (SET NULL)
+  component_id                | UUID, nullable      | NO FK CONSTRAINT at DB level
+  metric_id                   | UUID FK, nullable   | → background_grade_metrics.id (RESTRICT)
+  quantity                    | Numeric, NOT NULL   | User-entered quantity
+  unit_id                     | UUID FK, nullable   | → units.id (RESTRICT)
+  ui_table_key                | String(30), NOT NULL| Identifies which UI table/section
+  lifecycle_module_code       | String FK, nullable | → lifecycle_modules.code
+  extra_fields                | JSONB, nullable     | e.g. mr_factor_id for refurbishment
+  created_by                  | UUID FK             | → users.id (SET NULL)
+  created_at                  | TIMESTAMP           |
+  updated_at                  | TIMESTAMP, nullable |
+
+- Activity links to a project DIRECTLY via project_id.
+- Activity links to a stage via project_stage_instance_id.
+- Activity references an emissions factor DIRECTLY BY ID
+  (metric_id → background_grade_metrics.id).
+- Lifecycle stage IS stored on the activity row:
+    - project_stage_instance_id binds it to a stage instance
+    - lifecycle_module_code stores a module code (e.g. "A1-A3", "B2-5")
+      which may be overridden at the row level.
+- For "refurbishment" rows (ui_table_key == "refurbishment"):
+    - metric_id may be NULL
+    - extra_fields["mr_factor_id"] holds a UUID pointing to
+      maintenance_replacement_factors.id
+
+Legacy activity table: emission_entry
+  - Links directly to emission_factor.id
+  - Links to project_reporting_submission.id
+  - Stores pre-calculated emissions_tco2e
+  - SEPARATE from the current activity_data system
+
+
+================================================================================
+SECTION 5 — RESULTS STORAGE
+================================================================================
+
+Results ARE STORED in the emissions_results table.
+They are NOT calculated on the fly at query time.
+
+Table: emissions_results
+
+  Column                    | Links to / Type
+  --------------------------|------------------------------------------------
+  id                        | UUID PK
+  activity_data_id          | UUID FK → activity_data.id (CASCADE)
+  project_id                | UUID FK → project.id (CASCADE)
+  project_stage_instance_id | UUID FK → project_stage_instances.id (CASCADE)
+  lifecycle_module_code     | String FK → lifecycle_modules.code (nullable)
+  value                     | Numeric — the computed tCO2e
+  unit_id                   | UUID, nullable — NO FK constraint in ORM model
+  created_at                | TIMESTAMP
+
+- UniqueConstraint("activity_data_id", "lifecycle_module_code"):
+  One result row per activity + module combination.
+  The calculator uses an UPSERT pattern (overwrites on recalculation).
+
+- No FK from emissions_results to background_grade_metrics,
+  emissions_factor_sets, or dataset_revisions.
+  The factor value used at calculation time is NOT recorded.
+
+- No stage or phase field beyond project_stage_instance_id and
+  lifecycle_module_code.
+
+
+================================================================================
+SECTION 6 — PROJECT STRUCTURE
+================================================================================
+
+Core table: project
+
+  Key columns:
+    project_name               : String(200), NOT NULL, UNIQUE
+    project_type               : String(200), NOT NULL (free-text, not FK)
+    project_class              : Enum: SMALL | LARGE | RECURRING
+    simple_carbon_assessment   : Boolean
+    contract_number            : String(100), NOT NULL
+    construction_start_date    : Date, nullable
+    construction_end_date      : Date, nullable
+    commencement_of_operations : Date, nullable
+    operational_life_years     : Integer, nullable
+    project_capex_million      : Numeric(18,2), nullable
+    project_opex               : Numeric(18,2), nullable
+    first_submission_month     : Date, nullable
+    maintenance_region         : String(255), nullable
+    proponent_org_id           : UUID FK → organization.id
+    created_by_user_id         : UUID FK → users.id
+
+Lifecycle stages: PERSISTED (not implicit)
+
+  1. project_stage_config — configuration per project+stage
+       Columns: stage (Enum), enabled (Boolean), num_reports_required (Integer),
+                frequency (Enum: MONTHLY|QUARTERLY|BI_MONTHLY|ANNUAL),
+                min_requirements (JSONB)
+
+  2. project_stage_instances — live working instance of a stage
+       Columns: stage (Enum), sequence (Integer), approval_status (String),
+                num_reports_required (Integer), frequency (String),
+                approved_at (TIMESTAMP), technical_approved_at (TIMESTAMP),
+                submitted_at (TIMESTAMP), current_justification (String)
+       Constraint: UniqueConstraint("project_id", "stage")
+                   — only one instance per stage per project
+
+  Stage Enum values (hardcoded in Python, not a DB CHECK):
+    BUSINESS_CASE | DESIGN | CONSTRUCTION
+
+  STAGE_SEQUENCE dict (hardcoded in project_stage_instances.py):
+    {"BUSINESS_CASE": 1, "DESIGN": 2, "CONSTRUCTION": 3}
+
+Other project-related tables:
+  project_options             — design options within a stage instance
+  project_organizations       — org linkage with OrgRole: PROPONENT|DESIGNER|DELIVERY
+  project_parties             — party (org or JV) records on a project
+  project_stage_parties       — party assignments per stage instance
+  project_dataset_revisions   — binds a project to dataset revisions (is_locked Boolean)
+  project_dataset_exclusions  — per-project metric exclusions
+  project_postcode            — postcodes for the project
+  project_reporting_submission — LEGACY reporting periods
+  stage_approval_events       — immutable event log for approval workflow
+  access_requests             — workflow requests for role assignments
+
+Note: A project_type lookup table exists as an ORM model, but project.project_type
+is a free-text String(200) — it is NOT a FK to that table.
+
+
+================================================================================
+SECTION 7 — PERMISSIONS & EDITING
+================================================================================
+
+Database layer:
+  NO row-level security, CHECK constraints, or view grants enforce permissions
+  on datasets or activities at the database layer.
+
+Application layer:
+  All permission enforcement is application-layer only.
+
+  core/rbac.py:
+    - Defines role name string constants (see below)
+    - get_effective_role_names() queries user_roles JOIN roles at runtime,
+      unioning across GLOBAL, ORGANISATION, PROJECT, and STAGE scopes
+
+  core/access_context.py:
+    - get_dataset_visibility_context() returns DatasetVisibility enum (DEFAULT|ORG|PROJECT)
+    - NOTE: The file's own docstring states "NO dataset queries are performed here yet"
+      — the function is implemented but not yet applied to dataset filtering
+
+Role names (hardcoded string constants in core/rbac.py):
+  SUPER_ADMIN    = "SUPER_ADMIN"
+  ORG_ADMIN      = "ORG_ADMIN"
+  PROJECT_ADMIN  = "PROJECT_ADMIN"
+  PROJECT_EDITOR = "PROJECT_EDITOR"
+  PROJECT_VIEWER = "PROJECT_VIEWER"
+  GENERAL_USER   = "GENERAL_USER"
+
+Role grant ceiling (hardcoded dict in core/rbac.py):
+  SUPER_ADMIN   can grant: SUPER_ADMIN, ORG_ADMIN
+  ORG_ADMIN     can grant: PROJECT_ADMIN
+  PROJECT_ADMIN can grant: PROJECT_EDITOR, PROJECT_VIEWER
+
+Role scoping (user_roles table):
+  scope_type: GLOBAL | ORGANISATION | PROJECT | STAGE
+  scope_id  : UUID (holds org_id or project_id depending on scope_type)
+
+Tables involved:
+  roles, permissions, role_permissions, user_roles, access_requests
+
+
+================================================================================
+SECTION 8 — EXISTING CALCULATION LOGIC
+================================================================================
+
+All calculation logic is in Python service files under backend/services/.
+No stored procedures or PostgreSQL functions exist for calculations.
+
+Two PostgreSQL views are queried via raw SQL text():
+  v_grade1_asset_level_pivoted  — definition in sql/create_view_grade1_pivoted.sql
+  v_grade2_component_level      — definition file NOT PRESENT in tracked sql/ directory
+
+Service files and their factor sources:
+
+  emissions_calculator.py
+    Type   : Per-activity_data row
+    Formula: tCO2e = quantity × metric.value
+    Factors: background_grade_metrics.value (fetched by metric_id)
+             Fallback for ui_table_key == "refurbishment":
+               maintenance_replacement_factors.emissions_intensity_tco2e
+               (fetched by extra_fields["mr_factor_id"])
+    Trigger: Called synchronously after every activity_data POST / PATCH
+
+  grade1_asset_calculations.py
+    Type   : Grade 1 asset-level
+    Formula: Emissions = material_share × quantity × emission_intensity
+             for stages A1-A3, A4, A5
+    Factors: PostgreSQL view v_grade1_asset_level_pivoted (raw SQL)
+
+  grade2_component_calculations.py
+    Type   : Grade 2 component-level
+    Formula: Emissions = factor × quantity for A1-3, A4, A5
+    Factors: PostgreSQL view v_grade2_component_level (raw SQL)
+
+  grade2_b4_replacement_calculations.py         — UNCLEAR FROM CODE (not fully read)
+  grade34_detailed_level_construction_calcs.py  — UNCLEAR FROM CODE (not fully read)
+  grade34_detailed_level_maintenance_calcs.py   — UNCLEAR FROM CODE (not fully read)
+  detailed_level_calcs_operational_fuel_water.py — Scope 2 hardcoded to 0.0
+  detailed_level_calcs_operational_elec.py      — UNCLEAR FROM CODE (not fully read)
+  electricity_detailed_calculations.py          — UNCLEAR FROM CODE (not fully read)
+  maintenance_replacement_component_level_calcs.py — UNCLEAR FROM CODE (not fully read)
+  operational_component_level_calcs.py          — UNCLEAR FROM CODE (not fully read)
+
+Reference tables used in calculations:
+  default_transport_distances    — transport distances (A4 stage)
+  densities                      — material densities for unit conversion
+  energy_density_conversions     — fuel energy density
+  default_waste_rates            — waste disposal rates
+  material_recycled_content      — recycled content adjustments
+  operational_equipment          — power/hours/days for operational equipment
+  maintenance_replacement_factors — refurbishment factor fallback
+  vepm_factors                   — vehicle fleet CO2e per km
+  interrupted_vehicles           — interrupted vehicle fuel coefficients
+  uninterrupted_vehicles         — uninterrupted vehicle fuel coefficients
+  vehicle_masses                 — vehicle mass/payload data
+  vehicle_energy_conversion_rates — EV energy conversion ratios
+  ev_uptake_factors              — EV fleet uptake percentages
+  electric_decarb_factors        — electricity decarbonisation factors
+  fugitives                      — fugitive emission leakage rates
+  freight_rail_factors           — freight rail fuel consumption
+  carbon_values                  — social carbon price (used for cost reporting,
+                                    NOT for tCO2e calculations)
+
+
+================================================================================
+SECTION 9 — CONSTRAINTS & ASSUMPTIONS FOUND IN CODE
+================================================================================
+
+1. FIXED LIFECYCLE STAGES
+   ProjectStage Enum is hardcoded to exactly three values:
+     BUSINESS_CASE | DESIGN | CONSTRUCTION
+   This Enum is defined INDEPENDENTLY in both:
+     - project_stage_config.py
+     - project_stage_instances.py
+   The STAGE_SEQUENCE dict is also hardcoded in project_stage_instances.py:
+     {"BUSINESS_CASE": 1, "DESIGN": 2, "CONSTRUCTION": 3}
+
+2. HARDCODED LIFECYCLE MODULE CODE FOR REFURBISHMENT FALLBACK
+   In emissions_calculator.py, when ui_table_key == "refurbishment" and a
+   maintenance_replacement_factor is found, lifecycle_module_code is hardcoded
+   to the string "B2-5".
+
+3. SCOPE 2 HARDCODED TO ZERO
+   In detailed_level_calcs_operational_fuel_water.py:
+     scope2 = 0.0  # Hardcoded — placeholder, easy to change
+
+4. component_id ON activity_data HAS NO FK
+   Column is UUID, nullable=True with no ForeignKey(...) declaration.
+   The referenced entity is not enforced at the database level.
+
+5. unit_id ON emissions_results HAS NO FK
+   The unit_id column in emissions_results has no ForeignKey(...) declaration
+   in the ORM model.
+
+6. operational_equipment.dataset_revision_id HAS NO FK
+   The column exists but its ORM definition has no ForeignKey("dataset_revisions.id")
+   — unlike all other dataset-linked tables.
+
+7. emission_source.emissions_sub_category_id HAS NO FK
+   Comment in lookup_data.py states:
+     "FK removed — emissions_sub_category table dropped"
+
+8. project.project_type IS FREE-TEXT, NOT A FK
+   A project_type lookup table exists as an ORM model but project.project_type
+   is a String(200) column — not a FK to that table.
+
+9. DATASET VISIBILITY LOGIC IMPLEMENTED BUT NOT YET APPLIED
+   core/access_context.py has a fully written get_dataset_visibility_context()
+   function, but its own docstring states:
+     "NO dataset queries are performed here yet"
+   The function computes the correct DatasetVisibility tier but nothing calls it
+   to actually filter dataset queries.
+
+10. is_active PATTERN USED AS SOFT-DELETE / ROW SUPERSESSION
+    Multiple tables use is_active = TRUE partial unique indexes to allow
+    coexistence of inactive rows:
+      background_grade_metrics, materials, waste_treatments,
+      default_transport_distances, default_waste_rates, material_recycled_content,
+      operational_equipment, organization
+
+11. DUAL FACTOR-MODEL COEXISTENCE
+    Two separate emissions factor systems exist in the codebase:
+      A) CURRENT:  background_grade_metrics / emissions_factor_sets / dataset_revisions
+      B) LEGACY:   emission_factor / emission_factor_value / emission_source
+                   (in lookup_data.py)
+    Both are registered as SQLAlchemy ORM models.
+
+12. GRADE 1/2 CALCULATIONS USE RAW SQL VIEWS, NOT ORM MODELS
+    v_grade1_asset_level_pivoted and v_grade2_component_level are queried
+    via text() SQL in service files.
+    v_grade1_asset_level_pivoted definition: sql/create_view_grade1_pivoted.sql
+    v_grade2_component_level definition    : NOT PRESENT in tracked sql/ directory
+
+13. APPROVAL_STATUSES NOT ENFORCED AT DB LEVEL
+    approval_status on project_stage_instances is a String(20), not a DB Enum.
+    The APPROVAL_STATUSES tuple in the model file is Python-only.
+    Values are validated in application code only.
+
+14. REVISION_STATUSES AND REVISION_SCOPE_TYPES NOT ENFORCED AT DB LEVEL
+    status and scope_type on dataset_revisions are String(20) columns.
+    REVISION_STATUSES and REVISION_SCOPE_TYPES are plain Python tuples.
+    No CHECK constraints exist at the database level for these columns.
+
+================================================================================
+END OF REPORT
+================================================================================

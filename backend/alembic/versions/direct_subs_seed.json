@@ -1,0 +1,731 @@
+[
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Hot mix asphalt, <2.5% virgin bitumen (>60% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 1
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Hot mix asphalt, 2.5-3.4% virgin bitumen (40-60% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 2
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Hot mix asphalt, 3.5% virgin bitumen (40% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 3
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Hot mix asphalt, 3.75% virgin bitumen (35% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 4
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Hot mix asphalt, 4% virgin bitumen (30% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 5
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Hot mix asphalt, 4.25% virgin bitumen (25% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 6
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Hot mix asphalt, 4.5% virgin bitumen (20% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 7
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Hot mix asphalt, 5% virgin bitumen (10% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 8
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Hot mix asphalt, 5.25% virgin bitumen (5% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 9
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Warm mix asphalt, <2.5% virgin bitumen (>60% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 10
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Warm mix asphalt, 2.5-3.4% virgin bitumen (40-60% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 11
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Warm mix asphalt, 3.5% virgin bitumen (40% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 12
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Warm mix asphalt, 3.75% virgin bitumen (35% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 13
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Warm mix asphalt, 4% virgin bitumen (30% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 14
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Warm mix asphalt, 4.25% virgin bitumen (25% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 15
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Warm mix asphalt, 4.5% virgin bitumen (20% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 16
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Warm mix asphalt, 4.75% virgin bitumen (15% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 17
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Warm mix asphalt, 5% virgin bitumen (10% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 18
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Warm mix asphalt, 5.25% virgin bitumen (5% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 19
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Warm mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 20
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Recycled Aggregates",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Crushed Rock",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 21
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Landfill biogas that is captured for combustion (methane only)",
+    "user_unit": "m3",
+    "bau_equivalent_emission_source": "Natural gas distributed in a pipeline",
+    "bau_equivalent_unit": "m3",
+    "bau_quantity_per_user_unit": 0.96,
+    "display_order": 22
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Sludge biogas that is captured for combustion (methane only)",
+    "user_unit": "m3",
+    "bau_equivalent_emission_source": "Natural gas distributed in a pipeline",
+    "bau_equivalent_unit": "m3",
+    "bau_quantity_per_user_unit": 0.96,
+    "display_order": 23
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "A biogas that is captured for combustion, other than those mentioned in the items above ",
+    "user_unit": "m3",
+    "bau_equivalent_emission_source": "Natural gas distributed in a pipeline",
+    "bau_equivalent_unit": "m3",
+    "bau_quantity_per_user_unit": 0.96,
+    "display_order": 24
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Biomethane",
+    "user_unit": "m3",
+    "bau_equivalent_emission_source": "Natural gas distributed in a pipeline",
+    "bau_equivalent_unit": "m3",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 25
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Biodiesel ",
+    "user_unit": "kL",
+    "bau_equivalent_emission_source": "Diesel oil",
+    "bau_equivalent_unit": "kL",
+    "bau_quantity_per_user_unit": 0.9,
+    "display_order": 26
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Biodiesel blend (B5)",
+    "user_unit": "kL",
+    "bau_equivalent_emission_source": "Diesel oil",
+    "bau_equivalent_unit": "kL",
+    "bau_quantity_per_user_unit": 0.99,
+    "display_order": 27
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Biodiesel blend (B20)",
+    "user_unit": "kL",
+    "bau_equivalent_emission_source": "Diesel oil",
+    "bau_equivalent_unit": "kL",
+    "bau_quantity_per_user_unit": 0.98,
+    "display_order": 28
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Renewable diesel",
+    "user_unit": "kL",
+    "bau_equivalent_emission_source": "Diesel oil",
+    "bau_equivalent_unit": "kL",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 29
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Ethanol for use as a fuel in an internal combustion engine",
+    "user_unit": "kL",
+    "bau_equivalent_emission_source": "Gasoline (other than for use as fuel in an aircraft)",
+    "bau_equivalent_unit": "kL",
+    "bau_quantity_per_user_unit": 0.68,
+    "display_order": 30
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Ethanol blend (E10) for use as a fuel in an internal combustion engine",
+    "user_unit": "kL",
+    "bau_equivalent_emission_source": "Gasoline (other than for use as fuel in an aircraft)",
+    "bau_equivalent_unit": "kL",
+    "bau_quantity_per_user_unit": 0.97,
+    "display_order": 31
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Biofuels other than those mentioned in the items above",
+    "user_unit": "kL",
+    "bau_equivalent_emission_source": "Diesel oil",
+    "bau_equivalent_unit": "kL",
+    "bau_quantity_per_user_unit": 0.61,
+    "display_order": 32
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Bagasse",
+    "user_unit": "t",
+    "bau_equivalent_emission_source": "Solid fossil fuels other than those mentioned in the items above",
+    "bau_equivalent_unit": "t",
+    "bau_quantity_per_user_unit": 0.43,
+    "display_order": 33
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Biomass, municipal and industrial materials, if combusted to produce heat or electricity",
+    "user_unit": "t",
+    "bau_equivalent_emission_source": "Non‑biomass municipal materials, if combusted to produce heat or electricity",
+    "bau_equivalent_unit": "t",
+    "bau_quantity_per_user_unit": 0.86,
+    "display_order": 34
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "On-site recycled & captured water",
+    "user_unit": "kL",
+    "bau_equivalent_emission_source": "Mains Water",
+    "bau_equivalent_unit": "kL",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 35
+  },
+  {
+    "jurisdiction_name": "Australia",
+    "user_emissions_source": "Off-site recycled water",
+    "user_unit": "kL",
+    "bau_equivalent_emission_source": "Mains Water",
+    "bau_equivalent_unit": "kL",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 36
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "Recycled Crushed Glass",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Aggregate",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 1
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "Recycled Crushed Concrete",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Aggregate",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 2
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "Diesel 5% Biodiesel Blend",
+    "user_unit": "kL",
+    "bau_equivalent_emission_source": "Diesel",
+    "bau_equivalent_unit": "kL",
+    "bau_quantity_per_user_unit": 0.99,
+    "display_order": 3
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "Diesel 20% Biodiesel Blend",
+    "user_unit": "kL",
+    "bau_equivalent_emission_source": "Diesel",
+    "bau_equivalent_unit": "kL",
+    "bau_quantity_per_user_unit": 0.98,
+    "display_order": 4
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "Biodiesel",
+    "user_unit": "kL",
+    "bau_equivalent_emission_source": "Diesel",
+    "bau_equivalent_unit": "kL",
+    "bau_quantity_per_user_unit": 0.9,
+    "display_order": 5
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "AC, HMA, 5% virgin bitumen (5%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "AC, HMA, 5% virgin bitumen (0%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 6
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "AC, HMA, 5% virgin bitumen (10%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "AC, HMA, 5% virgin bitumen (5%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 7
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "AC, HMA, 5% virgin bitumen (15%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "AC, HMA, 5% virgin bitumen (10%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 8
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "AC, HMA, 5% virgin bitumen (20%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "AC, HMA, 5% virgin bitumen (15%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 9
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "AC, HMA, 5% virgin bitumen (25%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "AC, HMA, 5% virgin bitumen (20%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 10
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "AC, HMA, 5% virgin bitumen (30%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "AC, HMA, 5% virgin bitumen (25%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 11
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "AC, HMA, 5% virgin bitumen (35%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "AC, HMA, 5% virgin bitumen (30%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 12
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "AC, HMA, 5% virgin bitumen (40%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "AC, HMA, 5% virgin bitumen (35%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 13
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "AC, HMA, 5% virgin bitumen (50%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "AC, HMA, 5% virgin bitumen (40%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 14
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "AC, HMA, 5% virgin bitumen (70%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "AC, HMA, 5% virgin bitumen (50%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 15
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "SMA, HMA, 6.5% virgin bitumen (5%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "SMA, HMA, 6.5% virgin bitumen (0% RAP) (0%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 16
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "SMA, HMA, 6.5% virgin bitumen (10%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "SMA, HMA, 6.5% virgin bitumen (0% RAP) (5%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 17
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "SMA, HMA, 6.5% virgin bitumen (15%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "SMA, HMA, 6.5% virgin bitumen (0% RAP) (10%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 18
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "SMA, HMA, 6.5% virgin bitumen (20%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "SMA, HMA, 6.5% virgin bitumen (0% RAP) (15%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 19
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "SMA, HMA, 6.5% virgin bitumen (25%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "SMA, HMA, 6.5% virgin bitumen (0% RAP) (20%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 20
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "SMA, HMA, 6.5% virgin bitumen (30%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "SMA, HMA, 6.5% virgin bitumen (0% RAP) (25%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 21
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "SMA, HMA, 6.5% virgin bitumen (35%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "SMA, HMA, 6.5% virgin bitumen (0% RAP) (30%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 22
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "SMA, HMA, 6.5% virgin bitumen (40%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "SMA, HMA, 6.5% virgin bitumen (0% RAP) (35%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 23
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "SMA, HMA, 6.5% virgin bitumen (50%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "SMA, HMA, 6.5% virgin bitumen (0% RAP) (40%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 24
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "SMA, HMA, 6.5% virgin bitumen (70%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "SMA, HMA, 6.5% virgin bitumen (0% RAP) (50%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 25
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (5%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (0%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 26
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (10%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (5%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 27
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (15%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (10%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 28
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (20%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (15%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 29
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (25%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (20%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 30
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (30%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (25%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 31
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (35%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (30%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 32
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (40%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (35%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 33
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (50%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (40%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 34
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (70%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "Open-Graded Porous Asphalt, HMA, 6% virgin bitumen (50%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 35
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "EMOGPA, HMA, 4.5% virgin bitumen (5%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "EMOGPA, HMA, 4.5% virgin bitumen (0% RAP) (0%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 36
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "EMOGPA, HMA, 4.5% virgin bitumen (10%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "EMOGPA, HMA, 4.5% virgin bitumen (0% RAP) (5%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 37
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "EMOGPA, HMA, 4.5% virgin bitumen (15%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "EMOGPA, HMA, 4.5% virgin bitumen (0% RAP) (10%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 38
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "EMOGPA, HMA, 4.5% virgin bitumen (20%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "EMOGPA, HMA, 4.5% virgin bitumen (0% RAP) (15%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 39
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "EMOGPA, HMA, 4.5% virgin bitumen (25%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "EMOGPA, HMA, 4.5% virgin bitumen (0% RAP) (20%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 40
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "EMOGPA, HMA, 4.5% virgin bitumen (30%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "EMOGPA, HMA, 4.5% virgin bitumen (0% RAP) (25%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 41
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "EMOGPA, HMA, 4.5% virgin bitumen (35%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "EMOGPA, HMA, 4.5% virgin bitumen (0% RAP) (30%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 42
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "EMOGPA, HMA, 4.5% virgin bitumen (40%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "EMOGPA, HMA, 4.5% virgin bitumen (0% RAP) (35%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 43
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "EMOGPA, HMA, 4.5% virgin bitumen (50%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "EMOGPA, HMA, 4.5% virgin bitumen (0% RAP) (40%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 44
+  },
+  {
+    "jurisdiction_name": "New Zealand",
+    "user_emissions_source": "EMOGPA, HMA, 4.5% virgin bitumen (70%RAP)",
+    "user_unit": "tonne",
+    "bau_equivalent_emission_source": "EMOGPA, HMA, 4.5% virgin bitumen (0% RAP) (50%RAP)",
+    "bau_equivalent_unit": "tonne",
+    "bau_quantity_per_user_unit": 1.0,
+    "display_order": 45
+  }
+]

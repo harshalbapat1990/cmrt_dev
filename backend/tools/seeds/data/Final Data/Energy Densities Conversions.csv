@@ -1,0 +1,90 @@
+﻿Fuel type ,Fuel ,Unit,Energy content factor (GJ/unit),Source/Comments
+Solid fuels ,Sulphite lyes,t,12.4,National Greenhouse Account Factors 2025
+Solid fuels ,Dry wood,t,16.2,National Greenhouse Account Factors 2025
+Solid fuels ,Green and air dried wood,t,10.4,National Greenhouse Account Factors 2025
+Solid fuels ,Bagasse,t,9.6,National Greenhouse Account Factors 2025
+Solid fuels ,"Biomass, municipal and industrial materials, if combusted to produce heat or electricity",t,12.2,National Greenhouse Account Factors 2025
+Solid fuels ,Primary solid biomass fuels other than those mentioned in the items above,t,12.2,National Greenhouse Account Factors 2025
+Solid fuels ,Charcoal,t,31.1,National Greenhouse Account Factors 2025
+Solid fuels ,"truck and off-road tyres, if recycled and combusted to produce heat or electricity ",t,27.1,National Greenhouse Account Factors 2025
+Solid fuels ,"Passenger car tyres, if recycled and combusted to produce heat or electricity  ",t,32,National Greenhouse Account Factors 2025
+Solid fuels ,"Industrial materials that are derived from fossil fuels, if recycled and combusted to produce heat or electricity",t,26.3,National Greenhouse Account Factors 2025
+Solid fuels ,Coal tar,t,37.5,National Greenhouse Account Factors 2025
+Solid fuels ,"Non‑biomass municipal materials, if combusted to produce heat or electricity",t,10.5,National Greenhouse Account Factors 2025
+Solid fuels ,Bituminous coal,t,27,National Greenhouse Account Factors 2025
+Solid fuels ,Sub-bituminous coal,t,21,National Greenhouse Account Factors 2025
+Solid fuels ,Anthracite,t,29,National Greenhouse Account Factors 2025
+Solid fuels ,Coking coal,t,30,National Greenhouse Account Factors 2025
+Solid fuels ,Brown coal (lignite),t,10.2,National Greenhouse Account Factors 2025
+Solid fuels ,Solid fossil fuels other than those mentioned in the items above,t,22.1,National Greenhouse Account Factors 2025
+Solid fuels ,Coal briquettes,t,22.1,National Greenhouse Account Factors 2025
+Solid fuels ,Coal coke,t,27,National Greenhouse Account Factors 2025
+Gaseous fuels,Liquefied natural gas,kL,25.3,National Greenhouse Account Factors 2025
+Gaseous fuels,Natural gas distributed in a pipeline,m3,0.0393,National Greenhouse Account Factors 2025
+Gaseous fuels,Coal seam methane that is captured for combustion,m3,0.0377,National Greenhouse Account Factors 2025
+Gaseous fuels,Coal mine waste gas that is captured for combustion,m3,0.0377,National Greenhouse Account Factors 2025
+Gaseous fuels,Compressed natural gas (reverting to standard conditions),m3,0.0393,National Greenhouse Account Factors 2025
+Gaseous fuels,Unprocessed natural gas,m3,0.0393,National Greenhouse Account Factors 2025
+Gaseous fuels,Ethane,m3,0.0629,National Greenhouse Account Factors 2025
+Gaseous fuels,Coke oven gas,m3,0.0181,National Greenhouse Account Factors 2025
+Gaseous fuels,Blast furnace gas,m3,0.004,National Greenhouse Account Factors 2025
+Gaseous fuels,town gas,m3,0.039,National Greenhouse Account Factors 2025
+Gaseous fuels,Gaseous fossil fuels other than those mentioned in the items above,m3,0.039,National Greenhouse Account Factors 2025
+Gaseous fuels,Landfill biogas that is captured for combustion (methane only),m3,0.0377,National Greenhouse Account Factors 2025
+Gaseous fuels,Sludge biogas that is captured for combustion (methane only),m3,0.0377,National Greenhouse Account Factors 2025
+Gaseous fuels,"A biogas that is captured for combustion, other than those mentioned in the items above",m3,0.037,National Greenhouse Account Factors 2025
+Gaseous fuels,Biomethane,m3,0.0393,National Greenhouse Account Factors 2025
+Gaseous fuels,Hydrogen,m3,0.0122,National Greenhouse Account Factors 2025
+Gaseous fuels,Natural Gas-Non-metro-New South Wales and ACt,m3,0.0393,National Greenhouse Account Factors 2025
+Gaseous fuels,Natural Gas-Metro -New South Wales and ACt,m3,0.0393,National Greenhouse Account Factors 2025
+Gaseous fuels,Natural Gas-Metro -South Australia,m3,0.0393,National Greenhouse Account Factors 2025
+Gaseous fuels,Natural Gas-Non-metro-South Australia,m3,0.0393,National Greenhouse Account Factors 2025
+Gaseous fuels,Natural Gas-Metro -Queensland,m3,0.0393,National Greenhouse Account Factors 2025
+Gaseous fuels,Natural Gas-Non-metro-Queensland,m3,0.0393,National Greenhouse Account Factors 2025
+Gaseous fuels,Natural Gas-Metro -Western Australia,m3,0.0393,National Greenhouse Account Factors 2025
+Gaseous fuels,Natural Gas-Metro -Victoria,m3,0.0393,National Greenhouse Account Factors 2025
+Gaseous fuels,Natural Gas-Non-metro-Victoria,m3,0.0393,National Greenhouse Account Factors 2025
+Gaseous fuels,Natural Gas-Non-metro-Western Australia,m3,0.0393,National Greenhouse Account Factors 2025
+Gaseous fuels,Ethane-New South Wales,m3,0.0629,National Greenhouse Account Factors 2025
+Gaseous fuels,Ethane-Victoria,m3,0.0629,National Greenhouse Account Factors 2025
+Liquid fuels ,"Petroleum based oils (other than petroleum based oil used as fuel), e.g. lubricants",kL,38.8,National Greenhouse Account Factors 2025
+Liquid fuels ,Petroleum based greases,kL,38.8,National Greenhouse Account Factors 2025
+Liquid fuels ,Automotive gasoline/petrol (other than for use as fuel in an aircraft),kL,34.2,National Greenhouse Account Factors 2025
+Liquid fuels ,Aviation gasoline,kL,33.1,National Greenhouse Account Factors 2025
+Liquid fuels ,Kerosene (other than for use as fuel in an aircraft),kL,37.5,National Greenhouse Account Factors 2025
+Liquid fuels ,Aviation turbine fuel/kerosene ,kL,36.8,National Greenhouse Account Factors 2025
+Liquid fuels ,Heating oil,kL,37.3,National Greenhouse Account Factors 2025
+Liquid fuels ,Diesel oil,kL,38.6,National Greenhouse Account Factors 2025
+Liquid fuels ,Fuel oil,kL,39.7,National Greenhouse Account Factors 2025
+Liquid fuels ,Liquefied aromatic hydrocarbons,kL,34.4,National Greenhouse Account Factors 2025
+Liquid fuels ,Solvents: mineral turpentine or white spirits,kL,34.4,National Greenhouse Account Factors 2025
+Liquid fuels ,Liquefied petroleum gas (LPG),kL,25.7,National Greenhouse Account Factors 2025
+Liquid fuels ,Naphtha,kL,31.4,National Greenhouse Account Factors 2025
+Liquid fuels ,Petroleum based products other than mentioned in the items above,kL,34.4,National Greenhouse Account Factors 2025
+Liquid fuels ,Biodiesel,kL,34.6,National Greenhouse Account Factors 2025
+Liquid fuels ,Ethanol for use as a fuel in an internal combustion engine,kL,23.4,National Greenhouse Account Factors 2025
+Liquid fuels ,Biofuels other than those mentioned in the items above,kL,23.4,National Greenhouse Account Factors 2025
+Liquid fuels ,Crude oil including crude oil condensates,t,45.3,National Greenhouse Account Factors 2025
+Liquid fuels ,Other natural gas liquids,t,46.5,National Greenhouse Account Factors 2025
+Liquid fuels ,Petroleum coke,t,34.2,National Greenhouse Account Factors 2025
+Liquid fuels ,Refinery gas and liquids,t,42.9,National Greenhouse Account Factors 2025
+Liquid fuels ,Refinery coke,t,34.2,National Greenhouse Account Factors 2025
+Liquid fuels ,Renewable aviation kerosene,t,36.8,National Greenhouse Account Factors 2025
+Liquid fuels ,Renewable diesel,t,38.6,National Greenhouse Account Factors 2025
+Liquid fuels ,Gasoline-Cars and light commercial vehicles,kL,34.2,National Greenhouse Account Factors 2025
+Liquid fuels ,Diesel oil-Cars and light commercial vehicles,kL,38.6,National Greenhouse Account Factors 2025
+Liquid fuels ,Liquefied petroleum gas (LPG)-Cars and light commercial vehicles,kL,26.2,National Greenhouse Account Factors 2025
+Liquid fuels ,Fuel oil-Cars and light commercial vehicles,kL,39.7,National Greenhouse Account Factors 2025
+Liquid fuels ,Ethanol-Cars and light commercial vehicles,kL,23.4,National Greenhouse Account Factors 2025
+Liquid fuels ,Biodiesel-Cars and light commercial vehicles,kL,34.6,National Greenhouse Account Factors 2025
+Liquid fuels ,Other biofuels-Cars and light commercial vehicles,kL,23.4,National Greenhouse Account Factors 2025
+Liquid fuels ,Liquefied natural gas-Light duty vehicles,kL,25.3,National Greenhouse Account Factors 2025
+Liquid fuels ,Liquefied natural gas-Heavy duty vehicles,kL,25.3,National Greenhouse Account Factors 2025
+Liquid fuels ,Diesel oil - Euro iv or higher-Heavy duty vehicles,kL,38.6,National Greenhouse Account Factors 2025
+Liquid fuels ,Diesel oil - Euro iii-Heavy duty vehicles,kL,38.6,National Greenhouse Account Factors 2025
+Liquid fuels ,Diesel oil - Euro i-Heavy duty vehicles,kL,38.6,National Greenhouse Account Factors 2025
+Liquid fuels ,Gasoline for use as fuel in an aircraft-Aviation,kL,33.1,National Greenhouse Account Factors 2025
+Liquid fuels ,Kerosene for use as fuel in an aircraft-Aviation,kL,36.8,National Greenhouse Account Factors 2025
+Liquid fuels ,Renewable aviation kerosene,kL,36.8,National Greenhouse Account Factors 2025
+Liquid fuels ,Compressed natural gas-Light duty vehicles,m3,0.0393,National Greenhouse Account Factors 2025
+Liquid fuels ,Compressed natural gas-Heavy duty vehicles,m3,0.0393,National Greenhouse Account Factors 2025

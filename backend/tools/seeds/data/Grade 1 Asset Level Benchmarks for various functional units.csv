@@ -1,0 +1,22 @@
+﻿Jurisdiction,Super sector,Mastertype,Typecast,Functional unit,Product stage (A1-A3) Emission intensity  (tCO2e/unit) - Low,Product stage (A1-A3) Emission intensity  (tCO2e/unit) - Mid,Product stage (A1-A3) Emission intensity  (tCO2e/unit) - High,Transport (A4) Emission intensity (tCO2e/unit) - Low,Transport (A4) Emission intensity (tCO2e/unit) - Mid,Transport (A4) Emission intensity (tCO2e/unit) - High,Construction (A5) Emission intensity (tCO2e/unit) - Low,Construction (A5) Emission intensity (tCO2e/unit) - Mid,Construction (A5) Emission intensity (tCO2e/unit) - High
+Australia,Building,Transport Building,Parking Facility,m2  GFA,0.362,0.482,0.603,0.0191,0.0255,0.0319,0.482,0.603,0.0191
+Australia,Building,Transport Building,Warehouse,m2  GFA,0.26,0.346,0.433,0.0146,0.0195,0.0244,0.346,0.433,0.0146
+Australia,Transport,Rail,Bridge (Rail),$ material spend,0.0013,0.0017,0.0021,0.0001,0.0001,0.0001,0.0017,0.0021,0.0001
+Australia,Transport,Rail,Light Rail,$ material spend,0.0005,0.0006,0.0008,0,0,0.0001,0.0006,0.0008,0
+Australia,Transport,Rail,"Light Rail, Stabling, and Signalling Works",$ material spend,0.0005,0.0006,0.0008,0,0.0001,0.0001,0.0006,0.0008,0
+Australia,Transport,Rail,Main Line Works (Rail),$ material spend,0.0002,0.0003,0.0004,0,0,0,0.0003,0.0004,0
+Australia,Transport,Rail,Station (Rail),$ material spend,0.0007,0.0009,0.0011,0,0.0001,0.0001,0.0009,0.0011,0
+Australia,Transport,Rail,Tunnel (Rail),$ material spend,0.0006,0.0009,0.0011,0,0.0001,0.0001,0.0009,0.0011,0
+Australia,Transport,Road,Bridge (Road),$ material spend,0.0013,0.0017,0.0021,0.0001,0.0001,0.0001,0.0017,0.0021,0.0001
+Australia,Transport,Road,Low Use Road,$ material spend,0.0003,0.0005,0.0006,0,0,0.0001,0.0005,0.0006,0
+Australia,Transport,Road,Low Use Road Rehabilitation Maintenance,$ material spend,0.0001,0.0001,0.0002,0,0,0,0.0001,0.0002,0
+Australia,Transport,Road,Routine Road Maintenance,$ material spend,0.0001,0.0002,0.0002,0,0,0,0.0002,0.0002,0
+Australia,Transport,Road,State Road (Highway/Freeway),$ material spend,0.0004,0.0005,0.0007,0,0,0.0001,0.0005,0.0007,0
+Australia,Transport,Road,State Road (Highway/Freeway) Rehabilitation Maintenance,$ material spend,0.0001,0.0002,0.0002,0,0,0,0.0002,0.0002,0
+Australia,Transport,Road,Tunnel (Road),$ material spend,0.0005,0.0007,0.0009,0,0,0.0001,0.0007,0.0009,0
+Australia,Transport,Road/Rail,Level Crossing,$ material spend,0.0007,0.0009,0.0012,0,0,0.0001,0.0009,0.0012,0
+New Zealand,Transport,Road,Road/Busway/Path,lane km,2500,2500,2500,200,200,200,525,525,525
+New Zealand,Transport,Road,Bridge only ,lane km,9100,9100,9100,728,728,728,1911,1911,1911
+New Zealand,Transport,Road,Intersection improvements,lane km,3000,3000,3000,240,240,240,630,630,630
+New Zealand,Transport,Road,Tunnel,lane km,7700,7700,7700,616,616,616,1617,1617,1617
+New Zealand,Transport,Road,Safety and traffic flow improvements,lane km,1700,1700,1700,136,136,136,357,357,357

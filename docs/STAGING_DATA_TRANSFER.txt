@@ -1,0 +1,340 @@
+================================================================================
+  AUSTROADS CARBON ACCOUNTING APP — STAGING ENVIRONMENT DATA TRANSFER GUIDE
+================================================================================
+
+  Document ID : ACCA-OPS-001
+  Version     : 1.2.0
+  Date        : 2026-04-17
+  Status      : ACTIVE
+  Authors     : Platform Development Team
+  Repository  : People-Places-Solutions/Austroads_CarbonAccountingApp
+
+--------------------------------------------------------------------------------
+  CHANGE LOG
+--------------------------------------------------------------------------------
+
+  Version  Date          Author                  Summary
+  -------  ----------    --------------------    --------------------------------
+  1.0.0    2026-04-10    Platform Dev Team       Initial release
+  1.1.0    2026-04-11    Platform Dev Team       Add missing Step 3 seed scripts;
+                                                 add default_wastage_rates to 3.4;
+                                                 add project_postcode and
+                                                 project_typecast to Section 4;
+                                                 note seed_demo_org in Step 2
+  1.2.0    2026-04-17    Platform Dev Team       Document seed_organizations in
+                                                 Step 2 and Section 3.2;
+                                                 add replace_grade1_capex_metrics.sql
+                                                 to Step 4;
+                                                 move postcode_reference from
+                                                 pg_dump (Step 5) to seed script
+                                                 (seed_postal_codes.py);
+                                                 document application-managed
+                                                 no-op seeds in run_all;
+                                                 update Section 5 org note
+
+--------------------------------------------------------------------------------
+  1. PURPOSE
+--------------------------------------------------------------------------------
+
+  This document is a guide for developers who need to provision a new staging
+  or production database. It explains what data needs to go in, where it comes
+  from, and — equally importantly — what should NOT be copied across from other
+  environments.
+
+  The core distinction is simple: reference/lookup data that the platform ships
+  with is safe to seed anywhere. User-entered data (projects, organisations,
+  activity records, personal details) must never be copied between environments.
+
+  Keep this document updated whenever:
+    - New seed scripts are added or removed
+    - A table changes category (e.g. a formerly empty table starts holding
+      user data)
+    - The provisioning steps change
+
+--------------------------------------------------------------------------------
+  2. PROVISIONING A NEW DATABASE — STEP BY STEP
+--------------------------------------------------------------------------------
+
+  Step 1 — Apply the schema
+  --------------------------
+  Start by running Alembic migrations against the target database. This creates
+  all the tables and constraints before any data goes in.
+
+      cd backend/
+      venv\Scripts\activate
+      alembic upgrade head
+
+  Step 2 — Run the main seed orchestrator
+  ----------------------------------------
+  The run_all.py script handles most reference tables in the right dependency
+  order. Running it first saves a lot of manual work.
+
+      cd backend/
+      venv\Scripts\activate
+      python -m tools.seeds.run_all
+
+  Note: run_all includes seed_demo_org, which creates a Demo organisation and
+  its allowed email domain. This is harmless on staging and intentional for
+  development. On a production environment you may wish to review or remove
+  the demo org after seeding.
+
+  run_all also includes seed_organizations, which loads a catalogue of industry
+  organisations (design consultants and construction contractors) from
+  tools/seeds/data/Organizations_list.csv. These are platform reference orgs,
+  not user-created organisations. The script is idempotent — it matches by name
+  and skips rows that already exist.
+
+  run_all also calls three application-managed no-op seeds at the end:
+  seed_project_dataset_revisions, seed_dataset_revision_changes, and
+  seed_project_dataset_exclusions. These exist only to satisfy the orchestrator
+  interface; the tables they target start empty and are populated by the
+  application at runtime.
+
+  Step 3 — Run the large-dataset seeds separately
+  -------------------------------------------------
+  These seeds are kept out of run_all because they're large, slow, or depend
+  on data that run_all inserts. Run them after run_all completes:
+
+      python -m tools.seeds.run_electric_decarb_seed
+      python -m tools.seeds.run_ev_uptake_seed
+      python -m tools.seeds.run_freight_rail_seed
+      python -m tools.seeds.run_vepm_seed
+      python -m tools.seeds.seed_benchmark_asset_types
+      python -m tools.seeds.seed_carbon_values
+      python -m tools.seeds.seed_energy_density_conversions
+      python -m tools.seeds.seed_fugitives
+      python -m tools.seeds.seed_maintenance_replacement_factors
+      python -m tools.seeds.seed_operational_equipment
+      python -m tools.seeds.seed_vehicle_tables
+      python -m tools.seeds.seed_wastage_rates_new
+
+  Step 4 — Load background_grade_metrics via SQL
+  ------------------------------------------------
+  This table is too large to seed reliably over Azure connections using Python.
+  Use the bulk SQL scripts instead:
+
+      psql -d <target_db> -f backend/tools/seeds/background_grade_metrics_seed.sql
+      psql -d <target_db> -f backend/tools/seeds/background_grade_metrics_grade2_replace.sql
+      psql -d <target_db> -f backend/tools/seeds/background_grade_metrics_grade34_replace.sql
+      psql -d <target_db> -f backend/tools/seeds/replace_grade1_capex_metrics.sql
+
+  Step 5 — Dump tables that have no seed script
+  -----------------------------------------------
+  A handful of tables don't have Python seed scripts yet. For now, pg_dump them
+  from an existing environment (dev is fine — this data doesn't change):
+
+      pg_dump --table=grid_regions          -a -Fc <source_db> | pg_restore -d <target_db>
+      pg_dump --table=decarb_factor_types   -a -Fc <source_db> | pg_restore -d <target_db>
+      pg_dump --table=project_type          -a -Fc <source_db> | pg_restore -d <target_db>
+      pg_dump --table=emission_source       -a -Fc <source_db> | pg_restore -d <target_db>
+      pg_dump --table=emission_factor       -a -Fc <source_db> | pg_restore -d <target_db>
+      pg_dump --table=emission_factor_value -a -Fc <source_db> | pg_restore -d <target_db>
+
+  postcode_reference now has a Python seed script. Use it instead of pg_dump:
+
+      python -m tools.seeds.seed_postal_codes
+
+  Step 6 — Seed the Austroads platform operator org
+  ---------------------------------------------------
+  This creates the root Austroads organisation that the platform needs to
+  function. Do not skip this step.
+
+      python -m tools.seeds.seed_austroads_org
+
+  Step 7 — Create users manually
+  --------------------------------
+  Do NOT copy user accounts from dev or any other environment. Set up fresh
+  staging/prod accounts through the admin interface or seed_users.py using
+  credentials appropriate for that environment.
+
+--------------------------------------------------------------------------------
+  3. WHAT TO SEED — REFERENCE DATA
+--------------------------------------------------------------------------------
+
+  Everything listed here is platform-managed reference data with no personal
+  or project-specific content. It's safe to seed into any environment. All
+  seed scripts are idempotent, so re-running them is harmless.
+
+  3.1 Roles & Permissions
+  ------------------------
+  The RBAC setup. These must be present before any users are created.
+
+    roles                     seed_roles.py
+    permissions               seed_permissions.py
+    role_permissions          seed_role_permissions.py
+
+  3.2 Core Lookups
+  -----------------
+  Standard lookup tables that drive most of the application's behaviour.
+
+    ghg_scopes                    seed_ghg_scopes.py
+    units                         seed_units.py
+    unit_conversions              seed_unit_conversions.py
+    emissions_categories          seed_emissions_categories.py
+    lifecycle_modules             seed_lifecycle_modules.py
+    jurisdictions                 seed_jurisdictions.py
+    anz_reporting_stages          seed_anz_reporting_stages.py
+    jurisdiction_reporting_stages seed_jurisdiction_reporting_stages.py
+    grade_definitions             seed_grade_definitions.py
+    value_bands                   seed_value_bands.py
+    metric_types                  seed_metric_types.py
+    postcode_reference            seed_postal_codes.py
+    organization (industry)       seed_organizations.py  (design consultants &
+                                    construction contractors from CSV; does NOT
+                                    overwrite rows matched by name)
+    organization_domains (indust) seed_organizations.py  (domains for the above)
+    grid_regions                  pg_dump from source (no seed script yet)
+    project_type                  pg_dump from source (no seed script yet)
+
+  3.3 Emission Factors & Calculation Data
+  ----------------------------------------
+  The core scientific/calculation reference data. These are large but stable.
+
+    dataset_revisions         seed_dataset_revisions.py
+    emissions_factor_sets     seed_emissions_factor_sets.py
+    background_grade_metrics  Bulk SQL — see Step 4
+    carbon_values             seed_carbon_values.py
+    carbon_value_ranges       seed_carbon_values.py
+    electric_decarb_factors   run_electric_decarb_seed.py
+    ev_uptake_factors         run_ev_uptake_seed.py
+    ev_energy_types           run_ev_uptake_seed.py
+    ev_scenario_types         run_ev_uptake_seed.py
+    ev_vehicle_categories     run_ev_uptake_seed.py
+    freight_rail_factors      run_freight_rail_seed.py
+    vepm_factors              run_vepm_seed.py
+    decarb_factor_types       pg_dump from source (no seed script yet)
+    emission_source           pg_dump from source (no seed script yet)
+    emission_factor           pg_dump from source (no seed script yet)
+    emission_factor_value     pg_dump from source (no seed script yet)
+
+  3.4 Materials & Defaults
+  -------------------------
+  Default values and material properties used across all projects.
+
+    materials                       seed_materials.py
+    material_recycled_content       seed_material_recycled_content.py
+    densities                       seed_densities.py
+    default_transport_distances     seed_default_transport_distances.py
+    default_waste_rates             seed_default_waste_rates.py
+    default_wastage_rates           seed_wastage_rates_new.py
+    base_case_assumptions           seed_base_case_assumptions.py
+    waste_treatments                seed_waste_treatments.py
+    energy_density_conversions      seed_energy_density_conversions.py
+    maintenance_replacement_factors seed_maintenance_replacement_factors.py
+    operational_equipment           seed_operational_equipment.py
+    fugitives                       seed_fugitives.py
+
+  3.5 Benchmarks & Vehicle Data
+  ------------------------------
+    benchmark_mastertypes           seed_benchmark_asset_types.py
+    benchmark_typecasts             seed_benchmark_asset_types.py
+    vehicle_classes                 seed_vehicle_tables.py
+    vehicle_energy_conversion_rates seed_vehicle_tables.py
+    vehicle_masses                  seed_vehicle_tables.py
+    interrupted_vehicles            seed_vehicle_tables.py
+    uninterrupted_vehicles          seed_vehicle_tables.py
+
+--------------------------------------------------------------------------------
+  4. WHAT NOT TO COPY — USER & PROJECT DATA
+--------------------------------------------------------------------------------
+
+  These tables hold data that belongs to specific users, organisations, or
+  projects. They must NOT be copied between environments. Start fresh on each.
+
+  User & Organisation Data
+  -------------------------
+  users                         Real accounts with personal details and credentials.
+  user_roles                    Tied directly to user UUIDs.
+  organization                  Real organisation records. See Section 5 for the
+                                one exception (the Austroads platform operator org).
+  organization_domains          Organisation email domain mappings — user data.
+  access_requests               Pending and historical join requests from users.
+
+  Project Data
+  -------------
+  Everything below is created by users working in the application. None of it
+  should travel between environments.
+
+    project
+    project_stage_config
+    project_stage_instances
+    project_options
+    project_organizations
+    project_parties
+    project_stage_parties
+    project_postcode          Project location postcodes.
+    project_typecast          Project-level asset typecast overrides.
+    project_reporting_submission
+    project_dataset_revisions
+    dataset_revision_changes
+    project_dataset_exclusions
+    proponent_assumption_overrides
+    joint_ventures
+    joint_venture_members
+
+  Activity & Results Data
+  ------------------------
+    activity_data               All user-entered emissions activity data.
+    emissions_results           Computed results derived from activity data.
+    emission_entry              Legacy user-entered emission entries.
+    emission_entry_summary      Legacy submission summaries.
+
+  Audit & Workflow History
+  -------------------------
+    stage_approval_events       Approval/rejection history — environment-specific.
+    audit_logs                  Full application audit trail — environment-specific.
+
+--------------------------------------------------------------------------------
+  5. TABLES THAT NEED A JUDGEMENT CALL
+--------------------------------------------------------------------------------
+
+  A few tables don't fit neatly into either category. Check these before each
+  migration.
+
+  dataset_revisions
+    The DEFAULT-scoped rows are platform data and are safe to copy (or just
+    re-seed). Any rows with scope_type = 'ORG' or 'PROJECT' are user data and
+    must NOT be copied. When in doubt, filter by scope_type = 'DEFAULT'.
+
+  emissions_factor_sets
+    These are linked to dataset_revisions. Only copy rows that reference a
+    DEFAULT-scoped revision. The rest are user-customised and should stay put.
+
+  organization
+    Two sets of rows are platform data and safe to seed:
+      1. The Austroads PLATFORM_OPERATOR org — seeded by seed_austroads_org.py.
+      2. Industry reference orgs (design consultants & construction contractors)
+         — seeded by seed_organizations.py (run as part of run_all).
+    All other organisation rows are real user/customer data — leave them behind.
+
+--------------------------------------------------------------------------------
+  6. A FEW THINGS WORTH KNOWING
+--------------------------------------------------------------------------------
+
+  - All seed scripts are idempotent. Running them more than once is safe and
+    won't create duplicates.
+
+  - The alembic_version table is managed entirely by Alembic. Don't touch it
+    manually and don't copy it between environments.
+
+  - project_dataset_revisions, dataset_revision_changes, and
+    project_dataset_exclusions are application-managed and start empty on a
+    fresh environment. That's expected — don't try to pre-populate them.
+
+  - For Azure-hosted databases, run seed scripts from a machine with a stable,
+    low-latency connection. The EV uptake and background grade metric datasets
+    are large and will time out on a flaky connection. Use the bulk SQL approach
+    (Step 4) for those.
+
+--------------------------------------------------------------------------------
+  7. RELATED FILES
+--------------------------------------------------------------------------------
+
+  backend/tools/seeds/run_all.py          Seed orchestrator — shows load order
+  backend/alembic/ALEMBIC_SETUP_GUIDE.md  Schema migration guide
+  backend/README.md                       Backend setup and run instructions
+  backend/tools/seeds/data/              CSV and source files for bulk seeds
+
+================================================================================
+  END OF DOCUMENT
+================================================================================

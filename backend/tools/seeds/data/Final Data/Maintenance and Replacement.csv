@@ -1,0 +1,31 @@
+﻿Jurisdiction,Activity Type,Item,Unit,Product emissions (tCO2e),Transport emissions (tCO2e),Installation emissions (tCO2e),Emissions intensity (tCO2e/UoM),Default frequency (years),Source/Comments
+Australia,Road resurface,Minor Road (chipseal) - Highways or Secondary Roads,m2,0.001389104,0.000111128,0.039837033,0.041337265,10,NZ Transport Agency PEET
+Australia,Road resurface,Major Road - Open-Graded Porous Asphalt (OGPA),m2,0.0086283,0.000690264,0.039837033,0.049155597,10,NZ Transport Agency PEET
+Australia,Road resurface,Major Road - Open-Graded Porous Asphalt (OGPA) with membrane seal,m2,0.009979656,0.000798372,0.039837033,0.050615061,10,NZ Transport Agency PEET
+Australia,Road resurface,Major Road - Epoxy-Modified Open-Graded Porous Asphalt (EMOGPA),m2,0.0112227,0.000897816,0.039837033,0.051957549,10,NZ Transport Agency PEET
+Australia,Road resurface,Major Road - Epoxy-Modified Open-Graded Porous Asphalt (EMOGPA) with membrane seal,m2,0.013138056,0.001051044,0.039837033,0.054026133,10,NZ Transport Agency PEET
+Australia,Road resurface,Local road - urban,m2,0.010857,0.00086856,0.039837033,0.051562593,10,NZ Transport Agency PEET
+Australia,Road resurface,Local road - rural,m2,0.00247549,0.000198039,0.039837033,0.042510562,10,NZ Transport Agency PEET
+Australia,Road reconstruction,Minor road - Unbound aggregate overlay and bound sub-base treatment,m2,0.019378761,0.001550301,0.057361066,0.078290128,25,NZ Transport Agency PEET
+Australia,Road reconstruction,Minor road - Unbound aggregate overlay treatment,m2,0.002190651,0.000175252,0.01014605,0.012511953,25,NZ Transport Agency PEET
+Australia,Road reconstruction,Minor road - recycle treatment,m2,0.009324272,0.000745942,0.057361066,0.067431279,25,NZ Transport Agency PEET
+Australia,Road reconstruction,Major road - Structural Asphalt Overlay treatment,m2,0.023124,0.00184992,0.057400833,0.082374753,25,NZ Transport Agency PEET
+Australia,Road reconstruction,Major road - Structural Asphalt Inlay treatment ,m2,0.04935,0.003948,0.027027646,0.080325646,25,NZ Transport Agency PEET
+Australia,Road reconstruction,Major road - Foamed Bitumen Basecourse treatment ,m2,0.012430353,0.000994428,0.057592795,0.071017576,25,NZ Transport Agency PEET
+Australia,Road reconstruction,Urban Reconstruction,m2,0.070795006,0.0056636,0.01292489,0.089383496,25,NZ Transport Agency PEET
+Australia,Road reconstruction,Rural Reconstruction,m2,0.017641499,0.00141132,0.01292489,0.031977709,25,NZ Transport Agency PEET
+New Zealand,Road resurface,Minor Road (chipseal) - Highways or Secondary Roads,m2,0.001389104,0.000111128,0.039837033,0.041337265,10,NZ Transport Agency PEET
+New Zealand,Road resurface,Major Road - Open-Graded Porous Asphalt (OGPA),m2,0.0086283,0.000690264,0.039837033,0.049155597,10,NZ Transport Agency PEET
+New Zealand,Road resurface,Major Road - Open-Graded Porous Asphalt (OGPA) with membrane seal,m2,0.009979656,0.000798372,0.039837033,0.050615061,10,NZ Transport Agency PEET
+New Zealand,Road resurface,Major Road - Epoxy-Modified Open-Graded Porous Asphalt (EMOGPA),m2,0.0112227,0.000897816,0.039837033,0.051957549,10,NZ Transport Agency PEET
+New Zealand,Road resurface,Major Road - Epoxy-Modified Open-Graded Porous Asphalt (EMOGPA) with membrane seal,m2,0.013138056,0.001051044,0.039837033,0.054026133,10,NZ Transport Agency PEET
+New Zealand,Road resurface,Local road - urban,m2,0.010857,0.00086856,0.039837033,0.051562593,10,NZ Transport Agency PEET
+New Zealand,Road resurface,Local road - rural,m2,0.00247549,0.000198039,0.039837033,0.042510562,10,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Minor road - Unbound aggregate overlay and bound sub-base treatment,m2,0.019378761,0.001550301,0.057361066,0.078290128,25,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Minor road - Unbound aggregate overlay treatment,m2,0.002190651,0.000175252,0.01014605,0.012511953,25,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Minor road - recycle treatment,m2,0.009324272,0.000745942,0.057361066,0.067431279,25,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Major road - Structural Asphalt Overlay treatment,m2,0.023124,0.00184992,0.057400833,0.082374753,25,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Major road - Structural Asphalt Inlay treatment ,m2,0.04935,0.003948,0.027027646,0.080325646,25,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Major road - Foamed Bitumen Basecourse treatment ,m2,0.012430353,0.000994428,0.057592795,0.071017576,25,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Urban Reconstruction,m2,0.070795006,0.0056636,0.01292489,0.089383496,25,NZ Transport Agency PEET
+New Zealand,Road reconstruction,Rural Reconstruction,m2,0.017641499,0.00141132,0.01292489,0.031977709,25,NZ Transport Agency PEET

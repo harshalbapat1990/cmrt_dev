@@ -1,0 +1,21 @@
+﻿Vehicle type,A,B
+Small Car,7.9302,117.1284
+Medium Car,8.8017,179.689
+Large Car,10.487,255.0092
+Courier Van-Utility,8.0758,226.185
+4WD Mid Size Petrol,11.5401,246.253
+Light Rigid,16.0634,147.3128
+Medium Rigid,28.5369,158.8351
+Heavy Rigid,45.5089,535.1584
+Heavy Bus,38.3297,661.0688
+Artic 4 Axle,63.9608,458.9412
+Artic 5 Axle,68.7011,507.3099
+Artic 6 Axle,75.4028,547.8857
+Rigid + 5 Axle Dog,90.118,616.4443
+B-Double,96.3563,651.9121
+Twin steer + 5 Axle Dog,96.579,659.1193
+A-Double,112.0411,723.6597
+B Triple,117.0878,745.8925
+A B Combination,131.0548,798.2622
+A-Triple,145.719,855.7539
+Double B-Double,150.8098,877.3157

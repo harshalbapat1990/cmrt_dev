@@ -1,0 +1,58 @@
+﻿Jurisdiction,Emissions Sub-Category,Truck Transport Mode,Rail Transport Mode,Sea Transport Mode,Truck (km),Rail (km),Sea (km),Source
+Australia,Aggregate,Articulated Truck,"Rail, Bulk Transport",Shipping,40,0,0,National Embodied Carbon Databook v1.00 2026 - Aggregates
+Australia,Aluminium - extruded,Articulated Truck,"Rail, Bulk Transport",Shipping,720,0,6800,National Embodied Carbon Databook v1.00 2026 - Aluminium products
+Australia,Cladding/roofing,Articulated Truck,"Rail, Bulk Transport",Shipping,370,0,2600,National Embodied Carbon Databook v1.00 2026 - Cladding and Roofing
+Australia,Curtain wall,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,"National Embodied Carbon Databook v1.00 2026 - Windows, floors, ceilings and partitions"
+Australia,External shading system,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,"National Embodied Carbon Databook v1.00 2026 - Windows, floors, ceilings and partitions"
+Australia,Glass,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,"National Embodied Carbon Databook v1.00 2026 - Windows, floors, ceilings and partitions"
+Australia,Wall louvre system,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,"National Embodied Carbon Databook v1.00 2026 - Windows, floors, ceilings and partitions"
+Australia,Windows & doors,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,"National Embodied Carbon Databook v1.00 2026 - Windows, floors, ceilings and partitions"
+Australia,Ceilings & walls,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,"National Embodied Carbon Databook v1.00 2026 - Windows, floors, ceilings and partitions"
+Australia,Floors,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,"National Embodied Carbon Databook v1.00 2026 - Windows, floors, ceilings and partitions"
+Australia,Stick-framed wall /ceiling system,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,"National Embodied Carbon Databook v1.00 2026 - Windows, floors, ceilings and partitions"
+Australia,Wall ceiling Insulated Panel,Articulated Truck,"Rail, Bulk Transport",Shipping,480,60,4200,"National Embodied Carbon Databook v1.00 2026 - Windows, floors, ceilings and partitions"
+Australia,Building and MEP services,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,8300,National Embodied Carbon Databook v1.00 2026 - Globally manufactured
+Australia,Escalator,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,8300,National Embodied Carbon Databook v1.00 2026 - Globally manufactured
+Australia,Lifts,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,8300,National Embodied Carbon Databook v1.00 2026 - Globally manufactured
+Australia,Photovoltaic panels,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,8300,National Embodied Carbon Databook v1.00 2026 - Globally manufactured
+Australia,Concrete components,Articulated Truck,"Rail, Bulk Transport",Shipping,350,0,3400,National Embodied Carbon Databook v1.00 2026 - Cement and cementitious materials
+Australia,Concrete in-situ,Concrete Agitator Truck,"Rail, Bulk Transport",Shipping,30,0,0,National Embodied Carbon Databook v1.00 2026 - Concrete (ready-mix)
+Australia,Precast concrete,Articulated Truck,"Rail, Bulk Transport",Shipping,110,0,0,National Embodied Carbon Databook v1.00 2026 - Concrete (precast)
+Australia,Masonry,Articulated Truck,"Rail, Bulk Transport",Shipping,110,0,0,National Embodied Carbon Databook v1.00 2026 - Bricks and Masonry
+Australia,Paint,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026 - Locally manufactured (general)
+Australia,Asphalt,Articulated Truck,"Rail, Bulk Transport",Shipping,80,0,0,National Embodied Carbon Databook v1.00 2026 - Asphalt
+Australia,Bitumen,Articulated Truck,"Rail, Bulk Transport",Shipping,80,0,0,National Embodied Carbon Databook v1.00 2026 - Asphalt
+Australia,Pavers,Articulated Truck,"Rail, Bulk Transport",Shipping,110,0,0,National Embodied Carbon Databook v1.00 2026 - Bricks and Masonry
+Australia,Geopolymer pipes,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026 - Nationally and NZ manufactured (interstate)
+Australia,PE Pipes,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026 - Nationally and NZ manufactured (interstate)
+Australia,PVC Pipes,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026 - Nationally and NZ manufactured (interstate)
+Australia,Steel pipes,Articulated Truck,"Rail, Bulk Transport",Shipping,550,0,2800,National Embodied Carbon Databook v1.00 2026 - Nationally and NZ manufactured (interstate)
+Australia,Rubbers,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026 - Locally manufactured
+Australia,Sealants and adhesives,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026 - Locally manufactured
+Australia,Thermoplastics,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026 - Locally manufactured
+Australia,Cold rolled steel,Articulated Truck,"Rail, Bulk Transport",Shipping,130,1400,900,National Embodied Carbon Databook v1.00 2026 - Steel – Structural Elements
+Australia,Hot rolled steel,Articulated Truck,"Rail, Bulk Transport",Shipping,130,1400,900,National Embodied Carbon Databook v1.00 2026 - Steel – Structural Elements
+Australia,Reinforcing steel,Articulated Truck,"Rail, Bulk Transport",Shipping,1200,0,2500,National Embodied Carbon Databook v1.00 2026 - Steel Reinforcement
+Australia,Steel wire,Articulated Truck,"Rail, Bulk Transport",Shipping,1200,0,2500,National Embodied Carbon Databook v1.00 2026 - Steel Reinforcement
+Australia,Stainless steel,Articulated Truck,"Rail, Bulk Transport",Shipping,1200,0,2500,National Embodied Carbon Databook v1.00 2026 - Steel Reinforcement
+Australia,Timber (engineered),Articulated Truck,"Rail, Bulk Transport",Shipping,380,0,4700,National Embodied Carbon Databook v1.00 2026 - Timber (engineered)
+Australia,Timber (sawn),Articulated Truck,"Rail, Bulk Transport",Shipping,330,0,800,National Embodied Carbon Databook v1.00 2026 - Timber (sawn)
+Australia,Waste to recycling,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026 - Transport of waste to treatment 
+Australia,Waste to landfill,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026 - Transport of waste to treatment 
+New Zealand,Waste to landfill with gas recovery,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026 - Transport of waste to treatment as a proxy in the absence of data from BRANZ
+New Zealand,Waste to landfill without gas recovery,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026 - Transport of waste to treatment as a proxy in the absence of data from BRANZ
+New Zealand,Non municipal waste,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026 - Transport of waste to treatment as a proxy in the absence of data from BRANZ
+New Zealand,Concrete In-situ,Concrete Agitator Truck,"Rail, Bulk Transport",Shipping,20,0,0,Building Research Association of New Zealand (BRANZ) NZ_WBWLF_-_Module_A4_transport_datasheet_v1 national average
+New Zealand,Concrete Precast,Articulated Truck,"Rail, Bulk Transport",Shipping,66.66666667,0,0,Building Research Association of New Zealand (BRANZ) NZ_WBWLF_-_Module_A4_transport_datasheet_v1 national average
+New Zealand,Cement,Articulated Truck,"Rail, Bulk Transport",Shipping,481,0,5003,Building Research Association of New Zealand (BRANZ) NZ_WBWLF_-_Module_A4_transport_datasheet_v1 national average of cement products
+New Zealand,Lime,Articulated Truck,"Rail, Bulk Transport",Shipping,40,0,0,National Embodied Carbon Databook v1.00 2026 - Aggregates as a proxy in the absence of data from BRANZ
+New Zealand,Other Metal,Articulated Truck,"Rail, Bulk Transport",Shipping,587,0,3087,Building Research Association of New Zealand (BRANZ) NZ_WBWLF_-_Module_A4_transport_datasheet_v1 national average of aluminium and copper products
+New Zealand,Steel,Articulated Truck,"Rail, Bulk Transport",Shipping,486,0,2993,Building Research Association of New Zealand (BRANZ) NZ_WBWLF_-_Module_A4_transport_datasheet_v1 national average of steel products
+New Zealand,Aggregate,Articulated Truck,"Rail, Bulk Transport",Shipping,40,0,0,National Embodied Carbon Databook v1.00 2026 - Aggregates as a proxy in the absence of data from BRANZ
+New Zealand,Asphalt,Articulated Truck,"Rail, Bulk Transport",Shipping,100,0,25000,Building Research Association of New Zealand (BRANZ) NZ_WBWLF_-_Module_A4_transport_datasheet_v1 national average
+New Zealand,Bitumen,Articulated Truck,"Rail, Bulk Transport",Shipping,80,0,0,National Embodied Carbon Databook v1.00 2026 - Asphalt as a proxy in the absence of data from BRANZ
+New Zealand,Cable,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026 - Locally manufactured (general) in the absence of data from BRANZ
+New Zealand,Glass,Articulated Truck,"Rail, Bulk Transport",Shipping,308,0,6458,Building Research Association of New Zealand (BRANZ) NZ_WBWLF_-_Module_A4_transport_datasheet_v1 national average of glass products
+New Zealand,Plastic,Articulated Truck,"Rail, Bulk Transport",Shipping,392,0,7416,Building Research Association of New Zealand (BRANZ) NZ_WBWLF_-_Module_A4_transport_datasheet_v1 national average of plastic products
+New Zealand,Wood,Articulated Truck,"Rail, Bulk Transport",Shipping,464,0,5383,Building Research Association of New Zealand (BRANZ) NZ_WBWLF_-_Module_A4_transport_datasheet_v1 national average of wood and timber products
+New Zealand,Paint,Articulated Truck,"Rail, Bulk Transport",Shipping,50,0,0,National Embodied Carbon Databook v1.00 2026 - Locally manufactured (general) in the absence of data from BRANZ

@@ -1,0 +1,30 @@
+Jurisdiction,Material Type,Construction wastage rate (%),Recycling Rate (%),Landfill Rate (%),Source
+Australia,Aggregate,0%,90%,10%,National Embodied Carbon Databook (2026) v1.00
+Australia,General Asphalt,5%,90%,10%,National Embodied Carbon Databook (2026) v1.00
+Australia,Clay brick,5%,90%,10%,National Embodied Carbon Databook (2026) v1.00
+Australia,In-situ Concrete (Generic),5%,90%,10%,National Embodied Carbon Databook (2026) v1.00
+Australia,Precast Concrete (Generic),0%,90%,10%,National Embodied Carbon Databook (2026) v1.00
+Australia,Glass,1%,40%,60%,National Embodied Carbon Databook (2026) v1.00
+Australia,Steel sheeting - metallic coat,1%,90%,10%,National Embodied Carbon Databook (2026) v1.00
+Australia,Plywood,6%,0%,100%,National Embodied Carbon Databook (2026) v1.00
+Australia,Hardwood Timber,5%,90%,10%,National Embodied Carbon Databook (2026) v1.00
+Australia,Softwood Timber,10%,45%,55%,National Embodied Carbon Databook (2026) v1.00
+Australia,Sawn softwood,5%,45%,55%,National Embodied Carbon Databook (2026) v1.00
+Australia,Sawn hardwood,8%,50%,50%,National Embodied Carbon Databook (2026) v1.00
+Australia,Stone brick,6%,85%,15%,National Embodied Carbon Databook (2026) v1.00
+Australia,Hollow core - precast concrete (inc. reinforcing),2%,85%,15%,National Embodied Carbon Databook (2026) v1.00
+New Zealand,Bitumen,5%,0%,100%,BRANZ (2023) Construction site waste
+New Zealand,Glass,1%,0%,100%,BRANZ (2023) Construction site waste
+New Zealand,Plywood,10%,25%,75%,BRANZ (2023) Construction site waste
+New Zealand,Clay brick,5%,0%,10%,BRANZ (2023) Construction site waste
+New Zealand,Concrete paver/tile,3%,20%,80%,BRANZ (2023) Construction site waste
+New Zealand,Autoclaved aerated concrete (AAC) block (no fill or reinforcing),4%,5%,95%,BRANZ (2023) Construction site waste
+New Zealand,In-situ Concrete (Generic),4%,10%,90%,BRANZ (2023) Construction site waste
+New Zealand,Precast Concrete (Generic),0%,0%,0%,BRANZ (2023) Construction site waste
+New Zealand,Hardwood Timber,10%,75%,25%,BRANZ (2023) Construction site waste
+New Zealand,Softwood Timber,8%,70%,30%,BRANZ (2023) Construction site waste
+New Zealand,Glue laminated timber (GLT) and cross laminated timber (CLT) - softwood,5%,25%,75%,BRANZ (2023) Construction site waste
+New Zealand,Glue laminated timber (GLT) and cross laminated timber (CLT) - hardwood,6%,30%,70%,BRANZ (2023) Construction site waste
+New Zealand,Steel sheeting - metallic coat,1%,95%,5%,BRANZ (2023) Construction site waste
+New Zealand,Hollow core - precast concrete (inc. reinforcing),2%,15%,85%,BRANZ (2023) Construction site waste
+New Zealand,Recycled Crushed Concrete,0%,100%,0%,BRANZ (2023) Construction site waste

@@ -1,0 +1,75 @@
+[
+  {
+    "id": "1",
+    "requester": "Melissa Sy",
+    "projectName": "M1 Pacific Motorway Upgrade",
+    "projectCategory": "Small",
+    "stages": [
+      { "name": "Business case", "access": "View" }
+    ],
+    "dateRequested": "2026-02-23",
+    "justification": "Business case review only; view access sufficient for this phase."
+  },
+  {
+    "id": "2",
+    "requester": "Claud Mendez",
+    "projectName": "Northern Beaches Bicycle Path Network",
+    "projectCategory": "Recurring",
+    "stages": [
+      { "name": "N/A", "access": "Edit" }
+    ],
+    "dateRequested": "2026-02-20",
+    "justification": "Requires edit access to update recurring maintenance entries."
+  },
+  {
+    "id": "3",
+    "requester": "Chris Norman",
+    "projectName": "Metro Tunnel Construction Project",
+    "projectCategory": "Large",
+    "stages": [
+      { "name": "Business case", "access": "View" },
+      { "name": "Design", "access": "Edit" }
+    ],
+    "dateRequested": "2026-02-17",
+    "justification": "Design stage collaboration; needs editing permissions for drawings."
+  },
+  {
+    "id": "4",
+    "requester": "Simon Walter",
+    "projectName": "Metro Tunnel Construction Project",
+    "projectCategory": "Large",
+    "stages": [
+      { "name": "Business case", "access": "View" },
+      { "name": "Design", "access": "Edit" },
+      { "name": "Construction", "access": "View" }
+    ],
+    "dateRequested": "2026-02-17",
+    "justification": "Nominated as project lead for design stage, which requires full editing access."
+  },
+   {
+    "id": "5",
+    "requester": "Simon Walter",
+    "projectName": "Metro Tunnel Construction Project",
+    "projectCategory": "Large",
+    "stages": [
+      { "name": "Business case", "access": "View" },
+      { "name": "Design", "access": "Edit" },
+      { "name": "Construction", "access": "View" }
+    ],
+    "dateRequested": "2026-02-17",
+    "justification": "Nominated as project lead for design stage, which requires full editing access."
+  },
+   {
+    "id": "6",
+    "requester": "Simon Walter",
+    "projectName": "Metro Tunnel Construction Project",
+    "projectCategory": "Large",
+    "stages": [
+      { "name": "Business case", "access": "View" },
+      { "name": "Design", "access": "Edit" },
+      { "name": "Construction", "access": "View" }
+    ],
+    "dateRequested": "2026-02-17",
+    "justification": "Nominated as project lead for design stage, which requires full editing access."
+  }
+]

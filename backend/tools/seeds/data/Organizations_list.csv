@@ -1,0 +1,46 @@
+# Austroads Carbon Accounting App — Organisation Seed Data
+# Format: name, type (DESIGNERS or CONTRACTORS), domains (pipe-separated, used for email domain matching)
+# This file is the canonical source for organisation seeding across dev / staging / prod.
+# To add a new org: append a row and re-run:  python -m tools.seeds.seed_organizations  (from backend/)
+name,type,domains
+AECOM,DESIGNERS,aecom.com
+Arcadis,DESIGNERS,arcadis.com
+Architectus,DESIGNERS,architectus.com.au
+Arup,DESIGNERS,arup.com
+Aurecon,DESIGNERS,aurecongroup.com
+BG&E,DESIGNERS,bge.com.au
+Beca,DESIGNERS,beca.com
+GHD,DESIGNERS,ghd.com
+Jacobs,DESIGNERS,jacobs.com
+Mott MacDonald,DESIGNERS,mottmac.com
+Robert Bird Group,DESIGNERS,robertbird.com.au
+SMEC,DESIGNERS,smec.com
+WSP,DESIGNERS,wsp.com
+Worley,DESIGNERS,worley.com
+ADCO Constructions,CONTRACTORS,adcoconstructions.com.au
+AJ Lucas Group,CONTRACTORS,lucas.com.au
+AW Edwards,CONTRACTORS,awedwards.com.au
+Abergeldie Complex Infrastructure,CONTRACTORS,abergeldie.com
+Acciona,CONTRACTORS,acciona.com.au
+BESIX / Watpac,CONTRACTORS,besixwatpac.com
+BMD,CONTRACTORS,bmd.com.au
+Bechtel Australia,CONTRACTORS,bechtel.com
+Bielby Holdings,CONTRACTORS,bielby.com.au
+Bouygues,CONTRACTORS,bouygues-construction.com
+Buildcorp,CONTRACTORS,buildcorp.com.au
+Built,CONTRACTORS,built.com.au
+CMC Pty Ltd,CONTRACTORS,cmc.com.au
+CPB Contractors,CONTRACTORS,cpbcon.com.au
+Degnan,CONTRACTORS,degnan.com.au
+Downer,CONTRACTORS,downergroup.com
+Fulton Hogan,CONTRACTORS,fultonhogan.com
+Hansen Yuncken,CONTRACTORS,hansenyuncken.com.au
+Hutchinson Builders,CONTRACTORS,hutchinsonbuilders.com.au
+John Holland,CONTRACTORS,johnholland.com.au
+Laing O'Rourke,CONTRACTORS,laingorourke.com
+Lendlease,CONTRACTORS,lendlease.com
+McConnell Dowell,CONTRACTORS,mcconnelldowell.com
+Monadelphous,CONTRACTORS,monadelphous.com.au
+Multiplex,CONTRACTORS,multiplex.global
+Thiess,CONTRACTORS,thiess.com
+Webuild,CONTRACTORS,webuildgroup.com

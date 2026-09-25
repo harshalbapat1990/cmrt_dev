@@ -1,0 +1,44 @@
+[
+    {
+        "id": "11f4c117-1286-4e22-87ea-e8df670ac839",
+        "emissions_sub_category_id": "37ab3940-ecd4-45cc-887c-1a093bdbfa3a",
+        "emissions_sub_category_name": "Concrete and Mortar",
+        "emissions_source_id": "f0610ed5-fdee-4306-ba46-98618b65eace",
+        "emissions_source_name": "Mortar",
+        "measurement_unit_id": "6b461ae3-c0e5-408b-9f73-52aa6142feef",
+        "measurement_unit_name": "kg",
+        "data_quality": "Estimated",
+        "quantity": "20.000000",
+        "emissions_tco2e": "200.000000",
+        "notes": "Test",
+        "submitted_on": "2026-01-28T12:39:42.268196"
+    },
+    {
+        "id": "11f4c117-1286-4e22-87ea-e8df670ac839",
+        "emissions_sub_category_id": "37ab3940-ecd4-45cc-887c-1a093bdbfa2a",
+        "emissions_sub_category_name": "Cement",
+        "emissions_source_id": "f0610ed5-fdee-4306-ba46-98618b65eace",
+        "emissions_source_name": "Clinker production",
+        "measurement_unit_id": "6b461ae3-c0e5-408b-9f73-52aa6142feef",
+        "measurement_unit_name": "tonne",
+        "data_quality": "Monitored",
+        "quantity": "20.000000",
+        "emissions_tco2e": "200.000000",
+        "notes": "Test",
+        "submitted_on": "2026-01-28T12:39:42.268196"
+    },
+    {
+        "id": "11f4c117-1286-4e22-87ea-e8df670ac839",
+        "emissions_sub_category_id": "37ab3940-ecd4-45cc-887c-1a093bdbfa2a",
+        "emissions_sub_category_name": "Cement",
+        "emissions_source_id": "f0610ed5-fdee-4306-ba46-98618b65eace",
+        "emissions_source_name": "Clinker production",
+        "measurement_unit_id": "6b461ae3-c0e5-408b-9f73-52aa6142feef",
+        "measurement_unit_name": "kg",
+        "data_quality": "Estimated",
+        "quantity": "20.000000",
+        "emissions_tco2e": "200.000000",
+        "notes": "Test",
+        "submitted_on": "2026-01-28T12:39:42.268196"
+    }
+]
