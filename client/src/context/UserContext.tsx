@@ -45,21 +45,13 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<UserState>(initialState);
 
   const refreshUser = useCallback(async () => {
+    let profile: MeProfile;
     try {
-      const [meRes, accessRes] = await Promise.all([
-        http.get('/api/me'),
-        http.get('/api/me/access'),
-      ]);
-      setState({
-        user: meRes.data,
-        roles: accessRes.data.effective_roles ?? [],
-        isLoaded: true,
-        needsRegistration: false,
-        pendingEmail: null,
-      });
+      const meRes = await http.get('/api/me');
+      profile = meRes.data;
     } catch {
-      // Easy Auth already authenticated this request — a failed /api/me means the
-      // identity has no CMRT account yet, so check whether onboarding is needed.
+      // /api/me requires a CMRT account. A valid Easy Auth identity without a
+      // matching database user should be routed into app registration.
       try {
         const ctxRes = await http.get('/api/identity/registration-context');
         setState({
@@ -72,6 +64,22 @@ export function UserProvider({ children }: { children: ReactNode }) {
       } catch {
         setState({ user: null, roles: [], isLoaded: true, needsRegistration: false, pendingEmail: null });
       }
+      return;
+    }
+
+    try {
+      const accessRes = await http.get('/api/me/access');
+      setState({
+        user: profile,
+        roles: accessRes.data.effective_roles ?? [],
+        isLoaded: true,
+        needsRegistration: false,
+        pendingEmail: null,
+      });
+    } catch {
+      // A role lookup failure must not turn an authenticated, registered user
+      // into an apparent logged-out user.
+      setState({ user: profile, roles: [], isLoaded: true, needsRegistration: false, pendingEmail: null });
     }
   }, []);
 

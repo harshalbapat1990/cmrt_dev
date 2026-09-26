@@ -52,7 +52,19 @@ async def registration_context(
     email, _oidc_sub, _provider = parse_easy_auth_header(request)
     if not email:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Forwarded identity header missing or malformed.")
-    existing = await get_user_by_email(db, email.lower())
+    existing = None
+    if _oidc_sub:
+        from models.users import User
+
+        result = await db.execute(
+            select(User).where(
+                User.oidc_sub == _oidc_sub,
+                User.oidc_issuer == _provider,
+            )
+        )
+        existing = result.scalars().first()
+    if existing is None:
+        existing = await get_user_by_email(db, email.lower())
     if existing:
         return RegistrationContextResponse(needs_registration=False, email=email.lower())
     return RegistrationContextResponse(needs_registration=True, email=email.lower())

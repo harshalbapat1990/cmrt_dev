@@ -151,35 +151,37 @@ def parse_easy_auth_header(request: Request) -> tuple[Optional[str], Optional[st
     principal_id = request.headers.get("x-ms-client-principal-id")
     principal_name = request.headers.get("x-ms-client-principal-name")
     provider = request.headers.get("x-ms-client-principal-idp")
-    if principal_id or principal_name:
-        return principal_name, principal_id, provider
-
     header_value = request.headers.get("x-ms-client-principal")
-    if not header_value:
-        return None, None, None
-    try:
-        padding = "=" * (-len(header_value) % 4)
-        decoded = base64.b64decode(header_value + padding).decode("utf-8")
-        principal_data = json.loads(decoded)
-    except Exception:
-        return None, None, None
+    claims: dict[str, str] = {}
+    principal_data: dict = {}
+    if header_value:
+        try:
+            padding = "=" * (-len(header_value) % 4)
+            decoded = base64.b64decode(header_value + padding).decode("utf-8")
+            principal_data = json.loads(decoded)
+            claims = {
+                c.get("typ"): c.get("val")
+                for c in principal_data.get("claims", [])
+                if isinstance(c, dict) and c.get("typ") and c.get("val")
+            }
+        except Exception:
+            # Simple Easy Auth headers below may still provide a usable identity.
+            claims = {}
 
-    claims = {
-        c.get("typ"): c.get("val")
-        for c in principal_data.get("claims", [])
-        if isinstance(c, dict)
-    }
-    email: Optional[str] = (
+    email = (
         claims.get("emails")
         or claims.get("email")
         or claims.get("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
-        or claims.get("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
+        or (principal_name if principal_name and "@" in principal_name else None)
     )
-    oidc_sub: Optional[str] = (
-        claims.get("sub")
+    oidc_sub = (
+        principal_id
+        or claims.get("sub")
         or claims.get("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
     )
     provider = provider or principal_data.get("auth_typ")
+    # Preserve the legacy name-claim fallback for providers that expose no email claim.
+    email = email or claims.get("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
     return email, oidc_sub, provider
 
 
