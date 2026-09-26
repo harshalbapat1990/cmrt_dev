@@ -2046,6 +2046,8 @@ def patch_dataset_revisions_crud(
     emissions_factor_set_store,
 ):
     import routers.dataset_revisions as dr_router
+    import core.dataset_authorization as dataset_auth
+    original_auth_revision_lookup = dataset_auth.get_dataset_revision
 
     async def create_dataset_revision(_db, payload):
         d = payload.model_dump()
@@ -2058,7 +2060,16 @@ def patch_dataset_revisions_crud(
         return obj
 
     async def get_dataset_revision(_db, rid: UUID):
-        return dataset_revision_store.get(rid)
+        revision = dataset_revision_store.get(rid)
+        if revision is not None:
+            return revision
+        return await original_auth_revision_lookup(_db, rid)
+
+    # Revisioned dataset endpoints use the shared authorization helper, which
+    # resolves revisions through the CRUD module rather than this router's
+    # patched CRUD functions. Prefer the in-memory store, with CRUD fallback
+    # for unit tests that provide their own fake database session.
+    monkeypatch.setattr(dataset_auth, "get_dataset_revision", get_dataset_revision)
 
     async def get_dataset_revision_by_name(_db, name: str, scope_type=None, scope_id=None):
         for o in dataset_revision_store.values():
@@ -2123,6 +2134,8 @@ def patch_dataset_revisions_crud(
     monkeypatch.setattr(dr_router, "set_revision_status", set_revision_status)
     monkeypatch.setattr(dr_router, "branch_dataset_revision", branch_dataset_revision)
     monkeypatch.setattr(dr_router, "count_factor_sets", count_factor_sets)
+
+
 
 
 @pytest.fixture(autouse=True)

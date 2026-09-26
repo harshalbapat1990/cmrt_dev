@@ -61,7 +61,10 @@ async def get_unit_conversions(
 async def get_unit_conversion_by_id(conversion_id: UUID, db: AsyncSession = Depends(get_session)):
     obj = await get_unit_conversion(db, conversion_id)
     if not obj:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unit conversion not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Unit conversion not found",
+        )
     return obj
 
 
@@ -78,12 +81,17 @@ async def patch_unit_conversion(
     await assert_revision_edit_permission(
         db=db,
         principal=principal,
-        dataset_revision_id=obj.dataset_revision_id,
+        dataset_revision_id=getattr(obj, "dataset_revision_id", None),
         dataset_type="unit_conversions",
     )
     new_from_unit_id = payload.from_unit_id or obj.from_unit_id
     new_to_unit_id = payload.to_unit_id or obj.to_unit_id
-    new_revision_id = payload.dataset_revision_id if payload.dataset_revision_id is not None else obj.dataset_revision_id
+    new_revision_id = (
+        payload.dataset_revision_id
+        if payload.dataset_revision_id is not None
+        else getattr(obj, "dataset_revision_id", None)
+    )
+
     if (
         payload.from_unit_id
         or payload.to_unit_id
@@ -110,15 +118,24 @@ async def remove_unit_conversion(
 ):
     obj = await get_unit_conversion(db, conversion_id)
     if not obj:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unit conversion not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Unit conversion not found",
+        )
+
     await assert_revision_edit_permission(
         db=db,
         principal=principal,
-        dataset_revision_id=obj.dataset_revision_id,
+        dataset_revision_id=getattr(obj, "dataset_revision_id", None),
         dataset_type="unit_conversions",
     )
+
     ok = await delete_unit_conversion(db, conversion_id)
     if not ok:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unit conversion not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Unit conversion not found",
+        )
+
     await db.commit()
     return None

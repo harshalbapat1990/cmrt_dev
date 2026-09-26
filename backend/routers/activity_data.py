@@ -227,12 +227,18 @@ async def list_rows(
         stage_instance_id,
         AccessLevel.VIEW
     )
+    list_kwargs = {
+        "project_option_id": project_option_id,
+        "skip": skip,
+        "limit": limit,
+    }
+    if submission_period_id is not None:
+        list_kwargs["submission_period_id"] = submission_period_id
+    if project_mitigation_id is not None:
+        list_kwargs["project_mitigation_id"] = project_mitigation_id
+
     rows = await list_activity_data(
-        db, stage_instance_id, ui_table_key,
-        project_option_id=project_option_id,
-        submission_period_id=submission_period_id,
-        project_mitigation_id=project_mitigation_id,
-        skip=skip, limit=limit,
+        db, stage_instance_id, ui_table_key, **list_kwargs
     )
     return [await enrich_with_emissions(db, r) for r in rows]
 
@@ -277,8 +283,9 @@ async def update_row(
         AccessLevel.EDIT
     )
     stage_instance = await get_project_stage_instance(db, obj.project_stage_instance_id)
-    _assert_stage_not_locked(stage_instance, obj.submission_period_id)
-    await _assert_period_editable(db, obj.submission_period_id)
+    submission_period_id = getattr(obj, "submission_period_id", None)
+    _assert_stage_not_locked(stage_instance, submission_period_id)
+    await _assert_period_editable(db, submission_period_id)
 
     _snap_before = _activity_audit_snapshot(obj)
     updated = await update_activity_data(db, row_id, payload)
@@ -287,7 +294,7 @@ async def update_row(
         proj = await get_project(db, updated.project_id)
         await sync_auto_substitution_for_source_row(db, updated, stage_instance, project=proj)
         await db.refresh(updated)
-    if updated.ui_table_key in AUTO_ELECTRICITY_TABLE_KEYS and updated.project_mitigation_id is None:
+    if updated.ui_table_key in AUTO_ELECTRICITY_TABLE_KEYS and getattr(updated, "project_mitigation_id", None) is None:
         proj = await get_project(db, updated.project_id)
         await sync_auto_electricity_after_row_change(db, updated, stage_instance, project=proj)
         await db.refresh(updated)
@@ -297,7 +304,7 @@ async def update_row(
     _meta = await _build_activity_metadata(
         db, obj.project_id, stage_instance, obj.ui_table_key,
         project_option_id=obj.project_option_id,
-        submission_period_id=obj.submission_period_id,
+        submission_period_id=submission_period_id,
     )
     _changes = {
         k: {"before": _snap_before.get(k), "after": _snap_after.get(k)}
@@ -338,18 +345,19 @@ async def delete_row(
         AccessLevel.EDIT
     )
     stage_instance = await get_project_stage_instance(db, obj.project_stage_instance_id)
-    _assert_stage_not_locked(stage_instance, obj.submission_period_id)
-    await _assert_period_editable(db, obj.submission_period_id)
+    submission_period_id = getattr(obj, "submission_period_id", None)
+    _assert_stage_not_locked(stage_instance, submission_period_id)
+    await _assert_period_editable(db, submission_period_id)
 
     if obj.ui_table_key in AUTO_SUBSTITUTION_TABLE_KEYS:
         await delete_linked_auto_substitution_mitigation(db, obj)
 
     elec_table_key = obj.ui_table_key if obj.ui_table_key in AUTO_ELECTRICITY_TABLE_KEYS else None
     elec_opt_id = obj.project_option_id
-    elec_period_id = obj.submission_period_id
+    elec_period_id = submission_period_id
     elec_linked_mid = (
-        _mitigation_id_from_extra(obj.extra_fields)
-        if elec_table_key and obj.project_mitigation_id is None
+        _mitigation_id_from_extra(getattr(obj, "extra_fields", None))
+        if elec_table_key and getattr(obj, "project_mitigation_id", None) is None
         else None
     )
 
@@ -363,7 +371,7 @@ async def delete_row(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Activity data row not found.")
     if is_design_ops:
         await _auto_sync_to_construction(db, stage_instance, design_option_id_for_sync)
-    if elec_table_key and obj.project_mitigation_id is None:
+    if elec_table_key and getattr(obj, "project_mitigation_id", None) is None:
         proj = await get_project(db, obj.project_id)
         await resync_auto_electricity_bucket_after_delete(
             db,
@@ -377,7 +385,7 @@ async def delete_row(
     _meta = await _build_activity_metadata(
         db, obj.project_id, stage_instance, obj.ui_table_key,
         project_option_id=obj.project_option_id,
-        submission_period_id=obj.submission_period_id,
+        submission_period_id=submission_period_id,
     )
     if _snap:
         _meta["old_values"] = _snap

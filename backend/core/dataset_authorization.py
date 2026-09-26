@@ -4,7 +4,6 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.dataset_permissions import (
@@ -17,8 +16,23 @@ from core.dataset_permissions import (
 )
 from core import rbac
 from core.security import Principal
-from models.dataset_revisions import DatasetRevision
+from crud import dataset_revisions as dataset_revision_crud
 
+async def get_effective_role_names(*args, **kwargs):
+    """Indirection kept patchable for callers/tests while delegating to RBAC."""
+    return await rbac.get_effective_role_names(*args, **kwargs)
+
+async def get_org_scoped_role_names(*args, **kwargs):
+    """Indirection kept patchable for callers/tests while delegating to RBAC."""
+    return await rbac.get_org_scoped_role_names(*args, **kwargs)
+
+async def get_dataset_revision(db: AsyncSession, revision_id: UUID):
+    """Resolve a dataset revision through the CRUD layer."""
+    return await dataset_revision_crud.get_dataset_revision(db, revision_id)
+
+def _role_set(roles) -> set:
+    """Normalise RBAC results so list/set implementations are both supported."""
+    return set(roles or ())
 
 async def assert_revision_edit_permission(
     db: AsyncSession,
@@ -49,10 +63,7 @@ async def assert_revision_edit_permission(
             )
 
     if dataset_revision_id is not None:
-        result = await db.execute(
-            select(DatasetRevision).where(DatasetRevision.id == dataset_revision_id)
-        )
-        revision = result.scalars().first()
+        revision = await get_dataset_revision(db, dataset_revision_id)
         if not revision:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -74,58 +85,78 @@ async def assert_revision_edit_permission(
             )
 
         uid = principal.user_id
+
         if scope_type == "DEFAULT":
-            roles = await rbac.get_effective_role_names(db, uid)
-            if rbac.SUPER_ADMIN not in roles:
+            roles = await get_effective_role_names(db, uid)
+            if rbac.SUPER_ADMIN not in _role_set(roles):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Only Super Admin may modify Default branch datasets",
                 )
+
         elif scope_type == "ORG":
             if not revision.scope_id:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="ORG dataset revision is missing a scope_id (organisation ID)",
                 )
-            org_roles = await rbac.get_org_scoped_role_names(db, uid, revision.scope_id)
-            if rbac.ORG_ADMIN not in org_roles and rbac.SUPER_ADMIN not in org_roles:
+
+            org_roles = await get_org_scoped_role_names(db, uid, revision.scope_id)
+            org_role_set = _role_set(org_roles)
+            if (
+                rbac.ORG_ADMIN not in org_role_set
+                and rbac.SUPER_ADMIN not in org_role_set
+            ):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Only Organisation Admin or Super Admin may modify Organisation branch datasets",
                 )
+
         elif scope_type == "PROJECT":
             if not revision.scope_id:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="PROJECT dataset revision is missing a scope_id (project ID)",
                 )
-            proj_roles = await rbac.get_effective_role_names(db, uid, project_id=revision.scope_id)
-            allowed = {rbac.PROJECT_ADMIN, rbac.PROJECT_EDITOR, rbac.SUPER_ADMIN}
-            if not proj_roles.intersection(allowed):
+
+            proj_roles = await get_effective_role_names(
+                db, uid, project_id=revision.scope_id
+            )
+            allowed = {
+                rbac.PROJECT_ADMIN,
+                rbac.PROJECT_EDITOR,
+                rbac.SUPER_ADMIN,
+            }
+
+            if not _role_set(proj_roles).intersection(allowed):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Only Project Admin, Project Editor, or Super Admin may modify Project branch datasets",
                 )
+
         return
 
     # Non-revisioned dataset fallback
-    roles = await rbac.get_effective_role_names(db, principal.user_id)
-    cat = get_dataset_category(dataset_type) if dataset_type else SUPERADMIN_ONLY
+    roles = await get_effective_role_names(db, principal.user_id)
+    role_set = _role_set(roles)
+
+    cat = (get_dataset_category(dataset_type) if dataset_type else SUPERADMIN_ONLY)
+
     if cat == SUPERADMIN_ONLY or cat == READ_ONLY:
-        if rbac.SUPER_ADMIN not in roles:
+        if rbac.SUPER_ADMIN not in role_set:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Only Super Admin may modify this dataset",
             )
     elif cat == ORG_ONLY:
-        if rbac.ORG_ADMIN not in roles and rbac.SUPER_ADMIN not in roles:
+        if (rbac.ORG_ADMIN not in role_set and rbac.SUPER_ADMIN not in role_set):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Only Organisation Admin or Super Admin may modify this dataset",
             )
     elif cat == ALL_BRANCHES:
         allowed = {rbac.PROJECT_ADMIN, rbac.PROJECT_EDITOR, rbac.ORG_ADMIN, rbac.SUPER_ADMIN}
-        if not roles.intersection(allowed):
+        if not role_set.intersection(allowed):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have permission to modify this dataset",
