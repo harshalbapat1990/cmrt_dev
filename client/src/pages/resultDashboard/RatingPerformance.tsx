@@ -101,7 +101,7 @@ const RatingPerformance: React.FC<RatingPerformanceProps> = ({
                   Ene-1
                 </div>
                 <div className="mt-2 text-3xl font-semibold tabular-nums text-[var(--color-text-dark)]">
-                  {Number(data.ene1_score).toFixed(1)}
+                  {format(data.ene1_score)}
                 </div>
               </div>
                <div
@@ -112,7 +112,7 @@ const RatingPerformance: React.FC<RatingPerformanceProps> = ({
                   Ene-2
                 </div>
                 <div className="mt-2 text-3xl font-semibold tabular-nums text-[var(--color-text-dark)]">
-                  {Number(data.ene2_score).toFixed(1)}
+                  {format(data.ene2_score)}
                 </div>
               </div>
                <div
@@ -123,7 +123,7 @@ const RatingPerformance: React.FC<RatingPerformanceProps> = ({
                   Ene-3
                 </div>
                 <div className="mt-2 text-3xl font-semibold tabular-nums text-[var(--color-text-dark)]">
-                  {Number(data.ene3_score).toFixed(1)}
+                  {format(data.ene3_score)}
                 </div>
               </div>
             {/* ))} */}

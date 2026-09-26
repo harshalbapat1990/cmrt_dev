@@ -4,6 +4,7 @@ import { Doughnut } from "react-chartjs-2";
 import ChartContainer from "./ChartContainer";
 import { getDoughnutLayout } from "../../utils/chartLayout";
 import type { LegendConfig } from "../../types/charts";
+import { formatDisplayNumber } from "@/utils/utils";
 
 /* ================= TYPES ================= */
 
@@ -137,7 +138,7 @@ const DoughnutChart = ({
 
                       return tooltipFormatter
                         ? tooltipFormatter(ctx.label!, value, percent)
-                        : `${ctx.label}: ${value} (${percent.toFixed(1)}%)`;
+                        : `${ctx.label}: ${formatDisplayNumber(value)} (${formatDisplayNumber(percent)}%)`;
                     },
                   },
                 },

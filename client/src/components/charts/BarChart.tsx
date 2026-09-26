@@ -3,6 +3,7 @@
 import { Bar } from "react-chartjs-2";
 import ChartContainer from "./ChartContainer";
 import { ChartColors } from "@/styles/colors";
+import { formatDisplayNumber } from "@/utils/utils";
 import type {
   AxisConfig,
   DatasetConfig,
@@ -160,11 +161,9 @@ const BarChart = ({
               label: (ctx) =>
                 tooltipFormatter
                   ? tooltipFormatter(ctx)
-                  : `${ctx.dataset.label}: ${
-                      orientation === "horizontal"
-                        ? ctx.parsed.x
-                        : ctx.parsed.y
-                    }`,
+                  : `${ctx.dataset.label}: ${formatDisplayNumber(
+                      orientation === "horizontal" ? ctx.parsed.x : ctx.parsed.y
+                    )}`,
             },
           },
         },
@@ -197,7 +196,7 @@ const BarChart = ({
   callback: (v: any) =>
     xAxis.tickFormatter
       ? xAxis.tickFormatter(Number(v))
-      : Number(v).toLocaleString(),
+      : formatDisplayNumber(Number(v)),
 },
 
             grid: {

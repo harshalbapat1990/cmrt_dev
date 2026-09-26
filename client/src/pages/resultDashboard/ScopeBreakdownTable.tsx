@@ -1,3 +1,5 @@
+import { formatDisplayNumber } from "@/utils/utils";
+
 interface ScopeBreakdownRow {
     scope: string;
     baseline_construction: number;
@@ -19,12 +21,7 @@ interface ScopeBreakdownTableProps {
 }
 
 function fmt(val: number | null | undefined): string {
-    if (val == null) return "—";
-    if (Math.abs(val) >= 1000) {
-        return Math.round(val).toLocaleString("en-AU", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-    }
-    const rounded = Math.round(val * 10) / 10;
-    return rounded.toLocaleString("en-AU", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    return formatDisplayNumber(val, { locale: "en-AU" });
 }
 
 const SCOPE_LABELS: Record<string, string> = {

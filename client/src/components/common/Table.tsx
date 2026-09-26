@@ -4,7 +4,7 @@ import Download from "../../assets/icons/download.svg";
 import UploadFile from "../../assets/icons/upload_file.svg";
 import Add from "../../assets/icons/add.svg";
 import { downloadCsv, type CsvColumn } from "../../utils/downloadCsv";
-import { formatEmissionsOrQuantity } from "@/utils/utils";
+import { formatDisplayNumber } from "@/utils/utils";
 
 const formatNoteDate = (iso: string): string => {
   try {
@@ -784,7 +784,7 @@ const Table = <T extends { id: string | number }>({
                             )}
                           </div>
                         ) : shouldFormatCell(col, value) ? (
-                          formatEmissionsOrQuantity(value, "en-US")
+                          formatDisplayNumber(value, { locale: "en-US" })
                         ) : (
                           (value ?? "-") as React.ReactNode
                         )}

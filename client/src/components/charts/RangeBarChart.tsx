@@ -7,6 +7,7 @@ import type {
   LegendConfig,
   RangeDatasetConfig,
 } from "../../types/charts";
+import { formatDisplayNumber } from "@/utils/utils";
 
 interface RangeBarChartProps {
   title?: string;
@@ -73,7 +74,7 @@ const RangeBarChart = ({
                     const [min, max] = value;
                     const unit = yAxis.title ? ` ${yAxis.title}` : "";
 
-                    return `Range: ${min.toLocaleString()} – ${max.toLocaleString()}${unit}`;
+                    return `Range: ${formatDisplayNumber(min)} – ${formatDisplayNumber(max)}${unit}`;
                   },
                 },
               },

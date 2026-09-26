@@ -187,7 +187,7 @@ const WasteAndRecycleTab = ({
                     legend={{ show: true, position: "bottom", boxShape: "square" }}
                     footer={false}
                     tooltipFormatter={(label, value, percent) =>
-                      `${label}: ${value} ${materialData?.materials_table?.unit ?? ""} (${percent.toFixed(1)}%)`
+                      `${label}: ${formatDisplayNumber(value)} ${materialData?.materials_table?.unit ?? ""} (${formatDisplayNumber(percent)}%)`
                     }
                   />
                 )}
@@ -231,7 +231,7 @@ const WasteAndRecycleTab = ({
                     legend={{ show: true, position: "bottom", boxShape: "square" }}
                     footer={false}
                     tooltipFormatter={(label, value, percent) =>
-                      `${label}: ${value} t (${percent.toFixed(1)}%)`
+                      `${label}: ${formatDisplayNumber(value)} t (${formatDisplayNumber(percent)}%)`
                     }
                   />
                 )}

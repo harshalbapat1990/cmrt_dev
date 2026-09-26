@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { formatDisplayNumber } from "@/utils/utils";
 import { SelectListbox } from "@/components/common/Select";
 import { NumericInput } from "@/components/common/NumericInput";
 import ActivityDataService from "@/services/ActivityData.service";
@@ -360,7 +361,7 @@ export default function ConcreteMixModal({ projectId, stageInstanceId, optionId,
                                                 Carbon intensity (A1 - A3) (kgCO₂e/m³)*
                                             </td>
                                             <td className="px-3 py-2 text-sm text-right font-medium text-text-dark">
-                                                {liveGwpKgCo2eM3 !== null ? liveGwpKgCo2eM3.toFixed(2) : "—"}
+                                                {formatDisplayNumber(liveGwpKgCo2eM3)}
                                             </td>
                                         </tr>
                                     </tfoot>

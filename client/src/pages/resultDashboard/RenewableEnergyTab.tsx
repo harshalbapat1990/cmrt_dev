@@ -240,7 +240,7 @@ const chartStages =
                         {format(absoluteNR[stage] ?? 0)}
                       </td>
                       <td className="border border-[var(--color-neutral-95)] px-4 py-4 text-right tabular-nums">
-                        {(percentNR[stage] ?? 0).toFixed(1)}
+                        {formatDisplayNumber(percentNR[stage] ?? 0)}
                       </td>
                     </React.Fragment>
                   ))}
@@ -258,7 +258,7 @@ const chartStages =
                         {format(absoluteR[stage] ?? 0)}
                       </td>
                       <td className="border border-[var(--color-neutral-95)] px-4 py-4 text-right tabular-nums">
-                        {(percentR[stage] ?? 0).toFixed(1)}
+                        {formatDisplayNumber(percentR[stage] ?? 0)}
                       </td>
                     </React.Fragment>
                   ))}

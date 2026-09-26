@@ -391,7 +391,7 @@ const EmissionsBreakdownTab: React.FC<EmissionsBreakdownTabProps> = ({
                       {formatDisplayNumber(s.value)}
                     </div>
                     <div className="text-right tabular-nums">
-                      {percentage.toFixed(1)}%
+                      {formatDisplayNumber(percentage)}%
                     </div>
                   </div>
                 );

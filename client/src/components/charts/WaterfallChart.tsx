@@ -4,6 +4,7 @@ import { Bar } from "react-chartjs-2";
 import ChartContainer from "@/components/charts/ChartContainer";
 import { Chart as ChartJS } from "chart.js";
 import { ChartColors } from "@/styles/colors";
+import { formatDisplayNumber } from "@/utils/utils";
 
 export interface WaterfallItem {
   label: string;
@@ -40,7 +41,7 @@ const valueLabelPlugin = {
       const { x, y } = bar.tooltipPosition();
 
       ctx.fillText(
-        Math.round(value).toLocaleString(),
+        formatDisplayNumber(value),
         x,
         y - 6
       );
@@ -98,7 +99,7 @@ const WaterfallChart = ({
                 label: (ctx) => {
                   const raw = ctx.raw as number[];
                   const diff = raw[1] - raw[0];
-                  return `${diff.toLocaleString()} ${unit}`;
+                  return `${formatDisplayNumber(diff)} ${unit}`;
                 },
               },
             },
@@ -140,7 +141,7 @@ const WaterfallChart = ({
               },
               ticks: {
                 callback: (v) =>
-                  Number(v).toLocaleString(),
+                  formatDisplayNumber(Number(v)),
               },
             },
           },

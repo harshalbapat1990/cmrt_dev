@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { formatDisplayNumber } from "@/utils/utils";
 
 /* ================= TYPES ================= */
 
@@ -188,7 +189,7 @@ const TreemapChart: React.FC<TreemapProps> = ({ data }) => {
     <div className="mt-1 text-white text-xs">
       Emissions:{" "}
       <span className="text-white font-medium">
-        {hover.value.toLocaleString()} tCO₂e
+        {formatDisplayNumber(hover.value)} tCO₂e
         
       </span>
     </div>

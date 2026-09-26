@@ -7,6 +7,7 @@ import type {
   DatasetConfig,
   LegendConfig,
 } from "../../types/charts";
+import { formatDisplayNumber } from "@/utils/utils";
 
 /* ================= HELPERS ================= */
 
@@ -116,15 +117,20 @@ const StackedBarChart = ({
           maintainAspectRatio: false,
           indexAxis: orientation === "horizontal" ? "y" : "x",
           plugins: {
-           legend: {
-            display: legend.show ?? true,
-            position: legend.position ?? "bottom",
-            labels: {
-              usePointStyle: legend.boxShape === "circle",
-              boxWidth: 12,
-              boxHeight: 12,        //  force square height
+            legend: {
+              display: legend.show ?? true,
+              position: legend.position ?? "bottom",
+              labels: {
+                usePointStyle: legend.boxShape === "circle",
+                boxWidth: 12,
+                boxHeight: 12,
+              },
             },
-          },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: ${formatDisplayNumber(orientation === "horizontal" ? ctx.parsed.x : ctx.parsed.y)}`,
+              },
+            },
           },
           scales: {
             x: {
@@ -150,6 +156,7 @@ const StackedBarChart = ({
                 stepSize:
                   yAxis.stepSize ??
                   (scale as any).stepSize,
+                callback: (value: string | number) => formatDisplayNumber(Number(value)),
               },
                grid: {
                 display:  true,

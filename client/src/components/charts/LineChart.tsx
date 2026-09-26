@@ -4,6 +4,7 @@ import { Line } from "react-chartjs-2";
 import ChartContainer from "./ChartContainer";
 import { ChartColors } from "@/styles/colors";
 import type { AxisConfig, LegendConfig } from "../../types/charts";
+import { formatDisplayNumber } from "@/utils/utils";
 
 /* ================= HELPERS ================= */
 
@@ -115,6 +116,11 @@ const LineChart = ({
             legend: {
               display: legend.show ?? false,
             },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label ?? ""}: ${formatDisplayNumber(ctx.parsed.y)}`,
+              },
+            },
           },
           scales: {
             x: {
@@ -145,6 +151,7 @@ const LineChart = ({
               max: yAxis.max ?? autoScale.max,
               ticks: {
                 stepSize: yAxis.stepSize ?? autoScale.stepSize,
+                callback: (value: string | number) => formatDisplayNumber(Number(value)),
               },
               grid: {
                 display:  true,

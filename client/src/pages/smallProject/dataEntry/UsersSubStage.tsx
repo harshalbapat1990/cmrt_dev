@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { formatDisplayNumber } from "@/utils/utils";
 import { NumericInput } from "@/components/common/NumericInput";
 import ActivityDataService from "@/services/ActivityData.service";
 import type { ActivityDataCreate } from "@/services/ActivityData.service";
@@ -1134,7 +1135,7 @@ const persistRailUsers = useCallback(
 
                                             </td>
                                             <td className="px-4 py-2 text-right">
-                                                {row.dieselEmissionsTotalRefPeriod || "—"}
+                                                {formatDisplayNumber(row.dieselEmissionsTotalRefPeriod)}
                                             </td>
                                             <td className="px-4 py-2">
                                                 <input

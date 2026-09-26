@@ -6,6 +6,7 @@
   useCallback,
   useRef,
 } from "react";
+import { formatDisplayNumber } from "@/utils/utils";
 import { Modal } from "@/components/common/Modal";
 import { SelectListbox } from "@/components/common/Select";
 import { NumericInput } from "@/components/common/NumericInput";
@@ -2022,10 +2023,7 @@ const MitigationSummaryView: React.FC<{
                       />
                     </div>
                     <span className="tabular-nums text-sm text-text-dark w-[110px] text-right">
-                      {v.toLocaleString(undefined, {
-                        minimumFractionDigits: 1,
-                        maximumFractionDigits: 1,
-                      })}
+                      {formatDisplayNumber(v)}
                     </span>
                   </div>
                 </div>
@@ -2107,7 +2105,7 @@ const MitigationsList: React.FC<{
               Total estimated saving
             </div>
             <div className="text-[28px] font-bold text-text-dark leading-tight">
-              {totalSaving.toFixed(2)}{" "}
+              {formatDisplayNumber(totalSaving)}{" "}
               <span className="font-light">
                 tCO<sub>2</sub>e
               </span>
@@ -2163,7 +2161,7 @@ const MitigationsList: React.FC<{
                       <td className="px-4 py-3 text-text-base">{m.lifecyclePhaseLabel}</td>
                       <td className="px-4 py-3 text-text-base">{TYPE_LABEL[m.type]}</td>
                       <td className="px-4 py-3 text-right tabular-nums text-text-dark">
-                        {(m.estimatedSavingTco2e || 0).toFixed(2)}
+                        {formatDisplayNumber(m.estimatedSavingTco2e || 0)}
                       </td>
                       <td className="px-4 py-3 text-text-base">{m.notes || "—"}</td>
                       {(allowMutations || viewOnlyInteraction) && (

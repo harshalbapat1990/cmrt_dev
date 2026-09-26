@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import BarChart from "../../components/charts/BarChart";
 import ResultsDashboardService from "../../services/ResultsDashboard.service";
+import { formatDisplayNumber } from "@/utils/utils";
 
 /* =============== TYPES =============== */
 
@@ -220,7 +221,7 @@ const MaterialHotspotsTab: React.FC<MaterialHotspotsTabProps> = ({ projectId,
             >
               <div>{row.material}</div>
               <div className="text-right tabular-nums">
-                {row.actual}
+                {formatDisplayNumber(row.actual)}
               </div>
             </div>
           ))}

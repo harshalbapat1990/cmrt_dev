@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { formatDisplayNumber } from "@/utils/utils";
 import { SelectListbox } from "@/components/common/Select";
 import { NumericInput } from "@/components/common/NumericInput";
 import Download from "@/assets/icons/download.svg";
@@ -73,8 +74,7 @@ function newId(): string {
 }
 
 function fmtEmissions(val: number | null): string {
-  if (val === null || !isFinite(val)) return "-";
-  return val.toFixed(4);
+  return formatDisplayNumber(val, { decimalsBelowThreshold: 4, threshold: Number.MAX_SAFE_INTEGER });
 }
 
 const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly = false }) => {
@@ -583,7 +583,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                         </td>
                         <td className={cellCls}>
                           {readOnly ? (
-                            <span>{row.strengthMpa} MPa</span>
+                            <span>{formatDisplayNumber(row.strengthMpa)} MPa</span>
                           ) : (
                             <SelectListbox
                               value={row.strengthMpa}
@@ -598,7 +598,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                         </td>
                         <td className={cellCls}>
                           {readOnly ? (
-                            <span>{row.scmPct !== null ? `${row.scmPct}%` : "-"}</span>
+                            <span>{row.scmPct !== null ? `${formatDisplayNumber(row.scmPct)}%` : "-"}</span>
                           ) : (
                             <NumericInput
                               value={row.scmPct}
@@ -619,7 +619,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                         </td>
                         <td className={cellCls}>
                           {readOnly ? (
-                            <span>{row.volumeM3 ?? "-"}</span>
+                            <span>{formatDisplayNumber(row.volumeM3)}</span>
                           ) : (
                             <NumericInput
                               value={row.volumeM3}
@@ -871,7 +871,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                               </td>
                               <td className={cellCls}>
                                 {readOnly ? (
-                                  <span>{row.strengthMpa} MPa</span>
+                                  <span>{formatDisplayNumber(row.strengthMpa)} MPa</span>
                                 ) : (
                                   <SelectListbox
                                     value={row.strengthMpa}
@@ -886,7 +886,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                               </td>
                               <td className={cellCls}>
                                 {readOnly ? (
-                                  <span>{row.volumeM3 ?? "-"}</span>
+                                  <span>{formatDisplayNumber(row.volumeM3)}</span>
                                 ) : (
                                   <NumericInput
                                     value={row.volumeM3}
@@ -905,7 +905,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                               </td>
                               <td className={cellCls}>
                                 <span className="text-text-faint">
-                                  {ci !== null ? ci.toFixed(4) : "-"}
+                                  {formatDisplayNumber(ci, { decimalsBelowThreshold: 4, threshold: Number.MAX_SAFE_INTEGER })}
                                 </span>
                               </td>
                               <td className={cellCls}>
@@ -1006,7 +1006,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                                             </td>
                                             <td className={cellCls}>
                                               {readOnly ? (
-                                                <span>{mat.quantityKgM3 ?? "-"}</span>
+                                                <span>{formatDisplayNumber(mat.quantityKgM3)}</span>
                                               ) : (
                                                 <NumericInput
                                                   value={mat.quantityKgM3}
@@ -1026,7 +1026,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                                             </td>
                                             <td className={cellCls}>
                                               {readOnly ? (
-                                                <span>{mat.carbonFactor ?? "-"}</span>
+                                                <span>{formatDisplayNumber(mat.carbonFactor, { decimalsBelowThreshold: 4, threshold: Number.MAX_SAFE_INTEGER })}</span>
                                               ) : (
                                                 <NumericInput
                                                   value={mat.carbonFactor}
@@ -1047,7 +1047,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                                             <td className={cellCls}>
                                               <span className="text-text-faint">
                                                 {matEmissions !== null
-                                                  ? matEmissions.toFixed(4)
+                                                  ? formatDisplayNumber(matEmissions, { decimalsBelowThreshold: 4, threshold: Number.MAX_SAFE_INTEGER })
                                                   : "-"}
                                               </span>
                                             </td>
@@ -1159,7 +1159,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                             </td>
                             <td className={cellCls}>
                               {readOnly ? (
-                                <span>{row.gwpA1A3 ?? "-"}</span>
+                                <span>{formatDisplayNumber(row.gwpA1A3, { decimalsBelowThreshold: 4, threshold: Number.MAX_SAFE_INTEGER })}</span>
                               ) : (
                                 <NumericInput
                                   value={row.gwpA1A3}
@@ -1178,7 +1178,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                             </td>
                             <td className={cellCls}>
                               {readOnly ? (
-                                <span>{row.volumeM3 ?? "-"}</span>
+                                <span>{formatDisplayNumber(row.volumeM3)}</span>
                               ) : (
                                 <NumericInput
                                   value={row.volumeM3}

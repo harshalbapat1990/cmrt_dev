@@ -1,3 +1,5 @@
+import { formatDisplayNumber } from "@/utils/utils";
+
 type EmissionsSummaryState = {
   absoluteEmissions: number;
   baseCaseAbsoluteEmissions: number;
@@ -10,14 +12,7 @@ export const emptySummary: EmissionsSummaryState = {
   relativeUserEmissions: 0,
 };
 
-const formatEmission = (value: any) => {
-    if (value === null || value === undefined || value === "") return "—";
-    const n = Number(value);
-    if (!Number.isFinite(n)) return "—";
-    return n.toLocaleString("en-US", {
-        maximumFractionDigits: 3,
-    });
-};
+const formatEmission = formatDisplayNumber;
 
 export const UserEmissionsSummary = ({
   summary,
