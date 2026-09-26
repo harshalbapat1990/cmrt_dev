@@ -57,8 +57,8 @@ export default function NewRevisionModal({
   const [saving, setSaving]     = useState(false);
   const [error, setError]       = useState('');
 
-  const ownBranchable    = revisions.filter(r => r.status !== 'archived');
-  const sourceBranchable = sourceRevisions.filter(r => r.status !== 'archived');
+  const ownBranchable    = revisions.filter(r => r.status === 'published');
+  const sourceBranchable = sourceRevisions.filter(r => r.status === 'published');
 
   const activeRevisionList = mode === 'branch' ? sourceBranchable : ownBranchable;
   const needsSource        = mode !== 'blank';
@@ -143,8 +143,8 @@ export default function NewRevisionModal({
           )}
           {mode === 'branch' && scopeType === 'PROJECT' && (
             <p className="text-xs text-text-base">
-              Project datasets are always branched from a published global or organisation
-              dataset. All factor sets and emission-factor rows are copied into a new draft
+              Project datasets are branched from a published global, owning-organisation, or
+              same-project dataset. All factor sets and emission-factor rows are copied into a new draft
               that you can customise for this project.
             </p>
           )}

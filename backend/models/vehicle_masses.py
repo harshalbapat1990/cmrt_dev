@@ -9,6 +9,12 @@ class VehicleMass(Base):
     __tablename__ = "vehicle_masses"
 
     id = Column(UUID(as_uuid=True), primary_key=True, nullable=False, server_default=func.gen_random_uuid())
+    dataset_revision_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("dataset_revisions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     vehicle_class_id = Column(
         UUID(as_uuid=True),
         ForeignKey("vehicle_classes.id", ondelete="CASCADE"),
@@ -20,5 +26,5 @@ class VehicleMass(Base):
     assumed_payload_pct = Column(Numeric(5, 2), nullable=False)
 
     __table_args__ = (
-        UniqueConstraint("vehicle_class_id", name="uq_vehicle_masses_vehicle_class_id"),
+        UniqueConstraint("dataset_revision_id", "vehicle_class_id", name="uq_vehicle_masses_revision_class"),
     )

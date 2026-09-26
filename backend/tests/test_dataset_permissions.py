@@ -27,6 +27,8 @@ def test_dataset_rules_contain_expected_datasets():
     assert DATASET_RULES["default_waste_rates"] == ALL_BRANCHES
     assert DATASET_RULES["vehicle_masses"] == ALL_BRANCHES
     assert DATASET_RULES["vepm_factors"] == ALL_BRANCHES
+    assert DATASET_RULES["emissions_factor_sets"] == ALL_BRANCHES
+    assert DATASET_RULES["fugitives"] == ALL_BRANCHES
 
     # ORG_ONLY
     assert DATASET_RULES["maintenance_replacement_factors"] == ORG_ONLY
@@ -48,14 +50,13 @@ def test_dataset_rules_contain_expected_datasets():
     assert DATASET_RULES["renewable_energy_classification"] == SUPERADMIN_ONLY
     assert DATASET_RULES["interrupted_vehicles"] == SUPERADMIN_ONLY
     assert DATASET_RULES["uninterrupted_vehicles"] == SUPERADMIN_ONLY
-    assert DATASET_RULES["fugitives"] == SUPERADMIN_ONLY
 
     # READ_ONLY
     assert DATASET_RULES["audit_logs"] == READ_ONLY
 
 
-def test_get_dataset_category_fallback():
-    assert get_dataset_category("unknown_custom_dataset") == ALL_BRANCHES
+def test_get_dataset_category_fails_closed_for_unknown_key():
+    assert get_dataset_category("unknown_custom_dataset") == SUPERADMIN_ONLY
     assert get_dataset_category("DENSITIES") == SUPERADMIN_ONLY
 
 
@@ -65,12 +66,17 @@ def test_is_scope_allowed_all_branches():
     assert is_scope_allowed(dataset, "ORG") is True
     assert is_scope_allowed(dataset, "PROJECT") is True
 
+    fugitives = "fugitives"
+    assert is_scope_allowed(fugitives, "DEFAULT") is True
+    assert is_scope_allowed(fugitives, "ORG") is True
+    assert is_scope_allowed(fugitives, "PROJECT") is True
+
 
 def test_is_scope_allowed_org_only():
-    dataset = "carbon_values"
-    assert is_scope_allowed(dataset, "DEFAULT") is True
-    assert is_scope_allowed(dataset, "ORG") is True
-    assert is_scope_allowed(dataset, "PROJECT") is False
+    for dataset in ("carbon_values", "direct_substitutions"):
+        assert is_scope_allowed(dataset, "DEFAULT") is True
+        assert is_scope_allowed(dataset, "ORG") is True
+        assert is_scope_allowed(dataset, "PROJECT") is False
 
 
 def test_is_scope_allowed_superadmin_only():

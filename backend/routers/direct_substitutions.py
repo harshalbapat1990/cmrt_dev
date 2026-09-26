@@ -26,6 +26,8 @@ from schemas.direct_substitutions import (
 if TYPE_CHECKING:
     from models.direct_substitution_factors import DirectSubstitutionFactor
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/direct-substitutions", tags=["direct-substitutions"])
 
 
@@ -54,6 +56,7 @@ async def _resolve_jurisdiction_id(
 def _row_to_out(r: "DirectSubstitutionFactor") -> DirectSubstitutionOut:
     return DirectSubstitutionOut(
         id=r.id,
+        dataset_revision_id=r.dataset_revision_id,
         jurisdiction_id=r.jurisdiction_id,
         jurisdiction_name=r.jurisdiction.name if r.jurisdiction else None,
         user_emissions_source=r.user_emissions_source,
@@ -74,7 +77,7 @@ async def create_direct_substitution_row(
     await assert_revision_edit_permission(
         db=db,
         principal=principal,
-        dataset_revision_id=None,
+        dataset_revision_id=payload.dataset_revision_id,
         dataset_type="direct_substitutions",
     )
     jur_id = await _resolve_jurisdiction_id(
@@ -95,7 +98,7 @@ async def upsert_direct_substitution_row(
     await assert_revision_edit_permission(
         db=db,
         principal=principal,
-        dataset_revision_id=None,
+        dataset_revision_id=payload.dataset_revision_id,
         dataset_type="direct_substitutions",
     )
     jur_id = await _resolve_jurisdiction_id(
@@ -114,15 +117,15 @@ async def patch_direct_substitution_row(
     db: AsyncSession = Depends(get_session),
     principal: Principal = Depends(get_current_principal),
 ):
-    await assert_revision_edit_permission(
-        db=db,
-        principal=principal,
-        dataset_revision_id=None,
-        dataset_type="direct_substitutions",
-    )
     obj = await get_direct_substitution(db, factor_id)
     if not obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Row not found")
+    await assert_revision_edit_permission(
+        db=db,
+        principal=principal,
+        dataset_revision_id=obj.dataset_revision_id,
+        dataset_type="direct_substitutions",
+    )
     patch_data = payload.model_dump(exclude_unset=True)
     jname = patch_data.pop("jurisdiction_name", None)
     if jname is not None:
@@ -140,6 +143,7 @@ async def patch_direct_substitution_row(
 
 @router.get("", response_model=DirectSubstitutionPage)
 async def get_direct_substitutions(
+    dataset_revision_id: UUID = Query(...),
     jurisdiction_id: Optional[UUID] = Query(
         None,
         description="Filter by jurisdiction UUID; omit for all jurisdictions",
@@ -150,9 +154,12 @@ async def get_direct_substitutions(
 ):
     rows, total = await list_direct_substitutions(
         db,
+        dataset_revision_id=dataset_revision_id,
         jurisdiction_id=jurisdiction_id,
         skip=skip,
         limit=limit,
     )
     items = [_row_to_out(r) for r in rows]
     return DirectSubstitutionPage(items=items, total=total)
+
+protect_dataset_reads(router)

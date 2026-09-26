@@ -23,6 +23,8 @@ from models.organizations import Organization
 from models.jurisdictions import Jurisdiction
 from sqlalchemy import select
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(
     prefix="/api/maintenance-replacement-factors",
     tags=["maintenance-replacement-factors"],
@@ -137,3 +139,5 @@ async def delete_maintenance_replacement(
         raise HTTPException(status_code=404, detail="Factor not found")
     await db.commit()
     return None
+
+protect_dataset_reads(router)

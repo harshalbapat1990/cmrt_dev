@@ -1,11 +1,17 @@
 """Tests for /api/dataset-revisions endpoints."""
 from __future__ import annotations
 
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 
 _PAYLOAD = {"name": "Austroads Benchmarks v1.0 (2026)"}
+
+
+async def _create_revision(client, name: str):
+    response = await client.post("/api/dataset-revisions", json={"name": name})
+    assert response.status_code == 201
+    return response.json()["id"]
 
 
 @pytest.mark.asyncio
@@ -73,3 +79,28 @@ async def test_delete_dataset_revision(client):
 async def test_delete_dataset_revision_not_found(client):
     resp = await client.delete(f"/api/dataset-revisions/{uuid4()}")
     assert resp.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_org_revision_must_be_branched_from_published_source(client, dataset_revision_store):
+    source_id = await _create_revision(client, "Global source")
+    source = dataset_revision_store[UUID(source_id)]
+    source.status = "published"
+    org_id = uuid4()
+    response = await client.post(
+        f"/api/dataset-revisions/{source_id}/branch",
+        json={"name": "Org branch", "scope_type": "ORG", "scope_id": str(org_id)},
+    )
+    assert response.status_code == 201
+    assert response.json()["scope_type"] == "ORG"
+    assert response.json()["scope_id"] == str(org_id)
+
+
+@pytest.mark.asyncio
+async def test_branch_rejects_unpublished_source(client):
+    source_id = await _create_revision(client, "Draft source")
+    response = await client.post(
+        f"/api/dataset-revisions/{source_id}/branch",
+        json={"name": "Org branch", "scope_type": "ORG", "scope_id": str(uuid4())},
+    )
+    assert response.status_code == 409

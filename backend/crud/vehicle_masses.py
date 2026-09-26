@@ -9,16 +9,18 @@ from models.vehicle_masses import VehicleMass
 from schemas.vehicle_masses import VehicleMassCreate, VehicleMassOut, VehicleMassUpdate
 
 
-async def list_vehicle_masses(db: AsyncSession) -> List[VehicleMassOut]:
+async def list_vehicle_masses(db: AsyncSession, dataset_revision_id: UUID) -> List[VehicleMassOut]:
     result = await db.execute(
         select(VehicleMass, VehicleClass.name.label("vc_name"))
         .join(VehicleClass, VehicleMass.vehicle_class_id == VehicleClass.id)
+        .where(VehicleMass.dataset_revision_id == dataset_revision_id)
         .order_by(VehicleClass.sort_order, VehicleClass.name)
     )
     rows = result.all()
     return [
         VehicleMassOut(
             id=r.VehicleMass.id,
+            dataset_revision_id=r.VehicleMass.dataset_revision_id,
             vehicle_class_id=r.VehicleMass.vehicle_class_id,
             reference_gcm_tonnes=r.VehicleMass.reference_gcm_tonnes,
             max_payload_tonnes=r.VehicleMass.max_payload_tonnes,
@@ -36,10 +38,13 @@ async def get_vehicle_mass(db: AsyncSession, vehicle_mass_id: UUID) -> Optional[
 
 
 async def get_vehicle_mass_by_class(
-    db: AsyncSession, vehicle_class_id: UUID
+    db: AsyncSession, vehicle_class_id: UUID, dataset_revision_id: UUID
 ) -> Optional[VehicleMass]:
     result = await db.execute(
-        select(VehicleMass).where(VehicleMass.vehicle_class_id == vehicle_class_id)
+        select(VehicleMass).where(
+            VehicleMass.vehicle_class_id == vehicle_class_id,
+            VehicleMass.dataset_revision_id == dataset_revision_id,
+        )
     )
     return result.scalars().first()
 

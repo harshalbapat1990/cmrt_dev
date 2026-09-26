@@ -30,6 +30,8 @@ from crud.material_recycled_content import (
 )
 from crud.audit_logs import write_audit_event
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/material-recycled-content", tags=["material-recycled-content"])
 
 
@@ -224,3 +226,4 @@ async def get_blended_ef(
         for r in rows
     ]
 
+protect_dataset_reads(router)

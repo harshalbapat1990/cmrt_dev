@@ -22,6 +22,8 @@ from schemas.renewable_energy_classification import (
     RenewableEnergyClassificationUpdate,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(
     prefix="/api/renewable-energy-classifications",
     tags=["renewable-energy-classifications"],
@@ -168,3 +170,5 @@ async def delete_record(
         new_value="false",
     )
     await db.commit()
+
+protect_dataset_reads(router)

@@ -17,8 +17,7 @@ def _conversion_payload(from_unit_id: str | None = None, to_unit_id: str | None 
 @pytest.mark.asyncio
 async def test_list_unit_conversions_empty(client):
     resp = await client.get("/api/unit-conversions")
-    assert resp.status_code == 200
-    assert resp.json() == []
+    assert resp.status_code == 400  # revision selector is required for scoped dataset reads
 
 
 @pytest.mark.asyncio
@@ -111,9 +110,7 @@ async def test_filter_by_from_unit_id(client):
     await client.post("/api/unit-conversions", json=_conversion_payload(from_unit_id=other_id, factor=1.0))
 
     resp = await client.get(f"/api/unit-conversions?from_unit_id={from_id}")
-    assert resp.status_code == 200
-    assert len(resp.json()) == 2
-    assert all(item["from_unit_id"] == from_id for item in resp.json())
+    assert resp.status_code == 400  # dataset_revision_id is required even when other filters are supplied
 
 
 @pytest.mark.asyncio

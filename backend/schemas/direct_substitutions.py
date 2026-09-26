@@ -9,6 +9,7 @@ class DirectSubstitutionOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: UUID
+    dataset_revision_id: UUID
     jurisdiction_id: UUID
     jurisdiction_name: str | None = None
     user_emissions_source: str
@@ -27,6 +28,7 @@ class DirectSubstitutionPage(BaseModel):
 class DirectSubstitutionCreate(BaseModel):
     model_config = ConfigDict(extra='ignore')
 
+    dataset_revision_id: UUID
     jurisdiction_id: Optional[UUID] = None
     jurisdiction_name: Optional[str] = None
     user_emissions_source: str
@@ -63,6 +65,7 @@ class DirectSubstitutionUpsert(BaseModel):
 
     model_config = ConfigDict(extra='ignore')
 
+    dataset_revision_id: UUID
     jurisdiction_id: Optional[UUID] = None
     jurisdiction_name: Optional[str] = None
     user_emissions_source: str

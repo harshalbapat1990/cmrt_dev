@@ -14,7 +14,13 @@ from sqlalchemy import and_, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from core.rbac import ORG_ADMIN, PROJECT_ADMIN, SUPER_ADMIN, get_effective_role_names
+from core.rbac import (
+    ORG_ADMIN,
+    PROJECT_ADMIN,
+    SUPER_ADMIN,
+    get_effective_role_names,
+    get_org_scoped_role_names,
+)
 from core.security import Principal, get_current_principal
 from core.session import get_session
 from crud.audit_logs import list_audit_logs
@@ -33,6 +39,13 @@ async def _require_auditor(
     project_id: Optional[UUID] = None,
 ) -> None:
     roles = await get_effective_role_names(db, principal.user_id, project_id=project_id)
+    # The collection endpoint has no project context, so effective-role lookup
+    # only returns global roles. Include the caller's own organisation scope so
+    # an ORG_ADMIN assignment is recognized for audit access.
+    if principal.organization_id is not None:
+        roles = roles | await get_org_scoped_role_names(
+            db, principal.user_id, principal.organization_id
+        )
     if not roles.intersection({ORG_ADMIN, SUPER_ADMIN}):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

@@ -5,18 +5,30 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
+from core.security import Principal, get_current_principal
+from core.dataset_authorization import assert_revision_edit_permission
 from schemas.dataset_revision_changes import DatasetRevisionChangeCreate, DatasetRevisionChangeOut
 from crud.dataset_revision_changes import (
     create_dataset_revision_change,
     get_dataset_revision_change,
     list_changes_by_revision,
 )
+from core.dataset_authorization import protect_dataset_reads
 
 router = APIRouter(prefix="/api/dataset-revision-changes", tags=["dataset-revision-changes"])
 
 
 @router.post("", response_model=DatasetRevisionChangeOut, status_code=status.HTTP_201_CREATED)
-async def create_new_dataset_revision_change(payload: DatasetRevisionChangeCreate, db: AsyncSession = Depends(get_session)):
+async def create_new_dataset_revision_change(
+    payload: DatasetRevisionChangeCreate,
+    db: AsyncSession = Depends(get_session),
+    principal: Principal = Depends(get_current_principal),
+):
+    await assert_revision_edit_permission(
+        db,
+        principal,
+        dataset_revision_id=payload.dataset_revision_id,
+    )
     obj = await create_dataset_revision_change(db, payload)
     await db.commit()
     return obj
@@ -35,3 +47,6 @@ async def get_dataset_revision_change_by_id(change_id: UUID, db: AsyncSession = 
 @router.get("/by-revision/{revision_id}", response_model=List[DatasetRevisionChangeOut])
 async def get_changes_by_revision(revision_id: UUID, db: AsyncSession = Depends(get_session)):
     return await list_changes_by_revision(db, revision_id)
+
+
+protect_dataset_reads(router)

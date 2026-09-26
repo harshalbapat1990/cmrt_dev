@@ -20,6 +20,8 @@ from schemas.emissions_factor_sets import (
     EmissionsFactorSetOut,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/emissions-factor-sets", tags=["emissions-factor-sets"])
 
 
@@ -127,3 +129,5 @@ async def duplicate_factor_set(
     await db.commit()
     await db.refresh(clone)
     return clone
+
+protect_dataset_reads(router)

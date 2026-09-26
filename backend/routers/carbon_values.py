@@ -24,6 +24,8 @@ from core.dataset_authorization import (
 from models.carbon_values import CarbonValue
 from sqlalchemy import select
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/carbon-values", tags=["carbon-values"])
 
 
@@ -110,3 +112,5 @@ async def bulk_create_carbon_value_series(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return result
+
+protect_dataset_reads(router)

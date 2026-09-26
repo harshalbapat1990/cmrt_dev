@@ -25,8 +25,7 @@ _TRUCK_PAYLOAD = {
 @pytest.mark.asyncio
 async def test_list_default_transport_distances_empty(client):
     resp = await client.get("/api/default-transport-distances")
-    assert resp.status_code == 200
-    assert resp.json() == []
+    assert resp.status_code == 400  # revision selector is required for scoped dataset reads
 
 
 @pytest.mark.asyncio

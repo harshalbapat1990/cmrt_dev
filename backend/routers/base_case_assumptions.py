@@ -19,6 +19,8 @@ from crud.base_case_assumptions import (
     delete_base_case_assumption,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/base-case-assumptions", tags=["base-case-assumptions"])
 
 
@@ -78,3 +80,5 @@ async def remove_base_case_assumption(assumption_id: UUID, db: AsyncSession = De
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assumption not found")
     await db.commit()
     return None
+
+protect_dataset_reads(router)

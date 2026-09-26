@@ -20,6 +20,8 @@ from crud.energy_density_conversions import (
     delete_energy_density_conversion,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/energy-density-conversions", tags=["energy-density-conversions"])
 
 
@@ -104,3 +106,5 @@ async def remove_energy_density_conversion(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Energy density conversion not found")
     await db.commit()
     return None
+
+protect_dataset_reads(router)

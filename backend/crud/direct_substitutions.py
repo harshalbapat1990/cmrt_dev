@@ -10,16 +10,19 @@ from schemas.direct_substitutions import DirectSubstitutionCreate, DirectSubstit
 
 async def list_direct_substitutions(
     db: AsyncSession,
+    dataset_revision_id: UUID,
     jurisdiction_id: Optional[UUID] = None,
     skip: int = 0,
     limit: int = 50,
 ) -> Tuple[List[DirectSubstitutionFactor], int]:
     count_stmt = select(func.count()).select_from(DirectSubstitutionFactor)
+    count_stmt = count_stmt.where(DirectSubstitutionFactor.dataset_revision_id == dataset_revision_id)
     if jurisdiction_id is not None:
         count_stmt = count_stmt.where(DirectSubstitutionFactor.jurisdiction_id == jurisdiction_id)
     total = int((await db.execute(count_stmt)).scalar() or 0)
 
     q = select(DirectSubstitutionFactor)
+    q = q.where(DirectSubstitutionFactor.dataset_revision_id == dataset_revision_id)
     if jurisdiction_id is not None:
         q = q.where(DirectSubstitutionFactor.jurisdiction_id == jurisdiction_id)
     q = (
@@ -49,10 +52,14 @@ async def create_direct_substitution(
     db: AsyncSession, payload: DirectSubstitutionCreate, jurisdiction_id: UUID
 ) -> DirectSubstitutionFactor:
     body = payload.model_dump(
-        exclude={"jurisdiction_id", "jurisdiction_name"},
+        exclude={"dataset_revision_id", "jurisdiction_id", "jurisdiction_name"},
         exclude_none=True,
     )
-    obj = DirectSubstitutionFactor(jurisdiction_id=jurisdiction_id, **body)
+    obj = DirectSubstitutionFactor(
+        dataset_revision_id=payload.dataset_revision_id,
+        jurisdiction_id=jurisdiction_id,
+        **body,
+    )
     db.add(obj)
     await db.flush()
     await db.refresh(obj)
@@ -80,6 +87,7 @@ async def upsert_direct_substitution(
     stmt = (
         select(DirectSubstitutionFactor)
         .where(
+            DirectSubstitutionFactor.dataset_revision_id == payload.dataset_revision_id,
             DirectSubstitutionFactor.jurisdiction_id == jurisdiction_id,
             DirectSubstitutionFactor.user_emissions_source == payload.user_emissions_source,
             DirectSubstitutionFactor.user_unit == payload.user_unit,
@@ -118,6 +126,7 @@ async def upsert_direct_substitution(
 
     display_order = payload.display_order if payload.display_order is not None else 0
     obj = DirectSubstitutionFactor(
+        dataset_revision_id=payload.dataset_revision_id,
         jurisdiction_id=jurisdiction_id,
         user_emissions_source=payload.user_emissions_source,
         user_unit=payload.user_unit,

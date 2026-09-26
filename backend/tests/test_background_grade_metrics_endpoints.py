@@ -28,7 +28,8 @@ async def _setup_prerequisites(client):
 
 @pytest.mark.asyncio
 async def test_list_background_grade_metrics_empty(client):
-    resp = await client.get("/api/background-grade-metrics")
+    dataset_revision_id, _, _ = await _setup_prerequisites(client)
+    resp = await client.get(f"/api/background-grade-metrics?dataset_revision_id={dataset_revision_id}")
     assert resp.status_code == 200
     assert resp.json() == []
 
@@ -78,7 +79,9 @@ async def test_list_background_grade_metrics_filter_by_grade(client):
     dataset_revision_id, metric_type_id, grade_id = await _setup_prerequisites(client)
     payload = {"dataset_revision_id": dataset_revision_id, "grade_id": grade_id, "metric_type_id": metric_type_id}
     await client.post("/api/background-grade-metrics", json=payload)
-    resp = await client.get(f"/api/background-grade-metrics?grade_id={grade_id}")
+    resp = await client.get(
+        f"/api/background-grade-metrics?grade_id={grade_id}&dataset_revision_id={dataset_revision_id}"
+    )
     assert resp.status_code == 200
     results = resp.json()
     assert len(results) >= 1

@@ -20,6 +20,8 @@ from schemas.ev_uptake_factors import (
     EvUptakeBulkCreate,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/ev-uptake-factors", tags=["ev-uptake-factors"])
 
 
@@ -103,3 +105,5 @@ async def bulk_create_ev_uptake_series(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return result
+
+protect_dataset_reads(router)

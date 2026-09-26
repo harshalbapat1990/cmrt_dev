@@ -12,6 +12,8 @@ from sqlalchemy import select
 from crud.freight_rail_factors import delete_freight_rail_factor, list_freight_rail_factors, update_freight_rail_factor
 from schemas.freight_rail_factors import FreightRailFactorOut, FreightRailFactorUpdate
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/freight-rail-factors", tags=["freight-rail-factors"])
 
 
@@ -93,3 +95,5 @@ async def delete_freight_rail(
         raise HTTPException(status_code=404, detail="Factor not found")
     await db.commit()
     return None
+
+protect_dataset_reads(router)

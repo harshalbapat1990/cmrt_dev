@@ -21,6 +21,8 @@ from crud.vehicle_energy_conversion_rates import (
     update_vehicle_energy_conversion_rate,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(
     prefix="/api/vehicle-energy-conversion-rates",
     tags=["vehicle-energy-conversion-rates"],
@@ -131,3 +133,5 @@ async def delete_vehicle_energy_conversion_rate_by_id(
     )
     await delete_vehicle_energy_conversion_rate(db, obj)
     await db.commit()
+
+protect_dataset_reads(router)

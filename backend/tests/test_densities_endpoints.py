@@ -36,8 +36,7 @@ def _payload(record_key, dataset="component", density="2400"):
 @pytest.mark.asyncio
 async def test_list_densities_empty(client):
     resp = await client.get("/api/densities")
-    assert resp.status_code == 200
-    assert resp.json() == []
+    assert resp.status_code == 400  # revision selector is required for scoped dataset reads
 
 
 @pytest.mark.asyncio
@@ -99,6 +98,4 @@ async def test_list_densities_filter_by_dataset(client, density_test_unit):
     await client.post("/api/densities", json=_payload("A|B|C", dataset="component"))
     await client.post("/api/densities", json=_payload("X|Y|Z", dataset="detailed"))
     resp = await client.get("/api/densities?dataset=component")
-    assert resp.status_code == 200
-    data = resp.json()
-    assert all(d["dataset"] == "component" for d in data)
+    assert resp.status_code == 400  # dataset_revision_id is required even when other filters are supplied

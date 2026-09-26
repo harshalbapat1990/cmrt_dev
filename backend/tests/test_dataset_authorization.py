@@ -55,6 +55,19 @@ async def test_read_only_dataset_rejected():
 
 
 @pytest.mark.asyncio
+async def test_unregistered_dataset_type_rejected():
+    principal = Principal(user_id=uuid4(), email="admin@example.com")
+    with pytest.raises(HTTPException) as exc_info:
+        await assert_revision_edit_permission(
+            db=FakeSessionWithRevision(),
+            principal=principal,
+            dataset_type="new_unregistered_dataset",
+        )
+    assert exc_info.value.status_code == 403
+    assert "no registered governance category" in exc_info.value.detail
+
+
+@pytest.mark.asyncio
 async def test_revision_not_found():
     principal = Principal(user_id=uuid4(), email="admin@example.com")
     session = FakeSessionWithRevision(revision=None)
@@ -152,6 +165,12 @@ async def test_default_revision_requires_super_admin(monkeypatch):
         dataset_revision_id=default_rev.id,
         dataset_type="densities",
     )
+    await assert_revision_edit_permission(
+        db=session,
+        principal=principal,
+        dataset_revision_id=default_rev.id,
+        dataset_type="direct_substitutions",
+    )
 
 
 @pytest.mark.asyncio
@@ -195,6 +214,24 @@ async def test_org_revision_authorization(monkeypatch):
         dataset_revision_id=org_rev.id,
         dataset_type="carbon_values",
     )
+    await assert_revision_edit_permission(
+        db=session,
+        principal=principal,
+        dataset_revision_id=org_rev.id,
+        dataset_type="direct_substitutions",
+    )
+
+    async def mock_superadmin_roles(_db, uid, o_id):
+        return {SUPER_ADMIN}
+    monkeypatch.setattr(da, "get_org_scoped_role_names", mock_superadmin_roles)
+    with pytest.raises(HTTPException) as exc_info:
+        await assert_revision_edit_permission(
+            db=session,
+            principal=principal,
+            dataset_revision_id=org_rev.id,
+            dataset_type="carbon_values",
+        )
+    assert exc_info.value.status_code == 403
 
 
 @pytest.mark.asyncio
@@ -238,3 +275,15 @@ async def test_project_revision_authorization(monkeypatch):
         dataset_revision_id=project_rev.id,
         dataset_type="default_transport_distances",
     )
+
+    async def mock_superadmin_roles(_db, uid, project_id=None):
+        return {SUPER_ADMIN}
+    monkeypatch.setattr(da, "get_effective_role_names", mock_superadmin_roles)
+    with pytest.raises(HTTPException) as exc_info:
+        await assert_revision_edit_permission(
+            db=session,
+            principal=principal,
+            dataset_revision_id=project_rev.id,
+            dataset_type="default_transport_distances",
+        )
+    assert exc_info.value.status_code == 403

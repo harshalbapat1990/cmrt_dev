@@ -2,11 +2,13 @@ from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
 from core.security import get_current_principal, Principal
 from core import rbac
+from core.dataset_authorization import assert_revision_view_permission
 from schemas.dataset_revisions import DatasetRevisionBranch, DatasetRevisionCreate, DatasetRevisionOut, DatasetRevisionUpdate
 from crud.dataset_revisions import (
     branch_dataset_revision,
@@ -51,8 +53,8 @@ async def _assert_revision_permission(
             raise HTTPException(status_code=400, detail="ORG revisions require a scope_id (org UUID)")
         roles = await rbac.get_org_scoped_role_names(db, uid, scope_id)
         if is_archive:
-            if rbac.ORG_ADMIN not in roles and rbac.SUPER_ADMIN not in roles:
-                raise HTTPException(status_code=403, detail="Only Org Admin or Super Admin may archive org revisions")
+            if rbac.ORG_ADMIN not in roles:
+                raise HTTPException(status_code=403, detail="Only the owning Org Admin may archive org revisions")
         else:
             if rbac.ORG_ADMIN not in roles:
                 raise HTTPException(status_code=403, detail="Only Org Admin may modify org revisions")
@@ -71,7 +73,14 @@ async def create_new_dataset_revision(
     db: AsyncSession = Depends(get_session),
     principal: Principal = Depends(get_current_principal),
 ):
+    if payload.scope_type == "DEFAULT" and payload.scope_id is not None:
+        raise HTTPException(status_code=422, detail="DEFAULT revisions must not have a scope_id")
+    if payload.scope_type != "DEFAULT" and payload.scope_id is None:
+        raise HTTPException(status_code=422, detail=f"{payload.scope_type} revisions require a scope_id")
+    if payload.scope_type != "DEFAULT":
+        raise HTTPException(status_code=422, detail="Org and project revisions must be created by branching a published source revision")
     await _assert_revision_permission(db, principal, payload.scope_type, payload.scope_id)
+    payload = payload.model_copy(update={"created_by": principal.user_id})
     existing = await get_dataset_revision_by_name(
         db, payload.name, scope_type=payload.scope_type, scope_id=payload.scope_id
     )
@@ -91,10 +100,35 @@ async def branch_dataset_revision_endpoint(
     db: AsyncSession = Depends(get_session),
     principal: Principal = Depends(get_current_principal),
 ):
+    if payload.scope_type == "DEFAULT" and payload.scope_id is not None:
+        raise HTTPException(status_code=422, detail="DEFAULT revisions must not have a scope_id")
+    if payload.scope_type != "DEFAULT" and payload.scope_id is None:
+        raise HTTPException(status_code=422, detail=f"{payload.scope_type} revisions require a scope_id")
     await _assert_revision_permission(db, principal, payload.scope_type, payload.scope_id)
     source = await get_dataset_revision(db, revision_id)
     if not source:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Source revision not found")
+    if source.status != "published":
+        raise HTTPException(status_code=409, detail="Only published revisions can be used as a branch source")
+    source_scope = (source.scope_type or "DEFAULT").upper()
+    destination_scope = payload.scope_type.upper()
+    allowed_sources = {
+        "DEFAULT": {"DEFAULT"},
+        "ORG": {"DEFAULT", "ORG"},
+        "PROJECT": {"DEFAULT", "ORG", "PROJECT"},
+    }
+    if source_scope not in allowed_sources.get(destination_scope, set()):
+        raise HTTPException(status_code=403, detail="Source revision scope is not allowed for this branch")
+    if source_scope == "ORG" and destination_scope in {"ORG", "PROJECT"}:
+        from models.project import Project
+        if destination_scope == "ORG" and source.scope_id != payload.scope_id:
+            raise HTTPException(status_code=403, detail="Org branches may only use a global or same-org source")
+        if destination_scope == "PROJECT":
+            result = await db.execute(select(Project.proponent_org_id).where(Project.id == payload.scope_id))
+            if result.scalar_one_or_none() != source.scope_id:
+                raise HTTPException(status_code=403, detail="Project branches may only use their owning organisation's source")
+    if source_scope == "PROJECT" and (destination_scope != "PROJECT" or source.scope_id != payload.scope_id):
+        raise HTTPException(status_code=403, detail="Project branches may only use a source from the same project")
     existing = await get_dataset_revision_by_name(
         db, payload.name, scope_type=payload.scope_type, scope_id=payload.scope_id
     )
@@ -131,17 +165,39 @@ async def get_dataset_revisions(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
     db: AsyncSession = Depends(get_session),
+    principal: Principal = Depends(get_current_principal),
 ):
-    return await list_dataset_revisions(
-        db, status=status_filter, scope_type=scope_type, scope_id=scope_id, skip=skip, limit=limit
-    )
+    # Visibility must be applied before caller filters and pagination, otherwise
+    # a caller could infer or request revisions outside their scope.
+    candidates = await list_dataset_revisions(db, skip=0, limit=10000)
+    visible = []
+    for revision in candidates:
+        try:
+            await assert_revision_view_permission(db, principal, revision)
+        except HTTPException as exc:
+            if exc.status_code == 404:
+                continue
+            raise
+        if status_filter and revision.status != status_filter:
+            continue
+        if scope_type and revision.scope_type != scope_type:
+            continue
+        if scope_id is not None and revision.scope_id != scope_id:
+            continue
+        visible.append(revision)
+    return visible[skip:skip + limit]
 
 
 @router.get("/{revision_id}", response_model=DatasetRevisionOut)
-async def get_dataset_revision_by_id(revision_id: UUID, db: AsyncSession = Depends(get_session)):
+async def get_dataset_revision_by_id(
+    revision_id: UUID,
+    db: AsyncSession = Depends(get_session),
+    principal: Principal = Depends(get_current_principal),
+):
     obj = await get_dataset_revision(db, revision_id)
     if not obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dataset revision not found")
+    await assert_revision_view_permission(db, principal, obj)
     return obj
 
 

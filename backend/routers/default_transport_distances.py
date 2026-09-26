@@ -27,6 +27,8 @@ from crud.default_transport_distances import (
 )
 from crud.audit_logs import write_audit_event
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/default-transport-distances", tags=["default-transport-distances"])
 
 
@@ -166,3 +168,5 @@ async def supersede_default_transport_distance_endpoint(
     if row is None:
         raise HTTPException(status_code=500, detail="Failed to fetch superseded record")
     return DefaultTransportDistanceWithNamesOut.model_validate(row)
+
+protect_dataset_reads(router)

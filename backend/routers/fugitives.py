@@ -16,6 +16,8 @@ from crud.fugitives import (
     delete_fugitive,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/fugitives", tags=["fugitives"])
 
 
@@ -102,3 +104,5 @@ async def remove_fugitive(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Fugitive not found")
     await db.commit()
     return None
+
+protect_dataset_reads(router)

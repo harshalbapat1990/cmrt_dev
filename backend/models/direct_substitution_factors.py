@@ -12,6 +12,12 @@ class DirectSubstitutionFactor(Base):
     __tablename__ = "direct_substitution_factors"
 
     id = Column(UUID(as_uuid=True), primary_key=True, nullable=False, server_default=func.gen_random_uuid())
+    dataset_revision_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("dataset_revisions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     jurisdiction_id = Column(
         UUID(as_uuid=True),
         ForeignKey("jurisdictions.id", ondelete="RESTRICT"),

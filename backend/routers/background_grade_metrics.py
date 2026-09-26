@@ -21,6 +21,8 @@ from crud.background_grade_metrics import (
     delete_background_grade_metric,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/background-grade-metrics", tags=["background-grade-metrics"])
 
 
@@ -138,3 +140,5 @@ async def remove_background_grade_metric(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Background grade metric not found")
     await db.commit()
     return None
+
+protect_dataset_reads(router)

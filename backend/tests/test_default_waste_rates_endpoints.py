@@ -13,8 +13,7 @@ _wt1 = str(uuid4())
 @pytest.mark.asyncio
 async def test_list_default_waste_rates_empty(client):
     resp = await client.get("/api/default-waste-rates")
-    assert resp.status_code == 200
-    assert resp.json() == []
+    assert resp.status_code == 400  # revision selector is required for scoped dataset reads
 
 
 @pytest.mark.asyncio

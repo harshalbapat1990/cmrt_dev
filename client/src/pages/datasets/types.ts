@@ -402,6 +402,7 @@ export interface VehicleClassOption { id: string; name: string; }
 
 export interface VehicleMassRow {
   id: string;
+  dataset_revision_id: string;
   vehicle_class_id: string;
   vehicle_class_name: string | null;
   reference_gcm_tonnes: string | null;
@@ -764,6 +765,7 @@ export interface ConcreteMixBundle {
 
 export interface DirectSubstitutionRow {
   id: string;
+  dataset_revision_id: string;
   jurisdiction_id: string;
   jurisdiction_name: string | null;
   user_emissions_source: string;

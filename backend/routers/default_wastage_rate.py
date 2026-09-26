@@ -16,6 +16,8 @@ from crud.default_wastage_rate import (
     delete_wastage_rate,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/wastage-rates", tags=["wastage-rates"])
 
 
@@ -99,3 +101,5 @@ async def remove_wastage_rate(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Wastage rate not found")
     await db.commit()
     return None
+
+protect_dataset_reads(router)

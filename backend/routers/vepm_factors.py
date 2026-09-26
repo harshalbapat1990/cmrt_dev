@@ -12,6 +12,8 @@ from sqlalchemy import select
 from crud.vepm_factors import delete_vepm_factor, list_vepm_factors, update_vepm_factor
 from schemas.vepm_factors import VepmFactorOut, VepmFactorUpdate
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/vepm-factors", tags=["vepm-factors"])
 
 
@@ -97,3 +99,5 @@ async def delete_vepm(
         raise HTTPException(status_code=404, detail="Factor not found")
     await db.commit()
     return None
+
+protect_dataset_reads(router)

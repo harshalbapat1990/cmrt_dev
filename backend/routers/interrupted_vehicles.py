@@ -21,6 +21,8 @@ from crud.interrupted_vehicles import (
     update_interrupted_vehicle,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/interrupted-vehicles", tags=["interrupted-vehicles"])
 
 
@@ -126,3 +128,5 @@ async def delete_interrupted_vehicle_by_id(
     )
     await delete_interrupted_vehicle(db, obj)
     await db.commit()
+
+protect_dataset_reads(router)

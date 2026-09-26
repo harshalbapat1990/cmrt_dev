@@ -24,6 +24,8 @@ from schemas.recycled_content_factors import (
     RecycledContentFactorUpsert,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(
     prefix="/api/recycled-content-factors",
     tags=["recycled-content-factors"],
@@ -203,3 +205,5 @@ async def delete_record(
         new_value="false",
     )
     await db.commit()
+
+protect_dataset_reads(router)

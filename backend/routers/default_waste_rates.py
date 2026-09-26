@@ -26,6 +26,8 @@ from crud.default_waste_rates import (
 )
 from crud.audit_logs import write_audit_event
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/default-waste-rates", tags=["default-waste-rates"])
 
 
@@ -157,3 +159,5 @@ async def supersede_default_waste_rate_endpoint(
     if row is None:
         raise HTTPException(status_code=500, detail="Failed to fetch superseded record")
     return DefaultWasteRateWithNamesOut.model_validate(row)
+
+protect_dataset_reads(router)

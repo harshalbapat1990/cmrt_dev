@@ -121,7 +121,6 @@ const SUPERADMIN_ONLY_TABS: PageTab[] = [
   'renewable_energy',
   'interrupted_vehicles',
   'uninterrupted_vehicles',
-  'fugitives',
 ];
 
 const ORG_ONLY_TABS: PageTab[] = [
@@ -148,14 +147,11 @@ export default function DatasetsPage({ scope = { type: 'DEFAULT' } }: { scope?: 
   const today = new Date().toISOString().slice(0, 10);
   const { roles } = useUser();
   // Derive edit rights based on the tier being managed
-  const canEdit =
+  const canEditScope =
     scope.type === 'DEFAULT' ? roles.includes('SUPER_ADMIN') :
     scope.type === 'ORG'     ? roles.includes('ORG_ADMIN') :
     /* PROJECT */              (roles.includes('PROJECT_ADMIN') || roles.includes('PROJECT_EDITOR'));
-  const canArchive =
-    scope.type === 'DEFAULT' ? roles.includes('SUPER_ADMIN') :
-    scope.type === 'ORG'     ? (roles.includes('ORG_ADMIN') || roles.includes('SUPER_ADMIN')) :
-    /* PROJECT */              (roles.includes('PROJECT_ADMIN') || roles.includes('PROJECT_EDITOR'));
+  const canArchiveScope = canEditScope;
   const [revisions, setRevisions]             = useState<DatasetRevision[]>([]);
   const [branchableRevisions, setBranchableRevisions] = useState<DatasetRevision[]>([]);
   const [loadingMeta, setLoadingMeta]     = useState(true);
@@ -172,6 +168,13 @@ export default function DatasetsPage({ scope = { type: 'DEFAULT' } }: { scope?: 
   const [g1Filter,   setG1Filter]   = useState<G1Filter>(INIT_G1);
   const [g234Filter, setG234Filter] = useState<G234Filter>(INIT_G234);
   const [activeTab, setActiveTab] = useState<PageTab>('factors');
+  const selectedRevision = revisions.find(r => r.id === selectedRevisionId);
+  const ownsSelectedRevision = !!selectedRevision && (
+    selectedRevision.scope_type === scope.type &&
+    (scope.type === 'DEFAULT' || selectedRevision.scope_id === (scope.type === 'ORG' ? scope.orgId : scope.projectId))
+  );
+  const canEdit = canEditScope && ownsSelectedRevision && selectedRevision?.status === 'draft';
+  const canArchive = canArchiveScope && ownsSelectedRevision;
   const canEditTab = canEdit && isScopeAllowedForTab(activeTab, scope.type);
   const [activeGroup, setActiveGroup] = useState<string>(TAB_GROUPS[0].label);
   const [rcAsOfDate, setRcAsOfDate] = useState(today);
@@ -459,6 +462,7 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
       return [
         `/api/dataset-revisions?scope_type=ORG&scope_id=${scope.orgId}&status=published&limit=200`,
         '/api/dataset-revisions?scope_type=DEFAULT&status=published&limit=200',
+        `/api/dataset-revisions?scope_type=PROJECT&scope_id=${scope.projectId}&status=published&limit=200`,
       ];
     })();
 
@@ -478,13 +482,13 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
         const [rRes, ...rest] = responses;
         const branchResponses = rest.slice(0, branchUrls.length);
         const [matRes, jurRes, wtRes, ecRes, unitRes, mtRes, bmtRes, tcRes] = rest.slice(branchUrls.length);
-        setRevisions((rRes as { data: DatasetRevision[] }).data);
+        const ownRevisions = (rRes as { data: DatasetRevision[] }).data;
+        const inheritedRevisions = (branchResponses as Array<{ data: DatasetRevision[] }>).flatMap(r => r.data);
+        setRevisions([...ownRevisions, ...inheritedRevisions]);
         if (scope.type === 'DEFAULT') {
-          setBranchableRevisions((rRes as { data: DatasetRevision[] }).data);
+          setBranchableRevisions(ownRevisions.filter(r => r.status === 'published'));
         } else {
-          const merged = (branchResponses as Array<{ data: DatasetRevision[] }>)
-            .flatMap(r => r.data);
-          setBranchableRevisions(merged);
+          setBranchableRevisions(inheritedRevisions.filter(r => r.status === 'published'));
         }
         setMatOpts((matRes as { data: NamedOption[] }).data);
         setJurOpts((jurRes as { data: NamedOption[] }).data);
@@ -694,7 +698,7 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
       setDecarbRows(res.data);
     } catch { setDecarbError('Failed to load electricity decarbonisation factors.'); }
     finally { setDecarbFetching(false); }
-  }, [selectedRevisionId]);
+  }, [selectedRevisionId, scope]);
 
   const fetchCarbonValues = useCallback(async () => {
     if (!selectedRevisionId) return;
@@ -1213,10 +1217,14 @@ const parseContentRecycledPct = (uiVal: string): number | null | undefined => {
   }, [selectedRevisionId]);
 
   const fetchUnitConversions = useCallback(async () => {
+    if (!selectedRevisionId) return;
     setUcFetching(true);
     setUcError('');
     try {
-      const params = new URLSearchParams({ limit: '10000' });
+      const params = new URLSearchParams({
+        dataset_revision_id: selectedRevisionId,
+        limit: '10000',
+      });
       const res = await http.get(`/api/unit-conversions?${params}`);
       setUcRows(res.data || []);
     } catch (err: any) {
@@ -1224,7 +1232,7 @@ const parseContentRecycledPct = (uiVal: string): number | null | undefined => {
     } finally {
       setUcFetching(false);
     }
-  }, []);
+  }, [selectedRevisionId]);
 
   const fetchFugitives = useCallback(async () => {
     if (!selectedRevisionId) return;
@@ -1401,52 +1409,52 @@ const enrichContentRecycledRows = useCallback((rows: ContentRecycledRow[]): Cont
   const fetchVehicleMasses = useCallback(async () => {
     setVmFetching(true); setVmError('');
     try {
-      const res = await http.get<VehicleMassRow[]>('/api/vehicle-masses');
+      const res = await http.get<VehicleMassRow[]>('/api/vehicle-masses', { params: { dataset_revision_id: selectedRevisionId } });
       setVmRows(res.data || []);
     } catch (e: any) {
       setVmError(extractApiError(e, 'Failed to load vehicle masses'));
     } finally { setVmFetching(false); }
-  }, []);
+  }, [selectedRevisionId]);
 
   const fetchInterruptedVehicles = useCallback(async () => {
     setIvFetching(true); setIvError('');
     try {
-      const res = await http.get<InterruptedVehicleRow[]>('/api/interrupted-vehicles');
+      const res = await http.get<InterruptedVehicleRow[]>('/api/interrupted-vehicles', { params: { dataset_revision_id: selectedRevisionId } });
       setIvRows(res.data || []);
     } catch (e: any) {
       setIvError(extractApiError(e, 'Failed to load fuel use variables - stop-start'));
     } finally { setIvFetching(false); }
-  }, []);
+  }, [selectedRevisionId]);
 
   const fetchUninterruptedVehicles = useCallback(async () => {
     setUvFetching(true); setUvError('');
     try {
-      const res = await http.get<UninterruptedVehicleRow[]>('/api/uninterrupted-vehicles');
+      const res = await http.get<UninterruptedVehicleRow[]>('/api/uninterrupted-vehicles', { params: { dataset_revision_id: selectedRevisionId } });
       setUvRows(res.data || []);
     } catch (e: any) {
       setUvError(extractApiError(e, 'Failed to load fuel use variables - free flow'));
     } finally { setUvFetching(false); }
-  }, []);
+  }, [selectedRevisionId]);
 
   const fetchVehicleEnergy = useCallback(async () => {
     setVeFetching(true); setVeError('');
     try {
-      const res = await http.get<VehicleEnergyConversionRow[]>('/api/vehicle-energy-conversion-rates');
+      const res = await http.get<VehicleEnergyConversionRow[]>('/api/vehicle-energy-conversion-rates', { params: { dataset_revision_id: selectedRevisionId } });
       setVeRows(res.data || []);
     } catch (e: any) {
       setVeError(extractApiError(e, 'Failed to load vehicle energy rates'));
     } finally { setVeFetching(false); }
-  }, []);
+  }, [selectedRevisionId]);
 
   useEffect(() => {
     const vehicleTabs: PageTab[] = ['vehicle_masses', 'interrupted_vehicles', 'uninterrupted_vehicles', 'vehicle_energy'];
-    if (!vehicleTabs.includes(activeTab)) return;
+    if (!selectedRevisionId || !vehicleTabs.includes(activeTab)) return;
     if (vehicleClassOpts.length === 0) fetchVehicleClasses();
-    if (activeTab === 'vehicle_masses'         && vmRows.length === 0) fetchVehicleMasses();
-    if (activeTab === 'interrupted_vehicles'   && ivRows.length === 0) fetchInterruptedVehicles();
-    if (activeTab === 'uninterrupted_vehicles' && uvRows.length === 0) fetchUninterruptedVehicles();
-    if (activeTab === 'vehicle_energy'         && veRows.length === 0) fetchVehicleEnergy();
-  }, [activeTab]);
+    if (activeTab === 'vehicle_masses') fetchVehicleMasses();
+    if (activeTab === 'interrupted_vehicles') fetchInterruptedVehicles();
+    if (activeTab === 'uninterrupted_vehicles') fetchUninterruptedVehicles();
+    if (activeTab === 'vehicle_energy') fetchVehicleEnergy();
+  }, [activeTab, selectedRevisionId, vehicleClassOpts.length, fetchVehicleClasses, fetchVehicleMasses, fetchInterruptedVehicles, fetchUninterruptedVehicles, fetchVehicleEnergy]);
 
   const fetchOpEq = useCallback(async () => {
     setOpEqFetching(true); setOpEqError('');
@@ -1507,6 +1515,7 @@ const enrichContentRecycledRows = useCallback((rows: ContentRecycledRow[]): Cont
       const p = new URLSearchParams();
       p.set('skip', String((directSubPage - 1) * pageSize));
       p.set('limit', String(pageSize));
+      if (selectedRevisionId) p.set('dataset_revision_id', selectedRevisionId);
       if (directSubJurisdictionId) p.set('jurisdiction_id', directSubJurisdictionId);
       const res = await http.get<{ items: DirectSubstitutionRow[]; total: number }>(`/api/direct-substitutions?${p}`);
       setDirectSubRows(res.data.items ?? []);
@@ -1516,7 +1525,7 @@ const enrichContentRecycledRows = useCallback((rows: ContentRecycledRow[]): Cont
     } finally {
       setDirectSubFetching(false);
     }
-  }, [directSubPage, pageSize, directSubJurisdictionId]);
+  }, [directSubPage, pageSize, directSubJurisdictionId, selectedRevisionId]);
 
   useEffect(() => {
     if (activeTab !== 'direct_substitutions') return;
@@ -1541,6 +1550,7 @@ const enrichContentRecycledRows = useCallback((rows: ContentRecycledRow[]): Cont
         const p = new URLSearchParams();
         p.set('skip', String(skip));
         p.set('limit', String(limit));
+        if (selectedRevisionId) p.set('dataset_revision_id', selectedRevisionId);
         if (directSubJurisdictionId) p.set('jurisdiction_id', directSubJurisdictionId);
         const res = await http.get<{ items: DirectSubstitutionRow[]; total: number }>(`/api/direct-substitutions?${p}`);
         const batch = res.data.items ?? [];
@@ -1883,29 +1893,30 @@ useMemo(() => {
         gvm_tonnes:           vmEditDraft.gvm_tonnes           || null,
         assumed_payload_pct:  vmEditDraft.assumed_payload_pct  || null,
       });
-      const r = await http.get<VehicleMassRow[]>('/api/vehicle-masses');
+      const r = await http.get<VehicleMassRow[]>('/api/vehicle-masses', { params: { dataset_revision_id: selectedRevisionId } });
       setVmRows(r.data || []);
       setVmEditingId(null); setVmEditDraft({});
     } catch (e: any) { setVmSaveError(extractApiError(e, 'Save failed')); }
     finally { setVmSaving(false); }
-  }, [vmEditingId, vmEditDraft]);
+  }, [vmEditingId, vmEditDraft, selectedRevisionId]);
 
   const doAddVm = useCallback(async () => {
     setVmSaving(true); setVmSaveError('');
     try {
       await http.post('/api/vehicle-masses', {
+        dataset_revision_id: selectedRevisionId,
         vehicle_class_id:     vmAddDraft.vehicle_class_id,
         reference_gcm_tonnes: vmAddDraft.reference_gcm_tonnes || null,
         max_payload_tonnes:   vmAddDraft.max_payload_tonnes   || null,
         gvm_tonnes:           vmAddDraft.gvm_tonnes           || null,
         assumed_payload_pct:  vmAddDraft.assumed_payload_pct  || null,
       });
-      const r = await http.get<VehicleMassRow[]>('/api/vehicle-masses');
+      const r = await http.get<VehicleMassRow[]>('/api/vehicle-masses', { params: { dataset_revision_id: selectedRevisionId } });
       setVmRows(r.data || []);
       setVmAdding(false); setVmAddDraft({});
     } catch (e: any) { setVmSaveError(extractApiError(e, 'Save failed')); }
     finally { setVmSaving(false); }
-  }, [vmAddDraft]);
+  }, [vmAddDraft, selectedRevisionId]);
 
   const doSaveIvEdit = useCallback(async () => {
     if (!ivEditingId) return;
@@ -1915,27 +1926,28 @@ useMemo(() => {
         coefficient_a: ivEditDraft.coefficient_a || null,
         coefficient_b: ivEditDraft.coefficient_b || null,
       });
-      const r = await http.get<InterruptedVehicleRow[]>('/api/interrupted-vehicles');
+      const r = await http.get<InterruptedVehicleRow[]>('/api/interrupted-vehicles', { params: { dataset_revision_id: selectedRevisionId } });
       setIvRows(r.data || []);
       setIvEditingId(null); setIvEditDraft({});
     } catch (e: any) { setIvSaveError(extractApiError(e, 'Save failed')); }
     finally { setIvSaving(false); }
-  }, [ivEditingId, ivEditDraft]);
+  }, [ivEditingId, ivEditDraft, selectedRevisionId]);
 
   const doAddIv = useCallback(async () => {
     setIvSaving(true); setIvSaveError('');
     try {
       await http.post('/api/interrupted-vehicles', {
+        dataset_revision_id: selectedRevisionId,
         vehicle_class_id: ivAddDraft.vehicle_class_id,
         coefficient_a: ivAddDraft.coefficient_a,
         coefficient_b: ivAddDraft.coefficient_b,
       });
-      const r = await http.get<InterruptedVehicleRow[]>('/api/interrupted-vehicles');
+      const r = await http.get<InterruptedVehicleRow[]>('/api/interrupted-vehicles', { params: { dataset_revision_id: selectedRevisionId } });
       setIvRows(r.data || []);
       setIvAdding(false); setIvAddDraft({});
     } catch (e: any) { setIvSaveError(extractApiError(e, 'Save failed')); }
     finally { setIvSaving(false); }
-  }, [ivAddDraft]);
+  }, [ivAddDraft, selectedRevisionId]);
 
   const doSaveUvEdit = useCallback(async () => {
     if (!uvEditingId) return;
@@ -1948,17 +1960,18 @@ useMemo(() => {
         k1: uvEditDraft.k1 || null, k2: uvEditDraft.k2 || null,
         k3: uvEditDraft.k3 || null, k4: uvEditDraft.k4 || null, k5: uvEditDraft.k5 || null,
       });
-      const r = await http.get<UninterruptedVehicleRow[]>('/api/uninterrupted-vehicles');
+      const r = await http.get<UninterruptedVehicleRow[]>('/api/uninterrupted-vehicles', { params: { dataset_revision_id: selectedRevisionId } });
       setUvRows(r.data || []);
       setUvEditingId(null); setUvEditDraft({});
     } catch (e: any) { setUvSaveError(extractApiError(e, 'Save failed')); }
     finally { setUvSaving(false); }
-  }, [uvEditingId, uvEditDraft]);
+  }, [uvEditingId, uvEditDraft, selectedRevisionId]);
 
   const doAddUv = useCallback(async () => {
     setUvSaving(true); setUvSaveError('');
     try {
       await http.post('/api/uninterrupted-vehicles', {
+        dataset_revision_id: selectedRevisionId,
         vehicle_class_id:      uvAddDraft.vehicle_class_id,
         gradient_m_per_km:     uvAddDraft.gradient_m_per_km    || '0',
         curvature_deg_per_km:  uvAddDraft.curvature_deg_per_km,
@@ -1966,12 +1979,12 @@ useMemo(() => {
         k1: uvAddDraft.k1, k2: uvAddDraft.k2, k3: uvAddDraft.k3,
         k4: uvAddDraft.k4, k5: uvAddDraft.k5,
       });
-      const r = await http.get<UninterruptedVehicleRow[]>('/api/uninterrupted-vehicles');
+      const r = await http.get<UninterruptedVehicleRow[]>('/api/uninterrupted-vehicles', { params: { dataset_revision_id: selectedRevisionId } });
       setUvRows(r.data || []);
       setUvAdding(false); setUvAddDraft({});
     } catch (e: any) { setUvSaveError(extractApiError(e, 'Save failed')); }
     finally { setUvSaving(false); }
-  }, [uvAddDraft]);
+  }, [uvAddDraft, selectedRevisionId]);
 
   const doSaveVeEdit = useCallback(async () => {
     if (!veEditingId) return;
@@ -1986,17 +1999,18 @@ useMemo(() => {
         fcev_hydrogen_consumption_kwh_per_l:  veEditDraft.fcev_hydrogen_consumption_kwh_per_l  || null,
         source_comments:                      veEditDraft.source_comments                      || null,
       });
-      const r = await http.get<VehicleEnergyConversionRow[]>('/api/vehicle-energy-conversion-rates');
+      const r = await http.get<VehicleEnergyConversionRow[]>('/api/vehicle-energy-conversion-rates', { params: { dataset_revision_id: selectedRevisionId } });
       setVeRows(r.data || []);
       setVeEditingId(null); setVeEditDraft({});
     } catch (e: any) { setVeSaveError(extractApiError(e, 'Save failed')); }
     finally { setVeSaving(false); }
-  }, [veEditingId, veEditDraft]);
+  }, [veEditingId, veEditDraft, selectedRevisionId]);
 
   const doAddVe = useCallback(async () => {
     setVeSaving(true); setVeSaveError('');
     try {
       await http.post('/api/vehicle-energy-conversion-rates', {
+        dataset_revision_id: selectedRevisionId,
         vehicle_class_id:                     veAddDraft.vehicle_class_id,
         ev_projection_category:               veAddDraft.ev_projection_category,
         primary_ice_fuel:                     veAddDraft.primary_ice_fuel,
@@ -2006,12 +2020,12 @@ useMemo(() => {
         fcev_hydrogen_consumption_kwh_per_l:  veAddDraft.fcev_hydrogen_consumption_kwh_per_l  || null,
         source_comments:                      veAddDraft.source_comments                      || null,
       });
-      const r = await http.get<VehicleEnergyConversionRow[]>('/api/vehicle-energy-conversion-rates');
+      const r = await http.get<VehicleEnergyConversionRow[]>('/api/vehicle-energy-conversion-rates', { params: { dataset_revision_id: selectedRevisionId } });
       setVeRows(r.data || []);
       setVeAdding(false); setVeAddDraft({});
     } catch (e: any) { setVeSaveError(extractApiError(e, 'Save failed')); }
     finally { setVeSaving(false); }
-  }, [veAddDraft]);
+  }, [veAddDraft, selectedRevisionId]);
 
   // ——— Row delete helpers ———
   const doDeleteFugitive = useCallback(async (id: string) => {
@@ -2927,7 +2941,7 @@ useMemo(() => {
           </div>
 
           <div className="ml-auto flex items-center gap-1.5 flex-wrap justify-end">
-            {canEdit && (
+            {canEditScope && (
               <button
                 type="button"
                 onClick={() => setShowNewRevision(true)}
@@ -3001,17 +3015,6 @@ useMemo(() => {
                       )}
                       {rev.status === 'deprecated' && (
                         <>
-                          {canEdit && (
-                            <button
-                              type="button"
-                              onClick={() => doLifecycleAction('publish')}
-                              disabled={lifecycleLoading}
-                              title="Re-publish this deprecated revision"
-                              className="rounded border border-green-600 bg-green-50 px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-100 disabled:opacity-40 disabled:cursor-not-allowed"
-                            >
-                              {lifecycleLoading ? '…' : 'Re-publish'}
-                            </button>
-                          )}
                           {canArchive && (
                             <button
                               type="button"
@@ -4765,13 +4768,14 @@ useMemo(() => {
               </div>
             ) : directSubError ? (
               <div className="flex items-center justify-center h-full text-red-600 text-sm">{directSubError}</div>
-            ) : directSubRows.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full gap-1">
-                <p className="text-sm font-medium text-text-dark">No data found</p>
-                <p className="text-xs text-text-base">No direct substitution factors match the current filters</p>
-              </div>
             ) : (
-              <DirectSubstitutionsTable rows={directSubRows} />
+              <DirectSubstitutionsTable
+                rows={directSubRows}
+                canEdit={canEditTab}
+                revisionId={selectedRevisionId}
+                jurisdictions={jurOpts}
+                onSaved={() => { void fetchDirectSubstitutions(); }}
+              />
             )
           )}
 
@@ -4949,10 +4953,11 @@ useMemo(() => {
             setUploadRunning(true);
             try {
               if (tabAtStart === 'direct_substitutions') {
+                if (!selectedRevisionId) return;
                 for (const row of rows) {
                   const payload = { ...(row as Record<string, unknown>) };
                   delete payload.id;
-                  await http.post('/api/direct-substitutions/upsert', payload);
+                  await http.post('/api/direct-substitutions/upsert', { ...payload, dataset_revision_id: selectedRevisionId });
                 }
                  } else if (tabAtStart === 'electricity_recycling_assumptions') {
                 if (!selectedRevisionId) return;
@@ -5014,5 +5019,3 @@ useMemo(() => {
     </div>
   );
 }
-
-

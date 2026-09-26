@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from core.dataset_authorization import protect_dataset_reads
+
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -92,7 +94,7 @@ async def get_densities(
         description="Filter by dataset revision",
     ),
     skip: int = Query(default=0, ge=0),
-    limit: int = Query(default=100, ge=1, le=1000),
+    limit: int = Query(default=100, ge=1, le=10000),
     db: AsyncSession = Depends(get_session),
 ):
     return await list_densities(
@@ -261,3 +263,5 @@ async def remove_density(
         )
 
     await db.commit()
+
+protect_dataset_reads(router)

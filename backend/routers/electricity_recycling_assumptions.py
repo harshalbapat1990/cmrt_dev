@@ -26,6 +26,8 @@ from schemas.electricity_recycling_assumptions import (
     ElectricityRecyclingAssumptionUpsert,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(
     prefix="/api/electricity-recycling-assumptions",
     tags=["electricity-recycling-assumptions"],
@@ -189,3 +191,5 @@ async def patch_electricity_recycling_assumption(
         row=_row_to_out(updated),
         recalculated_rows=[_row_to_out(r) for r in recalc],
     )
+
+protect_dataset_reads(router)

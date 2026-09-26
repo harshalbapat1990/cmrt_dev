@@ -8,6 +8,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class VehicleMassBase(BaseModel):
+    dataset_revision_id: UUID
     vehicle_class_id: UUID
     reference_gcm_tonnes: Optional[Decimal] = None
     max_payload_tonnes: Decimal

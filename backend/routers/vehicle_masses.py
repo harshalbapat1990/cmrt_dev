@@ -1,7 +1,7 @@
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
@@ -17,12 +17,17 @@ from crud.vehicle_masses import (
     update_vehicle_mass,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/vehicle-masses", tags=["vehicle-masses"])
 
 
 @router.get("", response_model=List[VehicleMassOut])
-async def get_vehicle_masses(db: AsyncSession = Depends(get_session)):
-    return await list_vehicle_masses(db)
+async def get_vehicle_masses(
+    dataset_revision_id: UUID = Query(...),
+    db: AsyncSession = Depends(get_session),
+):
+    return await list_vehicle_masses(db, dataset_revision_id)
 
 
 @router.post("", response_model=VehicleMassOut, status_code=status.HTTP_201_CREATED)
@@ -34,10 +39,10 @@ async def create_new_vehicle_mass(
     await assert_revision_edit_permission(
         db=db,
         principal=principal,
-        dataset_revision_id=None,
+        dataset_revision_id=payload.dataset_revision_id,
         dataset_type="vehicle_masses",
     )
-    existing = await get_vehicle_mass_by_class(db, payload.vehicle_class_id)
+    existing = await get_vehicle_mass_by_class(db, payload.vehicle_class_id, payload.dataset_revision_id)
     if existing:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -45,7 +50,7 @@ async def create_new_vehicle_mass(
         )
     obj = await create_vehicle_mass(db, payload)
     await db.commit()
-    return (await list_vehicle_masses(db))[-1]
+    return next(r for r in await list_vehicle_masses(db, obj.dataset_revision_id) if r.id == obj.id)
 
 
 @router.get("/{vehicle_mass_id}", response_model=VehicleMassOut)
@@ -55,7 +60,7 @@ async def get_vehicle_mass_by_id(
     obj = await get_vehicle_mass(db, vehicle_mass_id)
     if not obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle mass not found")
-    rows = await list_vehicle_masses(db)
+    rows = await list_vehicle_masses(db, obj.dataset_revision_id)
     row = next((r for r in rows if r.id == vehicle_mass_id), None)
     return row or obj
 
@@ -67,17 +72,17 @@ async def patch_vehicle_mass(
     db: AsyncSession = Depends(get_session),
     principal: Principal = Depends(get_current_principal),
 ):
-    await assert_revision_edit_permission(
-        db=db,
-        principal=principal,
-        dataset_revision_id=None,
-        dataset_type="vehicle_masses",
-    )
     obj = await get_vehicle_mass(db, vehicle_mass_id)
     if not obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle mass not found")
+    await assert_revision_edit_permission(
+        db=db,
+        principal=principal,
+        dataset_revision_id=obj.dataset_revision_id,
+        dataset_type="vehicle_masses",
+    )
     if payload.vehicle_class_id and payload.vehicle_class_id != obj.vehicle_class_id:
-        existing = await get_vehicle_mass_by_class(db, payload.vehicle_class_id)
+        existing = await get_vehicle_mass_by_class(db, payload.vehicle_class_id, obj.dataset_revision_id)
         if existing and existing.id != vehicle_mass_id:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
@@ -85,7 +90,7 @@ async def patch_vehicle_mass(
             )
     await update_vehicle_mass(db, obj, payload)
     await db.commit()
-    rows = await list_vehicle_masses(db)
+    rows = await list_vehicle_masses(db, obj.dataset_revision_id)
     return next(r for r in rows if r.id == vehicle_mass_id)
 
 
@@ -95,14 +100,16 @@ async def delete_vehicle_mass_by_id(
     db: AsyncSession = Depends(get_session),
     principal: Principal = Depends(get_current_principal),
 ):
-    await assert_revision_edit_permission(
-        db=db,
-        principal=principal,
-        dataset_revision_id=None,
-        dataset_type="vehicle_masses",
-    )
     obj = await get_vehicle_mass(db, vehicle_mass_id)
     if not obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Vehicle mass not found")
+    await assert_revision_edit_permission(
+        db=db,
+        principal=principal,
+        dataset_revision_id=obj.dataset_revision_id,
+        dataset_type="vehicle_masses",
+    )
     await delete_vehicle_mass(db, obj)
     await db.commit()
+
+protect_dataset_reads(router)

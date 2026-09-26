@@ -32,6 +32,8 @@ from schemas.concrete_mix_design import (
 )
 
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/concrete-mix-designs", tags=["concrete-mix-designs"])
 
 
@@ -164,3 +166,5 @@ async def update_concrete_mix_design_row(
         row=ConcreteMixDesignOut.model_validate(new_obj),
         recalculated_rows=[ConcreteMixDesignOut.model_validate(r) for r in recalc],
     )
+
+protect_dataset_reads(router)

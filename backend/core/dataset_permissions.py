@@ -32,6 +32,8 @@ DATASET_RULES: dict[str, str] = {
     "vehicle_masses": ALL_BRANCHES,
     "vepm_tables": ALL_BRANCHES,
     "vepm_factors": ALL_BRANCHES,
+    "emissions_factor_sets": ALL_BRANCHES,
+    "fugitives": ALL_BRANCHES,
 
     # ORG_ONLY: Default (SUPER_ADMIN), Org (ORG_ADMIN), Project (NOT ALLOWED)
     "maintenance_replacement": ORG_ONLY,
@@ -64,7 +66,6 @@ DATASET_RULES: dict[str, str] = {
     "user_enabled_carbon_stop_start": SUPERADMIN_ONLY,
     "uninterrupted_vehicles": SUPERADMIN_ONLY,
     "user_enabled_carbon_uninterrupted": SUPERADMIN_ONLY,
-    "fugitives": SUPERADMIN_ONLY,
 
     # READ_ONLY: Immutable
     "audit_trail": READ_ONLY,
@@ -73,8 +74,12 @@ DATASET_RULES: dict[str, str] = {
 
 
 def get_dataset_category(dataset_type: str) -> str:
-    """Return the governance category for a dataset key, defaulting to ALL_BRANCHES."""
-    return DATASET_RULES.get(dataset_type.lower(), ALL_BRANCHES)
+    """Return a dataset category, failing closed for an unregistered key."""
+    return DATASET_RULES.get(dataset_type.lower(), SUPERADMIN_ONLY)
+
+
+def is_registered_dataset_type(dataset_type: str) -> bool:
+    return dataset_type.lower() in DATASET_RULES
 
 
 def is_scope_allowed(dataset_type: str, scope_type: str) -> bool:

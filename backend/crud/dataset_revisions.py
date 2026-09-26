@@ -9,6 +9,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import DeclarativeBase
+from core.base import Base
 
 from models.background_grade_metrics import BackgroundGradeMetric
 from models.base_case_assumptions import BaseCaseAssumption
@@ -30,6 +31,7 @@ from models.recycled_content_factors import RecycledContentFactor
 from models.operational_equipment import OperationalEquipment
 from models.concrete_mix_design import ConcreteMixAssumption, ConcreteMixDesign
 from models.project_dataset_revisions import ProjectDatasetRevision
+from models.emissions_factor_sets import EmissionsFactorSet
 from models.vepm_factors import VepmFactor
 from models.renewable_energy_classification import RenewableEnergyClassification
 from schemas.dataset_revisions import DatasetRevisionCreate, DatasetRevisionUpdate
@@ -164,47 +166,66 @@ async def branch_dataset_revision(
     await db.refresh(new_rev)
 
     async def _copy_table_bulk(model: Type[DeclarativeBase], table_name: str):
-        columns = [c.name for c in model.__table__.columns
-                   if c.name not in {"id", "dataset_revision_id"}]
+        # ORM mappings can outlive columns removed by the active migration
+        # lineage. Reflect the live table so a stale mapped attribute does not
+        # make an otherwise valid branch fail (or omit live database fields).
+        revision_column = await db.execute(text("""
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_schema = current_schema()
+              AND table_name = :table_name
+              AND column_name = 'dataset_revision_id'
+        """), {"table_name": table_name})
+        if revision_column.scalar_one_or_none() is None:
+            raise RuntimeError(
+                f"Cannot branch dataset table '{table_name}': "
+                "dataset_revision_id is missing from the database schema"
+            )
+
+        result = await db.execute(text("""
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_schema = current_schema()
+              AND table_name = :table_name
+              AND column_name NOT IN ('id', 'dataset_revision_id')
+              AND is_generated = 'NEVER'
+              AND is_identity = 'NO'
+            ORDER BY ordinal_position
+        """), {"table_name": table_name})
+        columns = list(result.scalars().all())
         if not columns:
+            # Tables containing only their key columns have nothing to clone.
             return
 
-        columns_str = ", ".join(columns)
+        quoted_table = '"' + table_name.replace('"', '""') + '"'
+        columns_str = ", ".join('"' + column.replace('"', '""') + '"' for column in columns)
         insert_sql = text(f"""
-            INSERT INTO {table_name} (id, dataset_revision_id, {columns_str})
+            INSERT INTO {quoted_table} (id, dataset_revision_id, {columns_str})
             SELECT gen_random_uuid(), :new_rev_id, {columns_str}
-            FROM {table_name}
+            FROM {quoted_table}
             WHERE dataset_revision_id = :source_id
         """)
 
-        try:
-            async with db.begin_nested():
-                await db.execute(insert_sql, {"new_rev_id": new_rev.id, "source_id": source_id})
-        except Exception as e:
-            logger.warning("Failed to copy %s during revision clone: %r", table_name, e)
+        await db.execute(insert_sql, {"new_rev_id": new_rev.id, "source_id": source_id})
 
-   
-    await _copy_table_bulk(BackgroundGradeMetric, "background_grade_metrics")
-    await _copy_table_bulk(BaseCaseAssumption, "base_case_assumptions")
-    await _copy_table_bulk(CarbonValue, "carbon_values")
-    await _copy_table_bulk(DefaultTransportDistance, "default_transport_distances")
-    await _copy_table_bulk(DefaultWasteRate, "default_waste_rates")
-    await _copy_table_bulk(DefaultWastageRate, "default_wastage_rates")
-    await _copy_table_bulk(Density, "densities")
-    await _copy_table_bulk(ElectricDecarbFactor, "electric_decarb_factors")
-    await _copy_table_bulk(ElectricityRecyclingAssumption, "electricity_recycling_assumptions")
-    await _copy_table_bulk(EnergyDensityConversion, "energy_density_conversions")
-    await _copy_table_bulk(EvUptakeFactor, "ev_uptake_factors")
-    await _copy_table_bulk(FreightRailFactor, "freight_rail_factors")
-    await _copy_table_bulk(Fugitive, "fugitives")
-    await _copy_table_bulk(MaintenanceReplacementFactor, "maintenance_replacement_factors")
-    await _copy_table_bulk(MaterialRecycledContent, "material_recycled_content")
-    await _copy_table_bulk(RecycledContentFactor, "recycled_content_factors")
-    await _copy_table_bulk(OperationalEquipment, "operational_equipment")
-    await _copy_table_bulk(VepmFactor, "vepm_factors")
-    await _copy_table_bulk(ConcreteMixAssumption, "concrete_mix_assumptions")
-    await _copy_table_bulk(ConcreteMixDesign, "concrete_mix_designs")
-    await _copy_table_bulk(RenewableEnergyClassification, "renewable_energy_classifications")
+    # Clone every mapped table owned by a revision. Exclude bindings, audit
+    # records, and project/user activity; those are not dataset contents.
+    excluded_tables = {
+        "project_dataset_revisions",
+        "dataset_revision_changes",
+        "activity_data",
+        "user_emissions_nz_large_road",
+        # Removed by 9a8b7c6d5e4f: the active revision architecture stores
+        # dataset deltas directly and no longer has factor-set rows to clone.
+        "emissions_factor_sets",
+    }
+    mapped_models = {
+        mapper.class_ for mapper in Base.registry.mappers
+        if "dataset_revision_id" in mapper.local_table.c
+        and mapper.local_table.name not in excluded_tables
+    }
+    for model in sorted(mapped_models, key=lambda item: item.__tablename__):
+        await _copy_table_bulk(model, model.__tablename__)
     
     await db.refresh(new_rev)
     return new_rev

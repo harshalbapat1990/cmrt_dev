@@ -17,6 +17,8 @@ from crud.unit_conversions import (
     delete_unit_conversion,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/unit-conversions", tags=["unit-conversions"])
 
 
@@ -139,3 +141,5 @@ async def remove_unit_conversion(
 
     await db.commit()
     return None
+
+protect_dataset_reads(router)

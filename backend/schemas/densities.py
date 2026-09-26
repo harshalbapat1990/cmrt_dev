@@ -44,7 +44,7 @@ class DensityBase(BaseModel):
     dataset_revision_id: UUID
     jurisdiction_id: UUID
     dataset: DatasetType
-    record_key: str = Field(min_length=1)
+    record_key: str
 
     # Component-level
     group: str | None = None
@@ -64,7 +64,7 @@ class DensityBase(BaseModel):
 
 
 class DensityCreate(DensityBase):
-    pass
+    record_key: str = Field(min_length=1)
 
 
 class DensityUpdate(BaseModel):
@@ -85,6 +85,11 @@ class DensityUpdate(BaseModel):
 
 class DensityOut(DensityBase):
     model_config = ConfigDict(from_attributes=True)
+
+    # Older rows received an empty key from the migration that introduced this
+    # column. A data migration repairs them, but the read schema must remain
+    # capable of returning rows while that migration is pending.
+    record_key: str
 
     id: UUID
     jurisdiction: RelatedJurisdiction | None = None

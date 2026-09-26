@@ -60,6 +60,14 @@ async def seed() -> None:
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
     async with async_session() as session:
+        revision_result = await session.execute(text(
+            "SELECT id FROM dataset_revisions WHERE scope_type = 'DEFAULT' "
+            "AND scope_id IS NULL AND status = 'published' "
+            "ORDER BY created_at DESC LIMIT 1"
+        ))
+        default_revision_id = revision_result.scalar_one_or_none()
+        if default_revision_id is None:
+            raise RuntimeError("No published DEFAULT dataset revision exists")
         # Build jurisdiction name → id map
         r = await session.execute(text("SELECT id, name FROM jurisdictions"))
         jur_map: dict[str, str] = {name: str(jid) for jid, name in r.fetchall()}
@@ -78,10 +86,10 @@ async def seed() -> None:
                 print(f"  WARNING: jurisdiction '{jur_name}' not found in DB — skipping {csv_file}")
                 continue
 
-            # Delete all existing rows for this jurisdiction (no backward compat)
+            # Refresh only the platform-default revision; scoped branches are independent.
             result = await session.execute(
-                text("DELETE FROM direct_substitution_factors WHERE jurisdiction_id = :jid"),
-                {"jid": jur_id},
+                text("DELETE FROM direct_substitution_factors WHERE jurisdiction_id = :jid AND dataset_revision_id = :revision_id"),
+                {"jid": jur_id, "revision_id": default_revision_id},
             )
             deleted = result.rowcount
             total_deleted += deleted
@@ -102,6 +110,7 @@ async def seed() -> None:
                         continue
 
                     rows.append({
+                        "revision_id": default_revision_id,
                         "jur_id": jur_id,
                         "user_src": user_src,
                         "user_unit": user_unit,
@@ -116,11 +125,11 @@ async def seed() -> None:
                     text(
                         """
                         INSERT INTO direct_substitution_factors
-                            (jurisdiction_id, user_emissions_source, user_unit,
+                            (dataset_revision_id, jurisdiction_id, user_emissions_source, user_unit,
                              bau_equivalent_emission_source, bau_equivalent_unit,
                              bau_quantity_per_user_unit, display_order)
                         VALUES
-                            (:jur_id, :user_src, :user_unit,
+                            (:revision_id, :jur_id, :user_src, :user_unit,
                              :bau_src, :bau_unit,
                              :bau_qty, :display_order)
                         """

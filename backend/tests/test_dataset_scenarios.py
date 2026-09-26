@@ -304,19 +304,26 @@ async def test_tc17_duplicate_factor_set_is_unlocked(client):
 
 @pytest.mark.asyncio
 async def test_tc18_default_transport_distances_endpoint_exists(client):
-    resp = await client.get("/api/default-transport-distances")
+    revision = await _create_revision(client, name="TC18 transport read")
+    resp = await client.get(
+        f"/api/default-transport-distances?dataset_revision_id={revision['id']}"
+    )
     assert resp.status_code == 200, resp.text
 
 
 @pytest.mark.asyncio
 async def test_tc19_default_waste_rates_endpoint_exists(client):
-    resp = await client.get("/api/default-waste-rates")
+    revision = await _create_revision(client, name="TC19 waste read")
+    resp = await client.get(
+        f"/api/default-waste-rates?dataset_revision_id={revision['id']}"
+    )
     assert resp.status_code == 200, resp.text
 
 
 @pytest.mark.asyncio
 async def test_tc20_densities_endpoint_exists(client):
-    resp = await client.get("/api/densities")
+    revision = await _create_revision(client, name="TC20 densities read")
+    resp = await client.get(f"/api/densities?dataset_revision_id={revision['id']}")
     assert resp.status_code == 200, resp.text
 
 

@@ -98,6 +98,15 @@ async def seed() -> None:
 
         print(f"  vehicle_classes: {len(vc_map)} rows")
 
+        revision_result = await session.execute(text(
+            "SELECT id FROM dataset_revisions WHERE scope_type = 'DEFAULT' "
+            "AND scope_id IS NULL AND status = 'published' "
+            "ORDER BY created_at DESC LIMIT 1"
+        ))
+        default_revision_id = revision_result.scalar_one_or_none()
+        if default_revision_id is None:
+            raise RuntimeError("No published DEFAULT dataset revision exists")
+
         # ── 2. vehicle_masses ────────────────────────────────────────────────
         with open(masses_path, newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
@@ -115,9 +124,9 @@ async def seed() -> None:
                 await session.execute(
                     text(
                         "INSERT INTO vehicle_masses "
-                        "  (vehicle_class_id, reference_gcm_tonnes, max_payload_tonnes, gvm_tonnes, assumed_payload_pct) "
-                        "VALUES (:vc_id, :ref_gcm, :max_payload, :gvm, :assumed_pct) "
-                        "ON CONFLICT (vehicle_class_id) DO UPDATE SET "
+                        "  (dataset_revision_id, vehicle_class_id, reference_gcm_tonnes, max_payload_tonnes, gvm_tonnes, assumed_payload_pct) "
+                        "VALUES (:revision_id, :vc_id, :ref_gcm, :max_payload, :gvm, :assumed_pct) "
+                        "ON CONFLICT (dataset_revision_id, vehicle_class_id) DO UPDATE SET "
                         "  reference_gcm_tonnes = EXCLUDED.reference_gcm_tonnes, "
                         "  max_payload_tonnes   = EXCLUDED.max_payload_tonnes, "
                         "  gvm_tonnes           = EXCLUDED.gvm_tonnes, "
@@ -125,6 +134,7 @@ async def seed() -> None:
                     ),
                     {
                         "vc_id": vc_id,
+                        "revision_id": default_revision_id,
                         "ref_gcm": ref_gcm,
                         "max_payload": max_payload,
                         "gvm": gvm,

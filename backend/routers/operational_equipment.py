@@ -24,6 +24,8 @@ from schemas.operational_equipment import (
     OperationalEquipmentUpdate,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/operational-equipment", tags=["operational-equipment"])
 
 
@@ -140,3 +142,5 @@ async def delete_operational_equipment_endpoint(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Record not found")
     await db.commit()
     return None
+
+protect_dataset_reads(router)

@@ -20,6 +20,8 @@ from schemas.electric_decarb_factors import (
     DecarbBulkCreate,
 )
 
+from core.dataset_authorization import protect_dataset_reads
+
 router = APIRouter(prefix="/api/electric-decarb-factors", tags=["electric-decarb-factors"])
 
 
@@ -101,3 +103,5 @@ async def bulk_create_decarb_series(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return result
+
+protect_dataset_reads(router)

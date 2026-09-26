@@ -33,7 +33,11 @@ if not db_url:
     )
 if "postgresql+asyncpg://" in db_url:
     db_url = db_url.replace("postgresql+asyncpg://", "postgresql://")
-config.set_main_option("sqlalchemy.url", db_url)
+# ConfigParser treats percent signs as interpolation markers. Database URLs
+# commonly contain percent-encoded credentials (for example, %40 for @), so
+# escape them while storing the option; ConfigParser restores the original URL
+# when Alembic reads sqlalchemy.url.
+config.set_main_option("sqlalchemy.url", db_url.replace("%", "%%"))
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
