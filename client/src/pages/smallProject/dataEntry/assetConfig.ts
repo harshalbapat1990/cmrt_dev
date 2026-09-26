@@ -153,9 +153,10 @@ export const assetTableConfig = (projectId: string) => ({
                 fetch: async (ctx?: { row?: any }) => {
                     const typecastId = ctx?.row?.typecast_id;
                     if (typecastId) {
-                        return mapToOptions(await LookupsService.fetchUnitsByTypecast(typecastId, GRADE1_IDS));
+                        const revisionId = await LookupsService.resolveProjectDatasetRevisionId(projectId);
+                        return mapToOptions(await LookupsService.fetchUnitsByTypecast(typecastId, GRADE1_IDS, revisionId));
                     }
-                    return mapToOptions(await LookupsService.fetchUnits());
+                    return [];
                 },
                 labelField: "label",
                 idField: "value",
@@ -229,9 +230,9 @@ export const assetTableConfig = (projectId: string) => ({
             dependsOnKeys: ["typecast_id"],
             getOptions: async (ctx?: { row?: any }) => {
                 const typecastId = ctx?.row?.typecast_id;
-                const list: UnitOption[] = typecastId
-                    ? await LookupsService.fetchUnitsByTypecast(typecastId, GRADE1_IDS)
-                    : await LookupsService.fetchUnits();
+                if (!typecastId) return [];
+                const revisionId = await LookupsService.resolveProjectDatasetRevisionId(projectId);
+                const list: UnitOption[] = await LookupsService.fetchUnitsByTypecast(typecastId, GRADE1_IDS, revisionId);
                 return list.map(u => ({
                     label: u.name,
                     value: u.id,

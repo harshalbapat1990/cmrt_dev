@@ -161,7 +161,8 @@ export const electricityConfig = (projectId: string) => ({
       idKey: "unit_id",
       defaultValue: "MWh",
       getOptions: async () => {
-        const list: UnitOption[] = await LookupsService.fetchElectricityUnits();
+        const datasetRevisionId = await LookupsService.resolveProjectDatasetRevisionId(projectId);
+        const list: UnitOption[] = await LookupsService.fetchElectricityUnits(datasetRevisionId);
         return list.map((u) => ({
           label: u.name,
           value: u.id,

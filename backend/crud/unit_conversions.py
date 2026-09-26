@@ -129,13 +129,20 @@ async def build_unit_options_with_conversions(
     # Include conversions for the active dataset revision (if provided) AND global ones (null).
     conv_filter = UnitConversion.to_unit_id.in_(canonical_unit_ids)
     if dataset_revision_id is not None:
-        from sqlalchemy import or_
+        from sqlalchemy import case, or_
         revision_filter = or_(
             UnitConversion.dataset_revision_id.is_(None),
             UnitConversion.dataset_revision_id == dataset_revision_id,
         )
         conv_result = await db.execute(
-            select(UnitConversion).where(conv_filter).where(revision_filter)
+            select(UnitConversion)
+            .where(conv_filter)
+            .where(revision_filter)
+            .order_by(
+                case((UnitConversion.dataset_revision_id == dataset_revision_id, 0), else_=1),
+                UnitConversion.to_unit_id,
+                UnitConversion.from_unit_id,
+            )
         )
     else:
         conv_result = await db.execute(

@@ -149,7 +149,7 @@ export const componentReplacementConfig = (projectId?: string) => ({
         fetch: async (ctx?: { row?: any }) => {
           const subCategoryId = ctx?.row?.emissions_subcategory_id;
           if (!subCategoryId) return [];
-          const list = await LookupsService.fetchBgmSources(GRADE2_IDS, subCategoryId);
+          const list = await LookupsService.fetchBgmSources(GRADE2_IDS, subCategoryId, projectId);
           return mapToOptions(list);
         },
         labelField: "label",
@@ -211,7 +211,7 @@ export const componentReplacementConfig = (projectId?: string) => ({
       getOptions: async (ctx?: { row?: any }) => {
         const subCategoryId = ctx?.row?.emissions_subcategory_id;
         if (!subCategoryId) return [];
-        const list = await LookupsService.fetchBgmSources(GRADE2_IDS, subCategoryId);
+        const list = await LookupsService.fetchBgmSources(GRADE2_IDS, subCategoryId, projectId);
         return mapToOptions(list);
       },
       clearsOnChange: ["life"],

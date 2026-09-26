@@ -1116,7 +1116,7 @@ items.push({
                                     }
                                     let sourceId: string | null = null;
                                     if (subId && b.source) {
-                                        const srcs = await LookupsService.fetchBgmSources(GRADE34_IDS, subId);
+                                        const srcs = await LookupsService.fetchBgmSources(GRADE34_IDS, subId, projectId);
                                         const srcObj = matchByName(b.source, srcs);
                                         sourceId = srcObj?.id ?? srcObj?.value ?? null;
                                     }

@@ -23,11 +23,7 @@ const unitsCache = {
     cacheDurationMs: CACHE_EXPIRATION
 };
 
-const electricityUnitsCache = {
-    data: null as UnitOption[] | null,
-    timestamp: 0,
-    cacheDurationMs: CACHE_EXPIRATION
-};
+const electricityUnitsCache = new Map<string, { data: UnitOption[]; timestamp: number }>();
 
 const masterTypeCache = {
     data: null as any[] | null,
@@ -274,50 +270,52 @@ export class LookupsService extends BaseService {
         }
     }
 
-    /**
-     * Get units valid for a specific emission source.
-     * Falls back to all units if the source-specific endpoint returns nothing.
-     * @param sourceId - emission source UUID
-     * @returns {Promise<Array>} - Array of {id, name} unit objects
-     */
-    async fetchUnitsBySource(sourceId: string): Promise<UnitOption[]> {
+    /** Get units compatible with an emission source for the requested revision. */
+    async fetchUnitsBySource(sourceId: string, datasetRevisionId?: string | null): Promise<UnitOption[]> {
         try {
-            const response = await this.get(`/lookup/emission-sources/${encodeURIComponent(sourceId)}/units`);
+            const params = new URLSearchParams();
+            if (datasetRevisionId) params.set("dataset_revision_id", datasetRevisionId);
+            const query = params.toString();
+            const response = await this.get(`/lookup/emission-sources/${encodeURIComponent(sourceId)}/units${query ? `?${query}` : ""}`);
             const rawData = response.data;
             if (Array.isArray(rawData) && rawData.length > 0) {
                 return rawData;
             }
-            // Fallback to all units if none found for the source
-            return await this.fetchUnits();
+            return [];
         } catch {
-            return await this.fetchUnits();
+            return [];
         }
     }
 
-    async fetchUnitsByTypecast(typecastId: string, gradeIds?: number[]): Promise<UnitOption[]> {
+    async fetchUnitsByTypecast(typecastId: string, gradeIds?: number[], datasetRevisionId?: string | null): Promise<UnitOption[]> {
         try {
-            const gradeParam = gradeIds && gradeIds.length > 0 ? `&grade_ids=${gradeIds.join(",")}` : "";
-            const response = await this.get(`/lookup/benchmark-typecasts/${encodeURIComponent(typecastId)}/units?${gradeParam}`);
+            const params = new URLSearchParams();
+            if (gradeIds && gradeIds.length > 0) params.set("grade_ids", gradeIds.join(","));
+            if (datasetRevisionId) params.set("dataset_revision_id", datasetRevisionId);
+            const query = params.toString();
+            const response = await this.get(`/lookup/benchmark-typecasts/${encodeURIComponent(typecastId)}/units${query ? `?${query}` : ""}`);
             const rawData = response.data;
             if (Array.isArray(rawData) && rawData.length > 0) {
                 return rawData;
             }
-            return await this.fetchUnits();
+            return [];
         } catch {
-            return await this.fetchUnits();
+            return [];
         }
     }
 
     // ---------------------------------------------------------------
     // BGM-grade-filtered lookups (used by G2 / G3+4 data-entry tables)
     // ---------------------------------------------------------------
-    async fetchBgmCategories(gradeIds: number[], projectId?: string, useOrgJurisdiction?: boolean): Promise<any[]> {
+    async fetchBgmCategories(gradeIds: number[], projectId?: string, useOrgJurisdiction?: boolean, datasetRevisionId?: string | null): Promise<any[]> {
         try {
+            const revisionId = datasetRevisionId ?? (projectId ? await this.resolveProjectDatasetRevisionId(projectId) : null);
             const params = new URLSearchParams({
                 grade_ids: gradeIds.join(","),
             });
             if (projectId) params.set("project_id", projectId);
             if (useOrgJurisdiction) params.set("use_org_jurisdiction", "true");
+            if (revisionId) params.set("dataset_revision_id", revisionId);
             const response = await this.get(`/lookup/bgm-categories?${params}`);
             return Array.isArray(response.data) ? response.data : [];
         } catch {
@@ -325,14 +323,16 @@ export class LookupsService extends BaseService {
         }
     }
 
-    async fetchBgmSubcategories(gradeIds: number[], categoryId: string, projectId?: string, useOrgJurisdiction?: boolean): Promise<any[]> {
+    async fetchBgmSubcategories(gradeIds: number[], categoryId: string, projectId?: string, useOrgJurisdiction?: boolean, datasetRevisionId?: string | null): Promise<any[]> {
         try {
+            const revisionId = datasetRevisionId ?? (projectId ? await this.resolveProjectDatasetRevisionId(projectId) : null);
             const params = new URLSearchParams({
                 grade_ids: gradeIds.join(","),
                 category_id: categoryId,
             });
             if (projectId) params.set("project_id", projectId);
             if (useOrgJurisdiction) params.set("use_org_jurisdiction", "true");
+            if (revisionId) params.set("dataset_revision_id", revisionId);
             const response = await this.get(`/lookup/bgm-subcategories?${params}`);
             return Array.isArray(response.data) ? response.data : [];
         } catch {
@@ -340,14 +340,16 @@ export class LookupsService extends BaseService {
         }
     }
 
-    async fetchBgmSources(gradeIds: number[], subcategoryId: string, projectId?: string, useOrgJurisdiction?: boolean): Promise<any[]> {
+    async fetchBgmSources(gradeIds: number[], subcategoryId: string, projectId?: string, useOrgJurisdiction?: boolean, datasetRevisionId?: string | null): Promise<any[]> {
         try {
+            const revisionId = datasetRevisionId ?? (projectId ? await this.resolveProjectDatasetRevisionId(projectId) : null);
             const params = new URLSearchParams({
                 grade_ids: gradeIds.join(","),
                 subcategory_id: subcategoryId,
             });
             if (projectId) params.set("project_id", projectId);
             if (useOrgJurisdiction) params.set("use_org_jurisdiction", "true");
+            if (revisionId) params.set("dataset_revision_id", revisionId);
             const response = await this.get(`/lookup/bgm-sources?${params}`);
             return Array.isArray(response.data) ? response.data : [];
         } catch {
@@ -366,35 +368,56 @@ export class LookupsService extends BaseService {
             const response = await this.get(`/lookup/bgm-source-units?${params.toString()}`);
             const data = Array.isArray(response.data) ? response.data : [];
             if (data.length > 0) return data;
-            return await this.fetchUnits();
+            return [];
         } catch {
-            return await this.fetchUnits();
+            return [];
         }
     }
 
     /**
      * Get unit options for electricity tables: MWh (canonical) plus every unit
      * that converts to MWh via the unit_conversions table (e.g. kWh, GWh).
-     * Falls back to a hardcoded MWh-only option if the endpoint is unavailable.
+     * Falls back to the canonical MWh option if the conversion lookup is unavailable.
      */
-    async fetchElectricityUnits(): Promise<UnitOption[]> {
+    async fetchElectricityUnits(datasetRevisionId?: string | null): Promise<UnitOption[]> {
+        const cacheKey = datasetRevisionId ?? "global";
         const now = Date.now();
-        if (electricityUnitsCache.data && (now - electricityUnitsCache.timestamp < CACHE_EXPIRATION)) {
-            return electricityUnitsCache.data;
+        const cached = electricityUnitsCache.get(cacheKey);
+        if (cached && now - cached.timestamp < CACHE_EXPIRATION) {
+            return cached.data;
         }
         try {
-            const response = await this.get(`/lookup/electricity-units`);
+            const params = new URLSearchParams();
+            if (datasetRevisionId) params.set("dataset_revision_id", datasetRevisionId);
+            const query = params.toString();
+            const response = await this.get(`/lookup/electricity-units${query ? `?${query}` : ""}`);
             const data: UnitOption[] = Array.isArray(response.data) ? response.data : [];
             if (data.length > 0) {
-                electricityUnitsCache.data = data;
-                electricityUnitsCache.timestamp = now;
+                electricityUnitsCache.set(cacheKey, { data, timestamp: now });
                 return data;
             }
         } catch {
             // fall through to default
         }
-        // Fallback: return MWh-only so the table stays functional
-        return [{ id: "", name: "MWh", label: "MWh", is_canonical: true, to_canonical_factor: 1, canonical_unit_id: null, canonical_unit_code: "MWh" }];
+        // Keep a real, selectable canonical MWh unit if the conversion lookup fails.
+        try {
+            const units = await this.fetchUnits();
+            const mwh = units.find((unit: UnitOption) => unit.name?.toLowerCase() === "mwh");
+            if (mwh) {
+                return [{
+                    id: mwh.id,
+                    name: mwh.name,
+                    label: mwh.name,
+                    is_canonical: true,
+                    to_canonical_factor: 1,
+                    canonical_unit_id: mwh.id,
+                    canonical_unit_code: mwh.name,
+                }];
+            }
+        } catch {
+            // Leave the selector empty if even the canonical unit lookup fails.
+        }
+        return [];
     }
 
     /**

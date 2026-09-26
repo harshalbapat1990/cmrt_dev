@@ -158,8 +158,7 @@ export const constructionG3Config = (projectId?: string, tableKey?: string, allo
               const list = await LookupsService.fetchBgmSourceUnits(GRADE34_IDS, subCategoryId, source, datasetRevisionId);
               return mapToOptions(list);
             }
-            const list = await LookupsService.fetchUnits();
-            return mapToOptions(list);
+            return [];
           },
           labelField: "label",
           idField: "value",
@@ -256,9 +255,8 @@ export const constructionG3Config = (projectId?: string, tableKey?: string, allo
           const subCategoryId = ctx?.row?.emissions_subcategory_id;
           const datasetRevisionId = (source && subCategoryId && projectId)
             ? await LookupsService.resolveProjectDatasetRevisionId(projectId) : null;
-          const list: UnitOption[] = source && subCategoryId
-            ? await LookupsService.fetchBgmSourceUnits(GRADE34_IDS, subCategoryId, source, datasetRevisionId)
-            : await LookupsService.fetchUnits();
+        if (!source || !subCategoryId) return [];
+        const list: UnitOption[] = await LookupsService.fetchBgmSourceUnits(GRADE34_IDS, subCategoryId, source, datasetRevisionId);
           return list.map(u => ({
             label: u.name,
             value: u.id,

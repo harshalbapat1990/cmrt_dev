@@ -55,7 +55,10 @@ async def get_unit(id: UUID, db: AsyncSession = Depends(get_session)):
 # all units that convert to MWh via unit_conversions)
 # ----------------------------------------------------------
 @router.get("/electricity-units", response_model=List[UnitOptionOut])
-async def list_electricity_units(db: AsyncSession = Depends(get_session)):
+async def list_electricity_units(
+    dataset_revision_id: Optional[UUID] = Query(None),
+    db: AsyncSession = Depends(get_session),
+):
     """Return only Wh, kWh, MWh and GWh for electricity tables."""
 
     stmt = select(Unit).where(func.lower(Unit.code) == "mwh")
@@ -64,10 +67,7 @@ async def list_electricity_units(db: AsyncSession = Depends(get_session)):
     if not mwh_unit:
         return []
 
-    options = await build_unit_options_with_conversions(
-        db,
-        [mwh_unit.id]
-    )
+    options = await build_unit_options_with_conversions(db, [mwh_unit.id], dataset_revision_id)
 
     allowed_units = {"wh", "kwh", "mwh", "gwh"}
 
@@ -84,6 +84,7 @@ async def list_electricity_units(db: AsyncSession = Depends(get_session)):
 async def list_units_for_typecast(
     id: UUID,
     grade_ids: Optional[str] = Query(None, description="Comma-separated grade IDs to filter by, e.g. '1'"),
+    dataset_revision_id: Optional[UUID] = Query(None),
     db: AsyncSession = Depends(get_session),
 ):
     bgm = BackgroundGradeMetric
@@ -93,12 +94,14 @@ async def list_units_for_typecast(
         .join(bgm, bgm.unit_id == u.id)
         .where(bgm.typecast_id == id)
     )
+    if dataset_revision_id is not None:
+        stmt = stmt.where(bgm.dataset_revision_id == dataset_revision_id)
     if grade_ids:
         grade_id_list = [int(g.strip()) for g in grade_ids.split(",") if g.strip().isdigit()]
         if grade_id_list:
             stmt = stmt.where(bgm.grade_id.in_(grade_id_list))
     canonical_ids = [r[0] for r in (await db.execute(stmt)).all()]
-    return await build_unit_options_with_conversions(db, canonical_ids)
+    return await build_unit_options_with_conversions(db, canonical_ids, dataset_revision_id)
 
 # -----------------------------------------------------------------------
 # BGM-grade-filtered lookups (used by G2 / G3+4 data-entry dropdowns)
@@ -108,6 +111,7 @@ async def list_bgm_categories(
     grade_ids: str = Query(...),
     project_id: Optional[UUID] = Query(None),
     use_org_jurisdiction: bool = Query(False),
+    dataset_revision_id: Optional[UUID] = Query(None),
     current_user: Principal = Depends(get_current_principal),
     db: AsyncSession = Depends(get_session),
 ):
@@ -122,6 +126,8 @@ async def list_bgm_categories(
         .where(ec.parent_category_id.is_(None))
         .order_by(ec.name)
     )
+    if dataset_revision_id is not None:
+        stmt = stmt.where(bgm.dataset_revision_id == dataset_revision_id)
     # Note: jurisdiction filtering requires the Alembic migration to have been applied
     # If migration hasn't run yet, this filter is skipped and all categories are returned
     if project_id:
@@ -163,6 +169,7 @@ async def list_bgm_subcategories(
     category_id: UUID = Query(..., description="Parent emissions category UUID"),
     project_id: Optional[UUID] = Query(None, description="Filter by the project's jurisdiction"),
     use_org_jurisdiction: bool = Query(False),
+    dataset_revision_id: Optional[UUID] = Query(None),
     current_user: Principal = Depends(get_current_principal),
     db: AsyncSession = Depends(get_session),
 ):
@@ -177,6 +184,8 @@ async def list_bgm_subcategories(
         .where(bgm.emissions_category_id == category_id)
         .order_by(ec.name)
     )
+    if dataset_revision_id is not None:
+        stmt = stmt.where(bgm.dataset_revision_id == dataset_revision_id)
     # Note: jurisdiction filtering requires the Alembic migration to have been applied
     # If migration hasn't run yet, this filter is skipped and all subcategories are returned
     if project_id:
@@ -221,6 +230,7 @@ async def list_bgm_sources(
         description="Filter by the project's jurisdiction"
     ),
     use_org_jurisdiction: bool = Query(False),
+    dataset_revision_id: Optional[UUID] = Query(None),
     current_user: Principal = Depends(get_current_principal),
     db: AsyncSession = Depends(get_session),
 ):
@@ -241,6 +251,8 @@ async def list_bgm_sources(
         .where(bgm.emissions_source.isnot(None))
         .order_by(bgm.emissions_source)
     )
+    if dataset_revision_id is not None:
+        stmt = stmt.where(bgm.dataset_revision_id == dataset_revision_id)
 
     # Note: jurisdiction filtering requires the Alembic migration to have been applied
     # If migration hasn't run yet, this filter is skipped and all sources are returned
@@ -317,6 +329,8 @@ async def list_bgm_source_units(
         .where(bgm.emissions_source == source)
         .where(bgm.unit_id.isnot(None))
     )
+    if dataset_revision_id is not None:
+        stmt = stmt.where(bgm.dataset_revision_id == dataset_revision_id)
     canonical_ids = [r[0] for r in (await db.execute(stmt)).all()]
     return await build_unit_options_with_conversions(db, canonical_ids, dataset_revision_id)
 
@@ -355,6 +369,7 @@ async def list_emission_sources(
 @router.get("/emission-sources/{id}/units", response_model=List[UnitOptionOut])
 async def list_units_for_source(
     id: UUID,
+    dataset_revision_id: Optional[UUID] = Query(None),
     db: AsyncSession = Depends(get_session),
 ):
     """Return distinct units from all emission factors linked to this source,
@@ -367,7 +382,7 @@ async def list_units_for_source(
         .where(ef.measurement_unit_id.isnot(None))
     )
     canonical_ids = [r[0] for r in (await db.execute(stmt)).all()]
-    return await build_unit_options_with_conversions(db, canonical_ids)
+    return await build_unit_options_with_conversions(db, canonical_ids, dataset_revision_id)
 
 
 # ------------------------------------------

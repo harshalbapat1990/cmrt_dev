@@ -124,7 +124,7 @@ calculation: {
         fetch: async (ctx?: { row?: any }) => {
           const subCategoryId = ctx?.row?.emissions_subcategory_id;
           if (!subCategoryId) return [];
-          const list = await LookupsService.fetchBgmSources(GRADE2_IDS, subCategoryId);
+          const list = await LookupsService.fetchBgmSources(GRADE2_IDS, subCategoryId, projectId);
           return mapToOptions(list);
         },
         labelField: "label",
@@ -145,8 +145,7 @@ calculation: {
             const list = await LookupsService.fetchBgmSourceUnits(GRADE2_IDS, subCategoryId, source, datasetRevisionId);
             return mapToOptions(list);
           }
-          const list = await LookupsService.fetchUnits();
-          return mapToOptions(list);
+          return [];
         },
         labelField: "label",
         idField: "value",
@@ -219,7 +218,7 @@ calculation: {
       getOptions: async (ctx?: { row?: any }) => {
         const subCategoryId = ctx?.row?.emissions_subcategory_id;
         if (!subCategoryId) return [];
-        const list = await LookupsService.fetchBgmSources(GRADE2_IDS, subCategoryId);
+        const list = await LookupsService.fetchBgmSources(GRADE2_IDS, subCategoryId, projectId);
         return mapToOptions(list);
       },
       clearsOnChange: ["unit_code", "unit_id"],
@@ -239,9 +238,8 @@ calculation: {
         const subCategoryId = ctx?.row?.emissions_subcategory_id;
         const datasetRevisionId = (source && subCategoryId && projectId)
           ? await LookupsService.resolveProjectDatasetRevisionId(projectId) : null;
-        const list: UnitOption[] = source && subCategoryId
-          ? await LookupsService.fetchBgmSourceUnits(GRADE2_IDS, subCategoryId, source, datasetRevisionId)
-          : await LookupsService.fetchUnits();
+        if (!source || !subCategoryId) return [];
+        const list: UnitOption[] = await LookupsService.fetchBgmSourceUnits(GRADE2_IDS, subCategoryId, source, datasetRevisionId);
         return list.map(u => ({
           label: u.name,
           value: u.id,

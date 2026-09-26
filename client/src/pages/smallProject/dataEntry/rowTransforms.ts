@@ -74,14 +74,14 @@ export const resolveBoundaryComponentIds = async (
 
         let subId: string | null = null;
         if (catId) {
-            const subs = await LookupsService.fetchBgmSubcategories(GRADE2_IDS, catId);
+            const subs = await LookupsService.fetchBgmSubcategories(GRADE2_IDS, catId, projectId);
             const subObj = matchByName(b.sub_category, subs);
             subId = subObj?.id ?? subObj?.value ?? null;
         }
 
         let sourceId: string | null = null;
         if (subId && b.source) {
-            const srcs = await LookupsService.fetchBgmSources(GRADE2_IDS, subId);
+            const srcs = await LookupsService.fetchBgmSources(GRADE2_IDS, subId, projectId);
             const srcObj = matchByName(b.source, srcs);
             sourceId = srcObj?.id ?? srcObj?.value ?? null;
         }
