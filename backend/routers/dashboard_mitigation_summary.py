@@ -80,6 +80,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
+from services.emissions_result_aggregates import aggregate_emissions_results
 
 router = APIRouter(
     prefix="/api/dashboard/mitigation-summary",
@@ -132,117 +133,8 @@ class MitigationSummaryResponse(DashboardBase):
 #                          + MAX(0, base − actual) for shortcutSat4p
 # ─────────────────────────────────────────────────────────────────────────────
 
-_MITIGATION_SQL = text("""
-WITH
+# Mitigation totals are aggregated from structured emissions_results facts.
 
--- ── Avoidance/reduction: keys ending exactly with '-mitigation' ────────────────────────────
--- Excludes substitution legs ('-mitigation-subst-*').
--- total_emissions_tco2e in these rows represents emissions saved.
-avoidance AS (
-    SELECT COALESCE(SUM(
-        COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
-    ), 0) AS val
-    FROM activity_data
-    WHERE project_id                 = :project_id
-      AND project_stage_instance_id  = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key LIKE '%-mitigation'
-      AND ui_table_key NOT LIKE '%-mitigation-subst-%'
-),
-
--- ── Substitution — replaced leg (old/BAU material, higher emissions) ────────────────────────
-subst_replaced AS (
-    SELECT COALESCE(SUM(
-        COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
-    ), 0) AS val
-    FROM activity_data
-    WHERE project_id                 = :project_id
-      AND project_stage_instance_id  = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key LIKE '%-mitigation-subst-replaced'
-),
-
--- ── Substitution — adopted leg (new material, lower emissions) ────────────────────────────
-subst_adopted AS (
-    SELECT COALESCE(SUM(
-        COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
-    ), 0) AS val
-    FROM activity_data
-    WHERE project_id                 = :project_id
-      AND project_stage_instance_id  = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key LIKE '%-mitigation-subst-adopted'
-),
-
--- ── Other: shortcutIsMaterials — base_case vs actual_case ─────────────────────────────────
--- base_case = extra_fields->>'base_case'
--- actual    = extra_fields->>'actual_case'
--- savings   = MAX(0, base - actual)
-other_shortcut_mat AS (
-    SELECT COALESCE(SUM(
-        GREATEST(0,
-            COALESCE(NULLIF(NULLIF(extra_fields->>'base_case', ''), '-')::numeric, 0) -
-            COALESCE(NULLIF(NULLIF(extra_fields->>'actual_case', ''), '-')::numeric, 0)
-        )
-    ), 0) AS val
-    FROM activity_data
-    WHERE project_id                 = :project_id
-      AND project_stage_instance_id  = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'shortcutIsMaterials'
-      AND (extra_fields->>'row_type' IS DISTINCT FROM 'maintenance')
-),
-
--- ── Other: shortcutSat4p — base vs actual ─────────────────────────────────────────────────
--- base   = base_scope1 + base_scope2  (pre-mitigation BAU emissions)
--- actual = actual_scope3 + actual_scope4  (post-mitigation actual emissions)
--- savings = MAX(0, base - actual)
-other_sat4p AS (
-    SELECT COALESCE(SUM(
-        GREATEST(0,
-            COALESCE(NULLIF(NULLIF(extra_fields->>'base_scope1', ''), '-')::numeric, 0) +
-            COALESCE(NULLIF(NULLIF(extra_fields->>'base_scope2', ''), '-')::numeric, 0) -
-            COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope3', ''), '-')::numeric, 0) -
-            COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope4', ''), '-')::numeric, 0)
-        )
-    ), 0) AS val
-    FROM activity_data
-    WHERE project_id                 = :project_id
-      AND project_stage_instance_id  = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'shortcutSat4p'
-),
-
--- ── Actual case: sum of total emissions EXCLUDING all mitigation rows ────────────────────────
--- This is the gross emissions for the project submission (non-mitigated).
--- Includes: asset, component, electricity, etc. but NOT rows ending with '-mitigation' or '-mitigation-subst-*'
-actual_case_total AS (
-    SELECT COALESCE(SUM(
-        COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
-    ), 0) AS val
-    FROM activity_data
-    WHERE project_id                 = :project_id
-      AND project_stage_instance_id  = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key NOT LIKE '%-mitigation'
-      AND ui_table_key NOT LIKE '%-mitigation-subst-%'
-)
-
-SELECT
-    (SELECT val FROM avoidance)                                                   AS avoidance_savings,
-    GREATEST(0, (SELECT val FROM subst_replaced) - (SELECT val FROM subst_adopted)) AS substitution_savings,
-    (SELECT val FROM other_shortcut_mat) + (SELECT val FROM other_sat4p)          AS other_savings,
-    (SELECT val FROM actual_case_total)                                           AS actual_case_emissions
-""")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Endpoint
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -310,9 +202,6 @@ async def get_mitigation_summary(
             detail="Mitigation Summary is only available for the DESIGN and CONSTRUCTION stage",
         )
 
-    # Fetch jurisdiction from project context (needed if filtering by jurisdiction is required)
-    jurisdiction = await ProjectContextHelper.fetch_jurisdiction(db, project_id)
-
     def _dec(val) -> Decimal:
         if val is None:
             return Decimal(0)
@@ -326,14 +215,29 @@ async def get_mitigation_summary(
         "submission_period_id": str(submission_period_id) if submission_period_id else None,
     }
 
-    mit_result = await db.execute(_MITIGATION_SQL, mit_params)
-    mit_row    = mit_result.mappings().fetchone()
-
-    # Extract all values from the mitigation SQL (now includes actual_case)
-    avoidance_savings:    Decimal = _dec(mit_row["avoidance_savings"])     if mit_row else Decimal(0)
-    substitution_savings: Decimal = _dec(mit_row["substitution_savings"])  if mit_row else Decimal(0)
-    other_savings:        Decimal = _dec(mit_row["other_savings"])         if mit_row else Decimal(0)
-    actual_case:          Decimal = _dec(mit_row["actual_case_emissions"]) if mit_row else Decimal(0)
+    ledger = await aggregate_emissions_results(
+        db,
+        project_id=project_id,
+        stage_instance_id=stage_instance_id,
+        project_option_id=project_option_id,
+        submission_period_id=submission_period_id,
+        accounting_method=elec_method,
+    )
+    mitigation_values = ledger["mitigation"]
+    avoidance_savings = sum(
+        (value for key, value in mitigation_values.items()
+         if key.endswith("-mitigation") and "-mitigation-subst-" not in key),
+        Decimal(0),
+    )
+    replaced = sum((value for key, value in mitigation_values.items() if key.endswith("-mitigation-subst-replaced")), Decimal(0))
+    adopted = sum((value for key, value in mitigation_values.items() if key.endswith("-mitigation-subst-adopted")), Decimal(0))
+    substitution_savings = max(Decimal(0), replaced - adopted)
+    other_savings = sum(ledger["baseline_adjustment"].values(), Decimal(0))
+    reportable_modules = {"A1-A3", "A4", "A5", "B1", "B2-5", "B6", "B7", "B8"}
+    actual_case = sum(
+        (value for module, value in ledger["modules"].items() if module in reportable_modules),
+        Decimal(0),
+    )
 
     # Step values are negative (savings reduce emissions)
     avoidance_step:    Decimal = -avoidance_savings

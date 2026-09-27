@@ -32,7 +32,9 @@ class _Session:
 async def test_unit_options_include_canonical_unit_without_conversions():
     canonical_id = uuid4()
     canonical = SimpleNamespace(id=canonical_id, code="m", label="Metre")
-    db = _Session([_ScalarsResult([canonical])])
+    # The builder queries for canonical units, then checks whether global
+    # conversion rows exist. Model the empty conversion query explicitly.
+    db = _Session([_ScalarsResult([canonical]), _ScalarsResult([])])
 
     options = await build_unit_options_with_conversions(db, [canonical_id])
 
@@ -45,7 +47,7 @@ async def test_unit_options_include_canonical_unit_without_conversions():
         "canonical_unit_id": canonical_id,
         "canonical_unit_code": "m",
     }]
-    assert len(db.statements) == 1
+    assert len(db.statements) == 2
 
 
 @pytest.mark.asyncio

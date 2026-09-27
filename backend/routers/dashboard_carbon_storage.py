@@ -58,6 +58,8 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
+from models.emissions_results import EmissionsResult
+from sqlalchemy import select
 
 router = APIRouter(
     prefix="/api/dashboard/carbon-storage",
@@ -229,7 +231,22 @@ async def get_carbon_storage_detail(
             detail=f"Database query failed: {exc}",
         ) from exc
 
-    detail_rows = [CarbonStorageDetailRow(**dict(r)) for r in rows]
+    result_query = select(EmissionsResult.activity_data_id, EmissionsResult.value).where(
+        EmissionsResult.project_id == project_id,
+        EmissionsResult.project_stage_instance_id == stage_instance_id,
+        EmissionsResult.value_key == "stored_carbon",
+    )
+    result_values = {
+        activity_id: Decimal(str(value or 0))
+        for activity_id, value in (await db.execute(result_query)).all()
+    }
+    # The lookup view still supplies the displayed factor, while the reported
+    # emissions amount comes from the canonical result ledger.
+    detail_rows = []
+    for raw in rows:
+        values = dict(raw)
+        values["carbon_storage_tco2e"] = result_values.get(values["id"], Decimal(0))
+        detail_rows.append(CarbonStorageDetailRow(**values))
     total = sum((r.carbon_storage_tco2e for r in detail_rows), Decimal(0))
 
     return CarbonStorageDetailResponse(

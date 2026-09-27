@@ -5,12 +5,12 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import cast, func, update
-from sqlalchemy import Numeric as SANumeric
+from sqlalchemy import select
 
 from models.activity_data import ActivityData
 from models.project_options import ProjectOption
 from models.project_stage_instances import ProjectStageInstance
+from models.emissions_results import EmissionsResult
 from schemas.project_options import ProjectOptionCreate
 
 
@@ -172,244 +172,36 @@ async def delete_project_option(db: AsyncSession, option_id: UUID) -> bool:
 
 # Keys whose emissions are read from extra_fields["total_emissions_tco2e"].
 # Includes both small-project and large-project table keys.
-# Explicitly excluded from this set (never summed here):
-#   - any key with "-mitigation" suffix (mitigations use their own keyed rows)
-#   - constructionG2, constructionG3 (construction-stage only)
-#   - largeRoadUsers (no total emission value stored in activity_data.extra_fields)
-#   - recurringG3 (planned future key, not yet implemented)
-# Rail-users handled separately via _RAIL_TABLE_KEYS (emissions_total_ref_period_tco2e).
-# Road-users handled separately via _ROAD_TABLE_KEYS (final_user_emissions_tco2e).
-# largeRoadParams handled separately — one-row-only read (final_user_emissions_tco2e).
-_STANDARD_TABLE_KEYS = {
-    # ---- small project ----
-    "asset", "component", "componentRepl", "refurbishment",
-    # ---- large project (additional) ----
-    "bcDetailedLevel",
-    "electricity",
-    "opEnergyElectricity",
-    "useB1G2",
-    "useB1G3",
-    "replDetailed",
-    "opEnergyDetailed",
-    "concreteRegSimplified",
-    "concreteRegDetailed",
-}
-
-# Rail-users keys store emissions_total_ref_period_tco2e in extra_fields.
-_RAIL_TABLE_KEYS = {"railUsers", "largeRailUsers"}
-
-# Road-users keys store final_user_emissions_tco2e in extra_fields.
-# largeRoadUsers is excluded — no emission value stored in its rows.
-_ROAD_TABLE_KEYS = {"roadUsers"}
-
-# Keys where the frontend stores separate location-based and market-based totals
-# instead of a single total_emissions_tco2e value.
-_GRADE2_TABLE_KEYS = {"opEnergy"}
-
-
 async def get_total_emissions_for_option(
     db: AsyncSession,
     option_id: UUID,
 ) -> Decimal:
     """
-    Sum all tCO₂e emissions for a given project option across all tables.
-    All values are read exclusively from ``activity_data.extra_fields`` JSONB.
-
-    Standard keys (small + large project):
-        asset, component, componentRepl, refurbishment,
-        bcDetailedLevel, electricity, opEnergyElectricity,
-        useB1G2, useB1G3, replDetailed, opEnergyDetailed,
-        concreteRegSimplified, concreteRegDetailed
-        → extra_fields["total_emissions_tco2e"]
-
-    shortcutIsMaterials:
-        → SUM extra_fields["actual_case"]
-
-    shortcutSat4p:
-        → SUM extra_fields["actual_scope3"] + extra_fields["actual_scope4"]
-
-    Rail-users keys:
-        railUsers, largeRailUsers
-        → SUM extra_fields["emissions_total_ref_period_tco2e"]
-
-    Road-users keys:
-        roadUsers
-        → SUM extra_fields["final_user_emissions_tco2e"] (one row per vehicle type)
-
-    largeRoadParams:
-        → extra_fields["final_user_emissions_tco2e"] from ONE row only
-          (multiple rows exist — one per modelled year — all holding the same total;
-           LIMIT 1 avoids multiplying the value by the number of modelled years)
-
-    opEnergy (location/market-based):
-        → extra_fields["location_based_total_tco2e"] +
-          extra_fields["market_based_total_tco2e"]
-
-    Excluded: -mitigation keys, constructionG2/G3, largeRoadUsers,
-              concreteRegSimplified, recurringG3
+    Sum reportable actual values from the emissions result ledger. Input JSON is
+    used only to identify repeated large-road parameter groups.
     """
-    # NULLIF(..., '-') converts the frontend placeholder "-" to NULL before
-    # casting, allowing COALESCE to fall back to 0 safely.
-    ef_total_col = func.coalesce(
-        cast(func.nullif(ActivityData.extra_fields["total_emissions_tco2e"].astext, "-"), SANumeric),
-        0,
-    )
-
-    # 1. asset / component / componentRepl / refurbishment
-    standard_total = Decimal(0)
-    for key in _STANDARD_TABLE_KEYS:
-        key_q = (
-            select(func.coalesce(func.sum(ef_total_col), 0))
-            .where(
-                ActivityData.project_option_id == option_id,
-                ActivityData.ui_table_key == key,
-            )
-        )
-        key_total = (await db.execute(key_q)).scalar() or Decimal(0)
-        standard_total += Decimal(str(key_total))
-
-    # 2. opEnergy — location-based + market-based totals
-    lb_col = func.coalesce(
-        cast(func.nullif(ActivityData.extra_fields["location_based_total_tco2e"].astext, "-"), SANumeric),
-        0,
-    )
-    mb_col = func.coalesce(
-        cast(func.nullif(ActivityData.extra_fields["market_based_total_tco2e"].astext, "-"), SANumeric),
-        0,
-    )
-    op_q = (
-        select(func.coalesce(func.sum(lb_col + mb_col), 0))
+    result = await db.execute(
+        select(ActivityData.ui_table_key, ActivityData.extra_fields, EmissionsResult.value)
+        .join(EmissionsResult, EmissionsResult.activity_data_id == ActivityData.id)
         .where(
             ActivityData.project_option_id == option_id,
-            ActivityData.ui_table_key.in_(_GRADE2_TABLE_KEYS),
+            EmissionsResult.is_supplementary.is_(False),
+            EmissionsResult.reporting_measure == "actual",
+            EmissionsResult.accounting_basis.in_(["common", "location"]),
         )
     )
-    op_total = (await db.execute(op_q)).scalar() or Decimal(0)
-
-    # 3. railUsers / largeRailUsers — emissions_total_ref_period_tco2e
-    rail_col = func.coalesce(
-        cast(
-            func.nullif(ActivityData.extra_fields["emissions_total_ref_period_tco2e"].astext, "-"),
-            SANumeric,
-        ),
-        0,
-    )
-    rail_q = (
-        select(func.coalesce(func.sum(rail_col), 0))
-        .where(
-            ActivityData.project_option_id == option_id,
-            ActivityData.ui_table_key.in_(_RAIL_TABLE_KEYS),
-        )
-    )
-    rail_total = (await db.execute(rail_q)).scalar() or Decimal(0)
-
-    # 4. roadUsers — SUM final_user_emissions_tco2e (one row per vehicle type)
-    road_col = func.coalesce(
-        cast(
-            func.nullif(ActivityData.extra_fields["final_user_emissions_tco2e"].astext, "-"),
-            SANumeric,
-        ),
-        0,
-    )
-    road_q = (
-        select(func.coalesce(func.sum(road_col), 0))
-        .where(
-            ActivityData.project_option_id == option_id,
-            ActivityData.ui_table_key.in_(_ROAD_TABLE_KEYS),
-        )
-    )
-    road_total = (await db.execute(road_q)).scalar() or Decimal(0)
-
-    # 5. largeRoadParams — final_user_emissions_tco2e from ONE row only.
-    #    Multiple rows exist (one per modelled year) but each carries the same
-    #    grand-total value; LIMIT 1 prevents multiplying by the number of years.
-    params_q = (
-        select(
-            func.coalesce(
-                cast(
-                    func.nullif(ActivityData.extra_fields["final_user_emissions_tco2e"].astext, "-"),
-                    SANumeric,
-                ),
-                0,
-            )
-        )
-        .where(
-            ActivityData.project_option_id == option_id,
-            ActivityData.ui_table_key == "largeRoadParams",
-        )
-        .limit(1)
-    )
-    params_total = (await db.execute(params_q)).scalar() or Decimal(0)
-
-    uplift_col = func.coalesce(
-        cast(
-            func.nullif(ActivityData.extra_fields["upscaling_adjustment_tco2e"].astext, "-"),
-            SANumeric,
-        ),
-        0,
-    )
-    uplift_q = (
-        select(func.coalesce(func.sum(uplift_col), 0))
-        .where(
-            ActivityData.project_option_id == option_id,
-            ActivityData.ui_table_key == "completeness",
-        )
-    )
-    uplift_total = (await db.execute(uplift_q)).scalar() or Decimal(0)
-
-    # 6. shortcutIsMaterials — SUM actual_case
-    shortcut_is_materials_col = func.coalesce(
-        cast(
-            func.nullif(ActivityData.extra_fields["actual_case"].astext, "-"),
-            SANumeric,
-        ),
-        0,
-    )
-    shortcut_is_materials_q = (
-        select(func.coalesce(func.sum(shortcut_is_materials_col), 0))
-        .where(
-            ActivityData.project_option_id == option_id,
-            ActivityData.ui_table_key == "shortcutIsMaterials",
-        )
-    )
-    shortcut_is_materials_total = (await db.execute(shortcut_is_materials_q)).scalar() or Decimal(0)
-
-    # 7. shortcutSat4p — SUM actual_scope3 + actual_scope4
-    shortcut_sat4p_scope3_col = func.coalesce(
-        cast(
-            func.nullif(ActivityData.extra_fields["actual_scope3"].astext, "-"),
-            SANumeric,
-        ),
-        0,
-    )
-    shortcut_sat4p_scope4_col = func.coalesce(
-        cast(
-            func.nullif(ActivityData.extra_fields["actual_scope4"].astext, "-"),
-            SANumeric,
-        ),
-        0,
-    )
-    shortcut_sat4p_q = (
-        select(func.coalesce(func.sum(shortcut_sat4p_scope3_col + shortcut_sat4p_scope4_col), 0))
-        .where(
-            ActivityData.project_option_id == option_id,
-            ActivityData.ui_table_key == "shortcutSat4p",
-        )
-    )
-    shortcut_sat4p_total = (await db.execute(shortcut_sat4p_q)).scalar() or Decimal(0)
-
-    grand_total = round(
-        standard_total
-        + Decimal(str(op_total))
-        + Decimal(str(rail_total))
-        + Decimal(str(road_total))
-        + Decimal(str(params_total))
-        + Decimal(str(uplift_total))
-        + Decimal(str(shortcut_is_materials_total))
-        + Decimal(str(shortcut_sat4p_total)),
-        6,
-    )
-    return grand_total
+    total = Decimal(0)
+    large_road_groups: dict[tuple, Decimal] = {}
+    for table_key, extra, raw_value in result.all():
+        value = Decimal(str(raw_value or 0))
+        if table_key == "largeRoadParams":
+            fields = extra or {}
+            group = tuple(fields.get(k) for k in ("gradient", "curvature", "roughness", "ev_uptake_scenario"))
+            large_road_groups[group] = max(large_road_groups.get(group, value), value)
+        else:
+            total += value
+    total += sum(large_road_groups.values(), Decimal(0))
+    return round(total, 6)
 
 
 async def set_report_options_status(

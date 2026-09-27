@@ -100,17 +100,46 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from services._calc_utils import DashboardBase
-from services.project_context_helper import ProjectContextHelper
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
-from routers.dashboard_carbon_storage import _DETAIL_SQL as _CARBON_STORAGE_DETAIL_SQL
+from services.emissions_result_aggregates import aggregate_emissions_results
 
 router = APIRouter(
     prefix="/api/dashboard/emissions-breakdown",
     tags=["Dashboard - Emissions Breakdown"],
 )
+
+# Compatibility query for carbon-valuation routers. This keeps their existing
+# row shape while sourcing every emissions amount from the canonical ledger.
+_MODULE_SQL = text("""
+    SELECT
+        COALESCE(SUM(CASE WHEN er.lifecycle_module_code = 'A1-A3' AND er.reporting_measure = 'actual' THEN er.value END), 0) AS a1_a3,
+        COALESCE(SUM(CASE WHEN er.lifecycle_module_code = 'A4' AND er.reporting_measure = 'actual' THEN er.value END), 0) AS a4,
+        COALESCE(SUM(CASE WHEN er.lifecycle_module_code = 'A5' AND er.reporting_measure = 'actual' THEN er.value END), 0) AS a5,
+        COALESCE(SUM(CASE WHEN er.lifecycle_module_code = 'B1' AND er.reporting_measure = 'actual' THEN er.value END), 0) AS b1,
+        COALESCE(SUM(CASE WHEN er.lifecycle_module_code = 'B2-5' AND er.reporting_measure = 'actual' THEN er.value END), 0) AS b2_b5,
+        COALESCE(SUM(CASE WHEN er.lifecycle_module_code = 'B6' AND er.reporting_measure = 'actual' THEN er.value END), 0) AS b6,
+        COALESCE(SUM(CASE WHEN er.lifecycle_module_code = 'B7' AND er.reporting_measure = 'actual' THEN er.value END), 0) AS b7,
+        COALESCE(SUM(CASE WHEN er.lifecycle_module_code = 'B8' AND er.reporting_measure = 'actual' THEN er.value END), 0) AS b8,
+        COALESCE(SUM(CASE WHEN er.reporting_measure = 'offset' THEN -ABS(er.value) END), 0) AS offsets,
+        COALESCE(SUM(CASE WHEN er.reporting_measure = 'stored_carbon' THEN er.value END), 0) AS stored_carbon
+    FROM emissions_results er
+    JOIN activity_data ad ON ad.id = er.activity_data_id
+    WHERE er.project_id = CAST(:project_id AS uuid)
+      AND er.project_stage_instance_id = CAST(:stage_instance_id AS uuid)
+      AND ad.project_id = er.project_id
+      AND ad.project_stage_instance_id = er.project_stage_instance_id
+      AND (CAST(:project_option_id AS uuid) IS NULL OR ad.project_option_id = CAST(:project_option_id AS uuid))
+      AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
+      AND (
+          er.accounting_basis = 'common'
+          OR (:elec_method = 'location' AND er.accounting_basis = 'location')
+          OR (:elec_method = 'market' AND er.accounting_basis = 'market')
+      )
+      AND er.is_supplementary IS FALSE
+""")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -154,557 +183,8 @@ class EmissionsBreakdownResponse(DashboardBase):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# SQL — module breakdown
-# Returns one row with a column per lifecycle module.
-# ─────────────────────────────────────────────────────────────────────────────
+# Module and category totals are aggregated from emissions_results through the shared ledger service.
 
-_MODULE_SQL = text("""
-WITH
-
--- ════════════════════════════════════════════════════════════════════════════
--- TIER 1 — emissions_results JOIN (canonical per-module tCO2e)
---
--- For each activity_data row the developer stores one emissions_results row
--- per value_key.  Current codes in value_key include:
---   A1-A3  A4  A5  B2-5  C2  C3-4
--- A5 note: electricity rows are excluded from er_a5 and handled separately
--- via a5_elec (reads extra_fields location/market totals directly).
--- SAT4P shortcut A5 rows are not in emissions_results; handled by a5_sat4p.
--- Developer will add codes for B1, B6 (non-elec), B7, B8, Offsets, Stored carbon.
--- Once added, replace the corresponding TIER 2 CTE with an emissions_results JOIN.
--- ════════════════════════════════════════════════════════════════════════════
-
-er_a1a3 AS (
-    -- All input levels (Grade 1 asset, Grade 2 component, Grade 3/4 detailed).
-    -- The developer stores the correct A1-A3 split in emissions_results.
-    SELECT COALESCE(SUM(er.value), 0) AS val
-    FROM activity_data ad
-    JOIN emissions_results er ON er.activity_data_id = ad.id
-        AND er.value_key = 'A1-A3'
-    WHERE ad.project_id                = :project_id
-      AND ad.project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR ad.project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
-),
-
--- ── Grade 3/4 Materials rows: A1-A3 and A4 splits ───────────────────────────────────────────
--- bcDetailedLevel / constructionG3: reads pre-computed values from emissions_results
---   (written by recalc_grade34_construction_activity_row when activity is saved).
--- recurringG3: kept on old runtime-join path until migrated.
-g34_mat_splits AS (
-    -- bcDetailedLevel / constructionG3: read from emissions_results (no view join needed)
-    SELECT
-        COALESCE(er_a1a3.value, 0) AS a1_a3,
-        COALESCE(er_a4.value,   0) AS a4
-    FROM activity_data ad
-    LEFT JOIN emissions_results er_a1a3
-        ON  er_a1a3.activity_data_id = ad.id
-        AND er_a1a3.value_key = 'A1-A3'
-        AND NOT er_a1a3.is_supplementary
-    LEFT JOIN emissions_results er_a4
-        ON  er_a4.activity_data_id = ad.id
-        AND er_a4.value_key = 'A4'
-        AND NOT er_a4.is_supplementary
-    WHERE ad.project_id                = :project_id
-      AND ad.project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR ad.project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ad.ui_table_key IN ('bcDetailedLevel', 'constructionG3')
-      AND ad.extra_fields->>'emissions_category' = 'Materials'
-
-    UNION ALL
-
-    -- recurringG3: legacy runtime-join path (not yet migrated to emissions_results)
-    SELECT
-        LEAST(
-            COALESCE(ef.emission_factor_scope3, 0) * ad.quantity,
-            COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
-        ) AS a1_a3,
-        GREATEST(0,
-            COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0) -
-            COALESCE(ef.emission_factor_scope3, 0) * ad.quantity
-        ) AS a4
-    FROM activity_data ad
-    LEFT JOIN v_grade34_detailed_level ef
-        ON  ef."Jurisdiction"     = :jurisdiction
-        AND ef."Emissions Source" = COALESCE(NULLIF(ad.extra_fields->>'emissions_source_name', ''), '__no_match__')
-        AND ef."UoM"              = COALESCE(NULLIF(ad.extra_fields->>'unit_code', ''), '__no_match__')
-    WHERE ad.project_id                = :project_id
-      AND ad.project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR ad.project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ad.ui_table_key = 'recurringG3'
-      AND ad.extra_fields->>'emissions_category' = 'Materials'
-),
-
-er_a4 AS (
-    -- Grade 3/4 Materials A4 (bcDetailedLevel/constructionG3 from emissions_results;
-    -- recurringG3 legacy view-join) plus Grade 1 asset and Grade 2 component A4
-    -- stored in emissions_results by recalc_asset_row / recalc_grade2_component_row.
-    SELECT
-        COALESCE((SELECT SUM(a4) FROM g34_mat_splits), 0)
-        +
-        COALESCE((
-            SELECT SUM(er.value)
-            FROM activity_data ad
-            JOIN emissions_results er ON er.activity_data_id = ad.id
-                AND er.value_key = 'A4'
-                AND NOT er.is_supplementary
-            WHERE ad.project_id                = :project_id
-              AND ad.project_stage_instance_id = :stage_instance_id
-              AND (CAST(:project_option_id AS uuid) IS NULL OR ad.project_option_id = CAST(:project_option_id AS uuid))
-              AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
-              AND ad.ui_table_key IN ('asset', 'component','constructionG2')
-        ), 0) AS val
-),
-
-er_a5 AS (
-    -- Grade 1 / Grade 2 / Grade 3-4 A5: rows with value_key = 'A5' in emissions_results.
-    -- Excludes electricity rows (ui_table_key='electricity') — those are handled by
-    -- a5_elec which reads extra_fields location/market totals directly.
-    SELECT COALESCE(SUM(er.value), 0) AS val
-    FROM activity_data ad
-    JOIN emissions_results er ON er.activity_data_id = ad.id
-        AND er.value_key = 'A5'
-    WHERE ad.project_id                = :project_id
-      AND ad.project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR ad.project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ad.ui_table_key NOT LIKE 'electricity%' AND ad.ui_table_key NOT LIKE 'opEnergyElectricity%'
-),
-
-a5_elec AS (
-    -- Construction electricity (ui_table_key='electricity').
-    -- Design and Construction stages only (no electricity rows in Business Case).
-    -- location_based_tco2e / market_based_tco2e from extra_fields (Scope 2+3 totals).
-    SELECT COALESCE(SUM(
-        CASE WHEN :elec_method = 'market'
-             THEN COALESCE(NULLIF(NULLIF(extra_fields->>'market_based_tco2e',   ''), '-')::numeric, 0)
-             ELSE COALESCE(NULLIF(NULLIF(extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
-        END
-    ), 0) AS val
-    FROM activity_data
-    WHERE project_id                = :project_id
-      AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'electricity'
-),
-
-a5_sat4p AS (
-    -- Shortcut SAT4P A5: only the 3 A5-specific sources.
-    -- 'Construction materials' → A1-A3, 'Transport (construction materials)' → A4,
-    -- 'Maintenance processes / equipment' / 'Transport (maintenance materials)' → B2-B5,
-    -- 'Use phase' → B8 — all excluded by using an explicit IN list.
-    SELECT COALESCE(SUM(
-        COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope3', ''), '-')::numeric, 0) +
-        COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope4', ''), '-')::numeric, 0)
-    ), 0) AS val
-    FROM activity_data
-    WHERE project_id                = :project_id
-      AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'shortcutSat4p'
-      AND extra_fields->>'source' IN (
-          'Construction processes/equipment',
-          'Disposal',
-          'Transport off-site (waste)'
-      )
-),
-
-b2_b5 AS (
-    -- B2-B5: three ui_table_keys covering all input grades.
-    --   componentRepl  → Component Level Replacement (B4) (Grade 2 and 3)
-    --   refurbishment  → Other Maintenance/Repair/Replacement/Refurbishment Activities (Grade 2)
-    --   replDetailed   → Detailed Level (Grade 3)  [Offset rows excluded — handled by offsets CTE]
-    -- NOTE: SAT4P maintenance sources ('Maintenance processes / equipment',
-    --       'Transport (maintenance materials)') should also sum to B2-B5;
-    --       add a b2_b5_sat4p CTE if those rows are not written to emissions_results.
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0) AS val
-    FROM activity_data
-    WHERE project_id                = :project_id
-      AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key IN ('componentRepl', 'refurbishment', 'replDetailed')
-      AND NOT (ui_table_key = 'replDetailed' AND COALESCE(extra_fields->>'emissions_category', '') = 'Offset')
-),
-
-er_b6_elec AS (
-    -- Operational electricity (ui_table_key='opEnergyElectricity').
-    -- Uses location_based_tco2e / market_based_tco2e from extra_fields.
-    -- These are the Scope 2+3 totals (sum of scope2 + scope3 columns).
-    SELECT COALESCE(SUM(
-        CASE WHEN :elec_method = 'market'
-             THEN COALESCE(NULLIF(NULLIF(extra_fields->>'market_based_tco2e',   ''), '-')::numeric, 0)
-             ELSE COALESCE(NULLIF(NULLIF(extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
-        END
-    ), 0) AS val
-    FROM activity_data
-    WHERE project_id                = :project_id
-      AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'opEnergyElectricity'
-),
-
--- ════════════════════════════════════════════════════════════════════════════
--- TIER 2 — modules not yet in lifecycle_modules (extra_fields fallback)
--- Developer will add lifecycle codes for B1, B6 (non-elec), B7, B8, Offsets.
--- Once each code is added, replace that CTE with an emissions_results JOIN.
--- ════════════════════════════════════════════════════════════════════════════
-
-b1 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key IN ('useB1G2', 'useB1G3')
-),
-
-b6_op AS (
-  -- Component Level (Grade 2): use operational total based on the selected method.
-  -- Prefer the method-specific total, with total_emissions_tco2e as a fallback.
-  SELECT COALESCE(SUM(
-    CASE WHEN :elec_method = 'market'
-       THEN COALESCE(
-         NULLIF(NULLIF(extra_fields->>'market_based_total_tco2e', ''), '-')::numeric,
-         COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
-       )
-       ELSE COALESCE(
-         NULLIF(NULLIF(extra_fields->>'location_based_total_tco2e', ''), '-')::numeric,
-         COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
-       )
-    END
-  ), 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'opEnergy'
-),
-
-b6_detailed AS (
-    -- opEnergyDetailed non-Water, non-Offset rows (Offset rows are captured in the offsets CTE)
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'opEnergyDetailed'
-      AND COALESCE(extra_fields->>'emissions_category', '') NOT IN ('Water', 'Offset')
-),
-
-b7 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'opEnergyDetailed'
-      AND extra_fields->>'emissions_category' = 'Water'
-),
-
-b8_road AS (
-    -- Small project road users: relativeUserEmissions
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'relativeUserEmissions', ''), '-')::numeric, 0)), 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'roadUsers'
-),
-
-b8_rail AS (
-    -- Rail users (small and large): emissions_total_ref_period_tco2e
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'emissions_total_ref_period_tco2e', ''), '-')::numeric, 0)), 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'railUsers'
-),
-
-b8_large_road AS (
-    -- Large project road users: final_user_emissions_tco2e from largeRoadParams.
-    -- This value repeats across modelled years for the same parameter combination
-    -- (gradient / curvature / roughness / ev_uptake_scenario).
-    -- Deduplicate: take MAX per unique combination, then sum across combinations.
-    SELECT COALESCE(SUM(max_val), 0) AS val
-    FROM (
-        SELECT MAX(COALESCE(NULLIF(NULLIF(extra_fields->>'final_user_emissions_tco2e', ''), '-')::numeric, 0)) AS max_val
-        FROM activity_data
-        WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-          AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-          AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-          AND ui_table_key = 'largeRoadParams'
-        GROUP BY
-            extra_fields->>'gradient',
-            extra_fields->>'curvature',
-            extra_fields->>'roughness',
-            extra_fields->>'ev_uptake_scenario'
-    ) d
-),
-
-b8 AS (
-    SELECT (SELECT val FROM b8_road) + (SELECT val FROM b8_rail) + (SELECT val FROM b8_large_road) AS val
-),
-
-offsets AS (
-    SELECT -COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key IN (
-          'bcDetailedLevel', 'constructionG3', 'recurringG3',
-          'replDetailed', 'opEnergyDetailed'
-      )
-      AND extra_fields->>'emissions_category' = 'Offset'
-),
-
--- ════════════════════════════════════════════════════════════════════════════
--- TIER 4 — completeness upscaling adjustments (placeholder — returns 0 until team stores rows)
--- ════════════════════════════════════════════════════════════════════════════
-
-uplift_a1a3 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'completeness' AND extra_fields->>'module' = 'a1_a3'
-),
-uplift_a4 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'completeness' AND extra_fields->>'module' = 'a4'
-),
-uplift_a5 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'completeness' AND extra_fields->>'module' = 'a5'
-),
-uplift_b1 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'completeness' AND extra_fields->>'module' = 'b1'
-),
-uplift_b2_b5 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'completeness' AND extra_fields->>'module' = 'b2_b5'
-),
-uplift_b6 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'completeness' AND extra_fields->>'module' = 'b6'
-),
-uplift_b7 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'completeness' AND extra_fields->>'module' = 'b7'
-)
-
-SELECT
-    (SELECT val FROM er_a1a3)  + (SELECT val FROM uplift_a1a3)                                       AS a1_a3,
-    (SELECT val FROM er_a4)    + (SELECT val FROM uplift_a4)                                          AS a4,
-    (SELECT val FROM er_a5) + (SELECT val FROM a5_sat4p) + (SELECT val FROM a5_elec) + (SELECT val FROM uplift_a5) AS a5,
-    (SELECT val FROM b1)       + (SELECT val FROM uplift_b1)                                          AS b1,
-    (SELECT val FROM b2_b5)    + (SELECT val FROM uplift_b2_b5)                                       AS b2_b5,
-    (SELECT val FROM b6_op)    + (SELECT val FROM b6_detailed) + (SELECT val FROM er_b6_elec) + (SELECT val FROM uplift_b6) AS b6,
-    (SELECT val FROM b7)       + (SELECT val FROM uplift_b7)                                          AS b7,
-    (SELECT val FROM b8)                                                                               AS b8,
-    (SELECT val FROM offsets)                                                                          AS offsets,
-    0::numeric                                                                                         AS stored_carbon
-""")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# SQL — source category breakdown
-# Returns one row per emissions_category with total tCO2e.
-# Each data source normalises its value to a category and a numeric val so
-# UNION ALL can be summed cleanly without special-casing upstream.
-# ─────────────────────────────────────────────────────────────────────────────
-
-_SOURCE_SQL = text("""
-SELECT
-    category,
-    SUM(val) AS emissions_tco2e
-FROM (
-
-    -- Grade 3/4 detailed rows (use stored total_emissions_tco2e; category from extra_fields)
-    SELECT
-        COALESCE(NULLIF(TRIM(extra_fields->>'emissions_category'), ''), 'Other') AS category,
-        COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)  AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key IN (
-          'bcDetailedLevel', 'constructionG3', 'recurringG3',
-          'useB1G3',
-          'replDetailed', 'opEnergyDetailed'
-      )
-      AND COALESCE(extra_fields->>'emissions_category', '') != 'Offset'
-
-    UNION ALL
-
-    -- Grade 2 component rows (category from extra_fields)
-    SELECT
-        COALESCE(NULLIF(TRIM(extra_fields->>'emissions_category'), ''), 'Other') AS category,
-        COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)  AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key IN ('component', 'componentRepl', 'useB1G2','constructionG2')
-
-    UNION ALL
-
-    -- Grade 1 asset rows — classified as 'Materials'
-    SELECT
-        'Materials'::text AS category,
-        COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'asset'
-
-    UNION ALL
-
-    -- Concrete registers — classified as 'Materials'
-    SELECT
-        'Materials'::text AS category,
-        COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key IN ('concreteRegSimplified', 'concreteRegDetailed')
-
-    UNION ALL
-
-    -- Refurbishment rows (category from extra_fields)
-    SELECT
-        COALESCE(NULLIF(TRIM(extra_fields->>'emissions_category'), ''), 'Other') AS category,
-        COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'refurbishment'
-
-    UNION ALL
-
-    -- Construction electricity — classified as 'Electricity'
-    SELECT
-        'Electricity'::text AS category,
-        CASE WHEN :elec_method = 'market'
-             THEN COALESCE(NULLIF(NULLIF(extra_fields->>'market_based_tco2e', ''), '-')::numeric, 0)
-             ELSE COALESCE(NULLIF(NULLIF(extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
-        END AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'electricity'
-
-    UNION ALL
-
-    -- Operational electricity — classified as 'Electricity'
-    SELECT
-        'Electricity'::text AS category,
-        CASE WHEN :elec_method = 'market'
-             THEN COALESCE(NULLIF(NULLIF(extra_fields->>'market_based_tco2e', ''), '-')::numeric, 0)
-             ELSE COALESCE(NULLIF(NULLIF(extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
-        END AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'opEnergyElectricity'
-
-    UNION ALL
-
-    -- opEnergy (Grade 2 operational) — classified as 'Electricity'
-    SELECT
-        'Electricity'::text AS category,
-        CASE WHEN :elec_method = 'market'
-             THEN COALESCE(
-                     NULLIF(NULLIF(extra_fields->>'market_based_total_tco2e', ''), '-')::numeric,
-                     COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
-                  )
-             ELSE COALESCE(
-                     NULLIF(NULLIF(extra_fields->>'location_based_total_tco2e', ''), '-')::numeric,
-                     COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
-                  )
-        END AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'opEnergy'
-
-    UNION ALL
-
-    -- Shortcut IS Materials — classified as 'Materials'
-    SELECT
-        'Materials'::text AS category,
-        COALESCE(NULLIF(NULLIF(extra_fields->>'actual_case', ''), '-')::numeric, 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'shortcutIsMaterials'
-      AND (extra_fields->>'row_type' IS DISTINCT FROM 'maintenance')
-
-    UNION ALL
-
-    -- Shortcut SAT4P — source-based category assignment
-    SELECT
-        CASE extra_fields->>'source'
-            WHEN 'Construction materials'             THEN 'Materials'
-            WHEN 'Transport (construction materials)' THEN 'Fuels'
-            ELSE                                           'Fuels'
-        END AS category,
-        COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope3', ''), '-')::numeric, 0) +
-        COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope4', ''), '-')::numeric, 0) AS val
-    FROM activity_data
-    WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'shortcutSat4p'
-
-) all_rows
-GROUP BY category
-HAVING SUM(val) > 0
-ORDER BY SUM(val) DESC
-""")
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Module metadata: display labels and ordering
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -771,46 +251,37 @@ async def get_emissions_breakdown_summary(
         )
 
     # Resolve jurisdiction from project → organisation → jurisdiction
-    jurisdiction = await ProjectContextHelper.fetch_jurisdiction(db, project_id)
-
-    params = {
-        "project_id":           str(project_id),
-        "stage_instance_id":    str(stage_instance_id),
-        "elec_method":          elec_method,
-        "jurisdiction":         jurisdiction,
-        "project_option_id":    str(project_option_id) if project_option_id else None,
-        "submission_period_id": str(submission_period_id) if submission_period_id else None,
+    ledger = await aggregate_emissions_results(
+        db,
+        project_id=project_id,
+        stage_instance_id=stage_instance_id,
+        project_option_id=project_option_id,
+        submission_period_id=submission_period_id,
+        accounting_method=elec_method,
+    )
+    module_values = ledger["modules"]
+    module_map = {
+        "A1-A3": "A1-A3", "A4": "A4", "A5": "A5", "B1": "B1",
+        "B2-5": "B2-5", "B6": "B6", "B7": "B7", "B8": "B8",
     }
-
-    # ── Module totals ────────────────────────────────────────────────────────
-    mod_result = await db.execute(_MODULE_SQL, params)
-    _raw = mod_result.mappings().fetchone()
-
-    if _raw is None:
-        # No activity data found for this stage — return zeros rather than 404
-        mod_row: dict = {col: Decimal(0) for col in [
-            "a1_a3", "a4", "a5", "b1", "b2_b5", "b6", "b7", "b8",
-            "offsets", "stored_carbon",
-        ]}
-    else:
-        mod_row = dict(_raw)
+    mod_row = {
+        "a1_a3": module_values.get("A1-A3", Decimal(0)),
+        "a4": module_values.get("A4", Decimal(0)),
+        "a5": module_values.get("A5", Decimal(0)),
+        "b1": module_values.get("B1", Decimal(0)),
+        "b2_b5": module_values.get("B2-5", Decimal(0)),
+        "b6": module_values.get("B6", Decimal(0)),
+        "b7": module_values.get("B7", Decimal(0)),
+        "b8": module_values.get("B8", Decimal(0)),
+        "offsets": module_values.get("Offsets", Decimal(0)),
+        "stored_carbon": ledger["stored_carbon"],
+    }
 
     def _dec(val) -> Decimal:
         """Coerce a DB numeric value to Decimal, defaulting to 0."""
         if val is None:
             return Decimal(0)
         return Decimal(str(val))
-
-    # Stored carbon: delegate to the same view-join calculation used by
-    # /api/dashboard/carbon-storage/detail so both endpoints are always consistent.
-    # _CARBON_STORAGE_DETAIL_SQL computes: quantity × "Carbon Storage (tCO2e/UoM)" EF
-    # for ui_table_key='component' (Grade 2) and 'bcDetailedLevel' (Grade 3/4).
-    # The EF is already negative in the lookup views, so the result is negative (sequestration).
-    cs_result = await db.execute(_CARBON_STORAGE_DETAIL_SQL, params)
-    mod_row["stored_carbon"] = sum(
-        (_dec(r["carbon_storage_tco2e"]) for r in cs_result.mappings().all()),
-        Decimal(0),
-    )
 
     modules: List[ModuleRow] = []
     for code, label, col in _MODULE_META:
@@ -820,16 +291,13 @@ async def get_emissions_breakdown_summary(
         else:
             modules.append(ModuleRow(code=code, label=label, value=_dec(mod_row[col])))
 
-    # ── Source categories ────────────────────────────────────────────────────
-    src_result = await db.execute(_SOURCE_SQL, params)
-    src_rows   = src_result.mappings().fetchall()
-
     source_categories: List[SourceCategoryRow] = [
         SourceCategoryRow(
-            category=r["category"],
-            value=_dec(r["emissions_tco2e"]),
+            category=category,
+            value=_dec(value),
         )
-        for r in src_rows
+        for category, value in sorted(ledger["categories"].items(), key=lambda item: item[1], reverse=True)
+        if value > 0
     ]
 
     # ── Summary indicators ───────────────────────────────────────────────────

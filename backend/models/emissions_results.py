@@ -29,6 +29,13 @@ class EmissionsResult(Base):
 
     lifecycle_module_code = Column(String, ForeignKey("lifecycle_modules.code"), nullable=True)
 
+    # Stable reporting dimensions. `activity_data` remains the input/context row;
+    # dashboards aggregate these calculated result facts instead of JSON values.
+    source_category = Column(String(100), nullable=True)
+    emissions_scope = Column(String(20), nullable=True)
+    accounting_basis = Column(String(20), nullable=False, default="common", server_default="common")
+    reporting_measure = Column(String(20), nullable=False, default="actual", server_default="actual")
+
     is_supplementary = Column(Boolean, nullable=False, default=False, server_default="FALSE")
 
     value = Column(Numeric, nullable=False)

@@ -89,7 +89,13 @@ async def recalc_electricity_activity_row(
         "project_stage_instance_id": activity_row.project_stage_instance_id,
         "project_option_id": activity_row.project_option_id,
         "dataset_revision_id": activity_row.dataset_revision_id,
-        "ui_table_key": activity_row.ui_table_key,
+        # The request contract names the mitigation table generically while
+        # activity rows may carry the adopted/replaced substitution suffix.
+        "ui_table_key": (
+            "electricity-mitigation"
+            if "-mitigation" in (activity_row.ui_table_key or "")
+            else base_key
+        ),
     }
 
     if base_key == "electricity":
@@ -155,7 +161,16 @@ async def recalc_electricity_activity_row(
         value_key=lc,
         lifecycle_module_code=lc,
         value=tco2e_dec,
+        accounting_basis="location",
     )
+    if mb is not None:
+        await upsert_result(
+            **common,
+            value_key=f"{lc}_market",
+            lifecycle_module_code=lc,
+            value=Decimal(str(mb)),
+            accounting_basis="market",
+        )
     await upsert_result(
         **common,
         value_key="scope2_location",

@@ -177,6 +177,7 @@ async def enrich_with_emissions(
     q = select(EmissionsResult).where(
         EmissionsResult.activity_data_id == activity_row.id,
         EmissionsResult.is_supplementary == False,
+        EmissionsResult.accounting_basis.in_(["common", "location"]),
     )
     results = (await db.execute(q)).scalars().all()
     total = sum(r.value for r in results) if results else None

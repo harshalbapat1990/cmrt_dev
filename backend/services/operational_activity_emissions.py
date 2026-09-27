@@ -120,6 +120,7 @@ async def recalc_operational_row(
         lifecycle_module_code="B6",
         is_supplementary=False,
         value=Decimal(str(resp.location_based_total_tco2e or 0)),
+        accounting_basis="location",
     )
     await upsert_result(
         **common,

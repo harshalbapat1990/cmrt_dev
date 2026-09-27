@@ -604,7 +604,13 @@ class ElectricityDetailedCalculator:
             WHERE
                 ad.project_stage_instance_id = CAST(:instance_id AS uuid)
                 AND ad.project_option_id = CAST(:option_id AS uuid)
-                AND ad.ui_table_key = :ui_table_key
+                AND (
+                    ad.ui_table_key = :ui_table_key
+                    OR (
+                        :ui_table_key = 'electricity-mitigation'
+                        AND ad.ui_table_key LIKE 'electricity-mitigation%'
+                    )
+                )
                 AND (ad.extra_fields->>'year')::int = :year
                 AND ad.extra_fields->>'emission_source' IN (
                     'Grid Electricity',

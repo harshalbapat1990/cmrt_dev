@@ -59,7 +59,7 @@ from services.maintenance_replacement_component_level_calcs import (
 logger = logging.getLogger(__name__)
 
 
-async def calculate_and_store(
+async def _calculate_and_store_impl(
     db: AsyncSession,
     activity_row: ActivityData,
 ) -> Optional[Decimal]:
@@ -286,3 +286,34 @@ async def calculate_and_store(
         except Exception:
             pass
         return None
+
+
+async def calculate_and_store(
+    db: AsyncSession,
+    activity_row: ActivityData,
+) -> Optional[Decimal]:
+    """Calculate a row and synchronize its reportable facts into the result ledger."""
+    activity_row_id = activity_row.id
+    result = await _calculate_and_store_impl(db, activity_row)
+    # _calculate_and_store_impl rolls back the session when a calculation or
+    # result write fails. Do not touch an expired ORM row after that rollback:
+    # doing so can trigger an implicit async refresh (MissingGreenlet).
+    if not db.in_transaction():
+        logger.error(
+            "Skipping result-ledger synchronization for activity_data %s because calculation failed",
+            activity_row_id,
+        )
+        return result
+    try:
+        from services.result_ledger import persist_legacy_outputs
+
+        await persist_legacy_outputs(db, activity_row)
+    except Exception:
+        logger.exception("Failed to synchronize result ledger for activity_data %s", activity_row_id)
+        # Keep the shared session usable and make the backfill's transaction
+        # check stop immediately instead of continuing in an aborted transaction.
+        try:
+            await db.rollback()
+        except Exception:
+            logger.exception("Failed to roll back after ledger synchronization error for %s", activity_row_id)
+    return result
