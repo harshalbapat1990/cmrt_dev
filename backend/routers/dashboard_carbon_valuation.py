@@ -74,17 +74,21 @@ _ELEC_BY_YEAR_SQL = text(
     """
     SELECT
         COALESCE(
-            NULLIF(NULLIF(extra_fields->>'year', ''), '-')::int,
-            NULLIF(NULLIF(extra_fields->>'assessment_year', ''), '-')::int
+            NULLIF(NULLIF(ad.extra_fields->>'year', ''), '-')::int,
+            NULLIF(NULLIF(ad.extra_fields->>'assessment_year', ''), '-')::int
         ) AS assessment_year,
-        SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)) AS location_based_tco2e,
-        SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'market_based_tco2e', ''), '-')::numeric, 0)) AS market_based_tco2e
-    FROM activity_data
-    WHERE project_id = CAST(:project_id AS uuid)
-      AND project_stage_instance_id = CAST(:stage_instance_id AS uuid)
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = :ui_table_key
+        SUM(CASE WHEN er.accounting_basis = 'location' THEN er.value ELSE 0 END) AS location_based_tco2e,
+        SUM(CASE WHEN er.accounting_basis = 'market' THEN er.value ELSE 0 END) AS market_based_tco2e
+    FROM activity_data ad
+    JOIN emissions_results er ON er.activity_data_id = ad.id
+    WHERE ad.project_id = CAST(:project_id AS uuid)
+      AND ad.project_stage_instance_id = CAST(:stage_instance_id AS uuid)
+      AND (CAST(:project_option_id AS uuid) IS NULL OR ad.project_option_id = CAST(:project_option_id AS uuid))
+      AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
+      AND ad.ui_table_key = :ui_table_key
+      AND er.reporting_measure = 'actual'
+      AND er.is_supplementary IS FALSE
+      AND er.accounting_basis IN ('location', 'market')
     GROUP BY 1
     """
 )
@@ -94,19 +98,24 @@ _B8_BY_YEAR_SQL = text(
     """
     SELECT
         COALESCE(
-            NULLIF(NULLIF(extra_fields->>'assessment_year', ''), '-')::int,
-            NULLIF(NULLIF(extra_fields->>'year', ''), '-')::int
+            NULLIF(NULLIF(ad.extra_fields->>'assessment_year', ''), '-')::int,
+            NULLIF(NULLIF(ad.extra_fields->>'year', ''), '-')::int
         ) AS assessment_year,
-        SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)) AS emissions_tco2e
-    FROM activity_data
-    WHERE project_id = CAST(:project_id AS uuid)
-      AND project_stage_instance_id = CAST(:stage_instance_id AS uuid)
-      AND (CAST(:project_option_id AS uuid) IS NULL OR project_option_id = CAST(:project_option_id AS uuid))
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key IN (
+        SUM(er.value) AS emissions_tco2e
+    FROM activity_data ad
+    JOIN emissions_results er ON er.activity_data_id = ad.id
+    WHERE ad.project_id = CAST(:project_id AS uuid)
+      AND ad.project_stage_instance_id = CAST(:stage_instance_id AS uuid)
+      AND (CAST(:project_option_id AS uuid) IS NULL OR ad.project_option_id = CAST(:project_option_id AS uuid))
+      AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
+      AND ad.ui_table_key IN (
         'roadUsers', 'railUsers',
         'largeRoadUsers', 'largeRoadParams', 'largeRailUsers'
       )
+      AND er.lifecycle_module_code = 'B8'
+      AND er.reporting_measure = 'actual'
+      AND er.is_supplementary IS FALSE
+      AND er.accounting_basis IN ('common', 'location')
     GROUP BY 1
     """
 )

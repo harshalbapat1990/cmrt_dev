@@ -75,6 +75,10 @@ async def recalc_grade2_component_row(
     try:
         resp = await calculator.calculate(db, req)
     except ValueError as exc:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            from services.project_dataset_recalculation import MissingDatasetDataError
+
+            raise MissingDatasetDataError("Grade 2 component factors", str(exc)) from exc
         logger.warning(
             "grade2_component skip: lookup failed activity_data=%s: %s",
             activity_row.id,

@@ -15,6 +15,7 @@ from crud.background_grade_metrics import (
 from models.emissions_results import EmissionsResult
 from models.project_reporting_submission import ProjectReportingSubmission
 from schemas.activity_data import ActivityDataCreate, ActivityDataOut, ActivityDataUpdate
+from services.project_context_helper import ProjectContextHelper
 
 
 async def _activity_data_model_kwargs(
@@ -22,6 +23,10 @@ async def _activity_data_model_kwargs(
     payload: ActivityDataCreate,
 ) -> dict:
     data = payload.model_dump(exclude={"metric_id"})
+    # The project binding is authoritative; clients may hold stale row-level IDs.
+    data["dataset_revision_id"] = await ProjectContextHelper.fetch_project_dataset_revision(
+        db, payload.project_id
+    )
     legacy_metric_id = payload.metric_id
 
     if data.get("metric_natural_key") is None and legacy_metric_id is not None:
@@ -40,6 +45,9 @@ async def _activity_data_update_kwargs(
     patch: ActivityDataUpdate,
 ) -> dict:
     data = patch.model_dump(exclude_unset=True, exclude={"metric_id"})
+    data["dataset_revision_id"] = await ProjectContextHelper.fetch_project_dataset_revision(
+        db, obj.project_id
+    )
     legacy_metric_id = patch.metric_id
 
     if data.get("metric_natural_key") is None and legacy_metric_id is not None:
@@ -174,10 +182,13 @@ async def bulk_upsert_activity_data(
 async def enrich_with_emissions(
     db: AsyncSession, activity_row: ActivityData
 ) -> ActivityDataOut:
+    measure = activity_emissions_measure(activity_row)
+
     q = select(EmissionsResult).where(
         EmissionsResult.activity_data_id == activity_row.id,
         EmissionsResult.is_supplementary == False,
         EmissionsResult.accounting_basis.in_(["common", "location"]),
+        EmissionsResult.reporting_measure == measure,
     )
     results = (await db.execute(q)).scalars().all()
     total = sum(r.value for r in results) if results else None
@@ -191,6 +202,16 @@ async def enrich_with_emissions(
         out.metric_id = metric.id if metric is not None else None
     out.emissions_tco2e = Decimal(total) if total is not None else None
     return out
+
+
+def activity_emissions_measure(activity_row: ActivityData) -> str:
+    """Choose the ledger measure represented by an activity row's emissions cell."""
+    extra = activity_row.extra_fields or {}
+    if extra.get("emissions_category") == "Offset":
+        return "offset"
+    if activity_row.project_mitigation_id or "-mitigation" in (activity_row.ui_table_key or ""):
+        return "mitigation"
+    return "actual"
 
 
 async def copy_option_data(

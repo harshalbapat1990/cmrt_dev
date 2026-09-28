@@ -198,14 +198,15 @@ async def _resolve_dataset_revision_id(
     """
     Resolve which electricity_recycling_assumptions revision scopes BAU % lookup.
 
-    Priority: activity row revision → latest project binding → published revision.
+    The project's selected revision is authoritative; row revisions are only a
+    compatibility fallback for projects that have not yet been bound.
     """
-    for row in source_rows:
-        if row.dataset_revision_id is not None:
-            return row.dataset_revision_id
     pdrs = await list_project_dataset_revisions_by_project(db, project_id)
     if pdrs:
         return pdrs[0].dataset_revision_id
+    for row in source_rows:
+        if row.dataset_revision_id is not None:
+            return row.dataset_revision_id
     published = await get_published_dataset_revision(db)
     if published is not None:
         return published.id

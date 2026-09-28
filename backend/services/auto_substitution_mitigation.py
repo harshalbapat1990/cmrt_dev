@@ -198,7 +198,9 @@ def _mitigation_id_from_extra(extra: Optional[Dict[str, Any]]) -> Optional[UUID]
 
 
 async def _load_substitution_factors(
-    db: AsyncSession, jurisdiction_id: UUID
+    db: AsyncSession,
+    jurisdiction_id: UUID,
+    dataset_revision_id: Optional[UUID] = None,
 ) -> List[DirectSubstitutionFactor]:
     q = (
         select(DirectSubstitutionFactor)
@@ -209,6 +211,8 @@ async def _load_substitution_factors(
             DirectSubstitutionFactor.user_unit,
         )
     )
+    if dataset_revision_id is not None:
+        q = q.where(DirectSubstitutionFactor.dataset_revision_id == dataset_revision_id)
     res = await db.execute(q)
     return list(res.scalars().unique().all())
 
@@ -406,7 +410,9 @@ async def sync_auto_substitution_for_source_row(
     user_source_label = pick_emissions_source_label(extra.get("emissions_source_name"))
     row_unit_label = pick_unit_label(extra)
 
-    factors = await _load_substitution_factors(db, jurisdiction_id)
+    factors = await _load_substitution_factors(
+        db, jurisdiction_id, row.dataset_revision_id
+    )
     factor = _pick_direct_substitution_factor(factors, user_source_label, row_unit_label)
 
     linked_mid = _mitigation_id_from_extra(extra)

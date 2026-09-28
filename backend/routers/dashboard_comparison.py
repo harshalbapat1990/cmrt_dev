@@ -17,19 +17,19 @@ Three endpoints
 Electricity accounting
 ──────────────────────────────────────────────────────────────────────────────
   All endpoints accept an optional `elec_method` query parameter:
-    'location'  (default)  → uses location_based_tco2e / location_based_total_tco2e
-    'market'               → uses market_based_tco2e  / market_based_total_tco2e
+    'location'  (default)  → aggregates common and location-basis result facts
+    'market'               → aggregates common and market-basis result facts
 
 Grade definitions
 ──────────────────────────────────────────────────────────────────────────────
   Grade 1  — ui_table_key = 'asset'
-             field: total_emissions_tco2e
+             source: emissions_results
 
   Grade 2  — ui_table_key IN ('component', 'componentRepl', 'useB1G2')
-             field: total_emissions_tco2e
+             source: emissions_results
            — ui_table_key = 'opEnergy'
              field: location_based_total_tco2e / market_based_total_tco2e
-             (falls back to total_emissions_tco2e when electricity columns absent)
+             source: emissions_results
 
   Grade 3  — Construction stage:
                ui_table_key IN ('bcDetailedLevel', 'constructionG3')
@@ -138,7 +138,7 @@ si AS (
 -- Grade 1: Construction Asset Level table
 g1 AS (
     SELECT ad.project_stage_instance_id AS si_id,
-           SUM(COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0))
+           SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0))
                AS tco2e
     FROM activity_data ad
     WHERE ad.project_id = CAST(:project_id AS uuid)
@@ -151,7 +151,7 @@ g1 AS (
 -- Grade 2: non-electricity component level
 g2_component AS (
     SELECT ad.project_stage_instance_id AS si_id,
-           SUM(COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0))
+           SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0))
                AS tco2e
     FROM activity_data ad
     WHERE ad.project_id = CAST(:project_id AS uuid)
@@ -167,13 +167,13 @@ g2_op_energy AS (
            SUM(
                CASE WHEN :elec_method = 'market'
                    THEN COALESCE(
-                       NULLIF(ad.extra_fields->>'market_based_total_tco2e',    '')::numeric,
-                       NULLIF(ad.extra_fields->>'total_emissions_tco2e',       '')::numeric,
+                       (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)),
+                       (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)),
                        0
                    )
                    ELSE COALESCE(
-                       NULLIF(ad.extra_fields->>'location_based_total_tco2e',  '')::numeric,
-                       NULLIF(ad.extra_fields->>'total_emissions_tco2e',       '')::numeric,
+                       (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)),
+                       (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)),
                        0
                    )
                END
@@ -191,7 +191,7 @@ g2_op_energy AS (
 --   All other stages   : bcDetailedLevel / replDetailed / useB1G3 / opEnergyDetailed
 g3_detailed AS (
     SELECT ad.project_stage_instance_id AS si_id,
-           SUM(COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0))
+           SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0))
                AS tco2e
     FROM activity_data ad
     JOIN si ON si.id = ad.project_stage_instance_id
@@ -216,8 +216,8 @@ g3_electricity AS (
     SELECT ad.project_stage_instance_id AS si_id,
            SUM(
                CASE WHEN :elec_method = 'market'
-                   THEN COALESCE(NULLIF(ad.extra_fields->>'market_based_tco2e',   '')::numeric, 0)
-                   ELSE COALESCE(NULLIF(NULLIF(ad.extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
+                   THEN (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END))
+                   ELSE COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
                END
            ) AS tco2e
     FROM activity_data ad
@@ -236,7 +236,7 @@ g3_electricity AS (
 -- Grade 4: construction stage only, data_quality = 'Monitored' (non-electricity)
 g4_detailed AS (
     SELECT ad.project_stage_instance_id AS si_id,
-           SUM(COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0))
+           SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0))
                AS tco2e
     FROM activity_data ad
     JOIN si ON si.id = ad.project_stage_instance_id
@@ -254,8 +254,8 @@ g4_electricity AS (
     SELECT ad.project_stage_instance_id AS si_id,
            SUM(
                CASE WHEN :elec_method = 'market'
-                   THEN COALESCE(NULLIF(ad.extra_fields->>'market_based_tco2e',   '')::numeric, 0)
-                   ELSE COALESCE(NULLIF(NULLIF(ad.extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
+                   THEN (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END))
+                   ELSE COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
                END
            ) AS tco2e
     FROM activity_data ad
@@ -318,29 +318,29 @@ period_totals AS (
             CASE
                 -- Grade 2: non-electricity
                 WHEN ad.ui_table_key IN ('component', 'componentRepl', 'useB1G2')
-                    THEN COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
+                    THEN COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
 
                 -- Grade 3: detailed non-electricity (Estimated only)
                 WHEN ad.ui_table_key IN ('bcDetailedLevel', 'constructionG3')
                      AND COALESCE(ad.extra_fields->>'data_quality', '') = 'Estimated'
-                    THEN COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
+                    THEN COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
 
                 -- Grade 4: detailed non-electricity (Monitored only)
                 WHEN ad.ui_table_key IN ('bcDetailedLevel', 'constructionG3')
                      AND COALESCE(ad.extra_fields->>'data_quality', '') = 'Monitored'
-                    THEN COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
+                    THEN COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
 
                 -- Grade 2: opEnergy electricity
                 WHEN ad.ui_table_key = 'opEnergy'
                     THEN CASE WHEN :elec_method = 'market'
                              THEN COALESCE(
-                                 NULLIF(ad.extra_fields->>'market_based_total_tco2e',   '')::numeric,
-                                 NULLIF(ad.extra_fields->>'total_emissions_tco2e',       '')::numeric,
+                                 (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)),
+                                 (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)),
                                  0
                              )
                              ELSE COALESCE(
-                                 NULLIF(ad.extra_fields->>'location_based_total_tco2e',  '')::numeric,
-                                 NULLIF(ad.extra_fields->>'total_emissions_tco2e',        '')::numeric,
+                                 (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)),
+                                 (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)),
                                  0
                              )
                          END
@@ -349,16 +349,16 @@ period_totals AS (
                 WHEN ad.ui_table_key IN ('electricity', 'opEnergyElectricity')
                      AND COALESCE(ad.extra_fields->>'data_quality', '') = 'Estimated'
                     THEN CASE WHEN :elec_method = 'market'
-                             THEN COALESCE(NULLIF(ad.extra_fields->>'market_based_tco2e',   '')::numeric, 0)
-                             ELSE COALESCE(NULLIF(NULLIF(ad.extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
+                             THEN (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END))
+                             ELSE COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
                          END
 
                 -- Grade 4: electricity (Monitored only)
                 WHEN ad.ui_table_key IN ('electricity', 'opEnergyElectricity')
                      AND COALESCE(ad.extra_fields->>'data_quality', '') = 'Monitored'
                     THEN CASE WHEN :elec_method = 'market'
-                             THEN COALESCE(NULLIF(ad.extra_fields->>'market_based_tco2e',   '')::numeric, 0)
-                             ELSE COALESCE(NULLIF(NULLIF(ad.extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
+                             THEN (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END))
+                             ELSE COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
                          END
 
                 ELSE 0
@@ -421,22 +421,22 @@ SELECT
         WHEN ad.ui_table_key = 'opEnergy'
             THEN CASE WHEN :elec_method = 'market'
                      THEN COALESCE(
-                         NULLIF(ad.extra_fields->>'market_based_total_tco2e',   '')::numeric,
-                         NULLIF(ad.extra_fields->>'total_emissions_tco2e',      '')::numeric,
+                         (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)),
+                         (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)),
                          0
                      )
                      ELSE COALESCE(
-                         NULLIF(NULLIF(ad.extra_fields->>'location_based_total_tco2e', ''), '-')::numeric,
-                         NULLIF(ad.extra_fields->>'total_emissions_tco2e',      '')::numeric,
+                         (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)),
+                         (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)),
                          0
                      )
                  END
         WHEN ad.ui_table_key IN ('electricity', 'opEnergyElectricity')
             THEN CASE WHEN :elec_method = 'market'
-                     THEN COALESCE(NULLIF(ad.extra_fields->>'market_based_tco2e',   '')::numeric, 0)
-                     ELSE COALESCE(NULLIF(NULLIF(ad.extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
+                     THEN (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END))
+                     ELSE COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
                  END
-        ELSE COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
+        ELSE COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
     END                                                                      AS total_tco2e
 FROM activity_data ad
 JOIN project_stage_instances si ON si.id = ad.project_stage_instance_id

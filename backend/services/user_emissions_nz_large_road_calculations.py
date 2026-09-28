@@ -50,6 +50,7 @@ from schemas.user_emissions_nz_large_road import (
     NzLargeRoadCalculateResponse,
     NzVehicleTypeAnnualResult,
 )
+from services.user_emissions_result_ledger import sync_annual_road_results
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -196,8 +197,13 @@ async def _get_project_reference_period(
 # VEPM dataset revision + year-range helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
-async def _get_vepm_dataset_revision_id(db: AsyncSession) -> UUID:
-    """Returns the latest published dataset_revision_id."""
+async def _get_vepm_dataset_revision_id(db: AsyncSession, project_id: UUID) -> UUID:
+    """Resolve the project's selected revision, with a legacy fallback."""
+    from services.project_context_helper import ProjectContextHelper
+
+    revision_id = await ProjectContextHelper.fetch_project_dataset_revision(db, project_id)
+    if revision_id is not None:
+        return revision_id
     row = (
         await db.execute(
             text(
@@ -398,7 +404,7 @@ async def calculate_and_store_nz_large_road(
     }
 
     # ── 4. Dataset revision + VEPM year range ─────────────────────────────────
-    dataset_revision_id = await _get_vepm_dataset_revision_id(db)
+    dataset_revision_id = await _get_vepm_dataset_revision_id(db, req.project_id)
     vepm_min_year, vepm_max_year = await _get_vepm_year_range(db, dataset_revision_id)
 
     # ── 5. Per-year, per-vehicle-type calculation + upsert ────────────────────
@@ -490,6 +496,7 @@ async def calculate_and_store_nz_large_road(
             interim_total - base_case_interim_rounded
         ).quantize(Decimal("0.000001"))
 
+    await sync_annual_road_results(db, project_option_id=req.project_option_id, project_class="LARGE", is_nz=True)
     return NzLargeRoadCalculateResponse(
         project_id=req.project_id,
         project_option_id=req.project_option_id,

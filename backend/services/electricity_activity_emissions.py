@@ -113,6 +113,10 @@ async def recalc_electricity_activity_row(
     try:
         resp = await _calculator.calculate(db, ElectricityDetailedRequest(**req_kwargs))
     except ValueError as exc:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            from services.project_dataset_recalculation import MissingDatasetDataError
+
+            raise MissingDatasetDataError("Electricity detailed factors", str(exc)) from exc
         logger.warning(
             "electricity calculate failed activity_data=%s key=%s: %s",
             activity_row.id,
@@ -121,6 +125,8 @@ async def recalc_electricity_activity_row(
         )
         return None
     except Exception:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            raise
         logger.exception(
             "electricity calculate unexpected error activity_data=%s",
             activity_row.id,

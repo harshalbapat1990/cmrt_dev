@@ -207,20 +207,11 @@ WITH
 {_ELIGIBLE_PROJECTS_CTE},
 g2_a1a3 AS (
     SELECT
-        CASE
-            WHEN g2."Product Stage (A1-3) (tCO2e/UoM)" IS NOT NULL
-            THEN COALESCE(g2."Product Stage (A1-3) (tCO2e/UoM)", 0) * ad.quantity
-            ELSE COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
-        END AS val
+        COALESCE((SELECT er.value FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.value_key = 'A1-A3' AND er.is_supplementary IS FALSE LIMIT 1), 0) AS val
     FROM activity_data ad
     JOIN eligible_projects ep
         ON ep.project_id = ad.project_id
        AND ep.stage_instance_id = ad.project_stage_instance_id
-    LEFT JOIN v_grade2_component_level g2
-        ON  g2."Jurisdiction"           = ep.jurisdiction
-        AND g2."Emissions Category"     = COALESCE(NULLIF(ad.extra_fields->>'emissions_category', ''), '__no_match__')
-        AND g2."Emissions Sub-Category" = COALESCE(NULLIF(ad.extra_fields->>'emissions_subcategory', ''), '__no_match__')
-        AND g2."Emissions Source"       = COALESCE(NULLIF(ad.extra_fields->>'emissions_source_name', ''), '__no_match__')
     WHERE (CAST(:project_option_id AS uuid) IS NULL OR ad.project_option_id = CAST(:project_option_id AS uuid))
       AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
       AND ad.ui_table_key = 'component'
@@ -228,20 +219,11 @@ g2_a1a3 AS (
 ),
 g2_a4 AS (
     SELECT
-        CASE
-            WHEN g2."Transport Stage (A4) (tCO2e/UoM)" IS NOT NULL
-            THEN COALESCE(g2."Transport Stage (A4) (tCO2e/UoM)", 0) * ad.quantity
-            ELSE 0
-        END AS val
+        COALESCE((SELECT er.value FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.value_key = 'A4' AND er.is_supplementary IS FALSE LIMIT 1), 0) AS val
     FROM activity_data ad
     JOIN eligible_projects ep
         ON ep.project_id = ad.project_id
        AND ep.stage_instance_id = ad.project_stage_instance_id
-    LEFT JOIN v_grade2_component_level g2
-        ON  g2."Jurisdiction"           = ep.jurisdiction
-        AND g2."Emissions Category"     = COALESCE(NULLIF(ad.extra_fields->>'emissions_category', ''), '__no_match__')
-        AND g2."Emissions Sub-Category" = COALESCE(NULLIF(ad.extra_fields->>'emissions_subcategory', ''), '__no_match__')
-        AND g2."Emissions Source"       = COALESCE(NULLIF(ad.extra_fields->>'emissions_source_name', ''), '__no_match__')
     WHERE (CAST(:project_option_id AS uuid) IS NULL OR ad.project_option_id = CAST(:project_option_id AS uuid))
       AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
       AND ad.ui_table_key = 'component'
@@ -249,20 +231,11 @@ g2_a4 AS (
 ),
 g2_a5 AS (
     SELECT
-        CASE
-            WHEN g2."Construction Stage (A5) (tCO2e/UoM)" IS NOT NULL
-            THEN COALESCE(g2."Construction Stage (A5) (tCO2e/UoM)", 0) * ad.quantity
-            ELSE 0
-        END AS val
+        COALESCE((SELECT er.value FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.value_key = 'A5' AND er.is_supplementary IS FALSE LIMIT 1), 0) AS val
     FROM activity_data ad
     JOIN eligible_projects ep
         ON ep.project_id = ad.project_id
        AND ep.stage_instance_id = ad.project_stage_instance_id
-    LEFT JOIN v_grade2_component_level g2
-        ON  g2."Jurisdiction"           = ep.jurisdiction
-        AND g2."Emissions Category"     = COALESCE(NULLIF(ad.extra_fields->>'emissions_category', ''), '__no_match__')
-        AND g2."Emissions Sub-Category" = COALESCE(NULLIF(ad.extra_fields->>'emissions_subcategory', ''), '__no_match__')
-        AND g2."Emissions Source"       = COALESCE(NULLIF(ad.extra_fields->>'emissions_source_name', ''), '__no_match__')
     WHERE (CAST(:project_option_id AS uuid) IS NULL OR ad.project_option_id = CAST(:project_option_id AS uuid))
       AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
       AND ad.ui_table_key = 'component'
@@ -350,8 +323,8 @@ SELECT
          AND (:actual_only = FALSE OR ad.project_mitigation_id IS NULL))
     + (SELECT COALESCE(SUM(
            CASE WHEN :elec_method = 'market'
-                THEN COALESCE(NULLIF(NULLIF(ad.extra_fields->>'market_based_tco2e', ''), '-')::numeric, 0)
-                ELSE COALESCE(NULLIF(NULLIF(ad.extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
+                THEN COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
+                ELSE COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
            END), 0)
        FROM activity_data ad
        JOIN eligible_projects ep
@@ -374,14 +347,15 @@ SELECT
          AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
          AND ad.ui_table_key = 'shortcutIsMaterials'
          AND (:actual_only = FALSE OR ad.project_mitigation_id IS NULL))
-    + (SELECT COALESCE(SUM(
-           COALESCE(NULLIF(NULLIF(ad.extra_fields->>'actual_scope3', ''), '-')::numeric, 0) +
-           COALESCE(NULLIF(NULLIF(ad.extra_fields->>'actual_scope4', ''), '-')::numeric, 0)
-       ), 0)
+    + (SELECT COALESCE(SUM(er.value), 0)
        FROM activity_data ad
        JOIN eligible_projects ep
            ON ep.project_id = ad.project_id
           AND ep.stage_instance_id = ad.project_stage_instance_id
+       JOIN emissions_results er
+           ON er.activity_data_id = ad.id
+          AND er.reporting_measure = 'actual'
+          AND er.is_supplementary IS FALSE
        WHERE (CAST(:project_option_id AS uuid) IS NULL OR ad.project_option_id = CAST(:project_option_id AS uuid))
          AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
          AND ad.ui_table_key = 'shortcutSat4p'
@@ -409,7 +383,7 @@ SELECT
        AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
        AND ad.ui_table_key IN ('useB1G2', 'useB1G3')
        AND (:actual_only = FALSE OR ad.project_mitigation_id IS NULL))
-    + (SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0)
+    + (SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)), 0)
        FROM activity_data ad
        JOIN eligible_projects ep
            ON ep.project_id = ad.project_id
@@ -433,7 +407,7 @@ SELECT
          AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
          AND ad.ui_table_key = 'opEnergy'
          AND (:actual_only = FALSE OR ad.project_mitigation_id IS NULL))
-    + (SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0)
+    + (SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)), 0)
        FROM activity_data ad
        JOIN eligible_projects ep
            ON ep.project_id = ad.project_id
@@ -445,8 +419,8 @@ SELECT
          AND (:actual_only = FALSE OR ad.project_mitigation_id IS NULL))
     + (SELECT COALESCE(SUM(
            CASE WHEN :elec_method = 'market'
-                THEN COALESCE(NULLIF(NULLIF(ad.extra_fields->>'market_based_tco2e', ''), '-')::numeric, 0)
-                ELSE COALESCE(NULLIF(NULLIF(ad.extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
+                THEN COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
+                ELSE COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
            END), 0)
        FROM activity_data ad
        JOIN eligible_projects ep
@@ -456,7 +430,7 @@ SELECT
          AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
          AND ad.ui_table_key = 'opEnergyElectricity'
          AND (:actual_only = FALSE OR ad.project_mitigation_id IS NULL))
-    + (SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0)
+    + (SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)), 0)
        FROM activity_data ad
        JOIN eligible_projects ep
            ON ep.project_id = ad.project_id
@@ -466,7 +440,7 @@ SELECT
          AND ad.ui_table_key = 'opEnergyDetailed'
          AND ad.extra_fields->>'emissions_category' = 'Water'
          AND (:actual_only = FALSE OR ad.project_mitigation_id IS NULL))
-    + (SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0)
+    + (SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)), 0)
        FROM activity_data ad
        JOIN eligible_projects ep
            ON ep.project_id = ad.project_id
@@ -487,7 +461,7 @@ _UPSCALING_CONSTRUCTION_SQL = text(
     f"""
 WITH
 {_ELIGIBLE_PROJECTS_CTE}
-SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(ad.extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
+SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE ad.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0)), 0) AS val
 FROM activity_data ad
 JOIN eligible_projects ep
     ON ep.project_id = ad.project_id
@@ -504,7 +478,7 @@ _UPSCALING_OPERATIONS_SQL = text(
     f"""
 WITH
 {_ELIGIBLE_PROJECTS_CTE}
-SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(ad.extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
+SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE ad.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0)), 0) AS val
 FROM activity_data ad
 JOIN eligible_projects ep
     ON ep.project_id = ad.project_id

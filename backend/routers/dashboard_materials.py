@@ -65,6 +65,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
 from services.project_context_helper import ProjectContextHelper
+from services.emissions_result_aggregates import emissions_totals_by_activity
 
 router = APIRouter(
     prefix="/api/dashboard/materials",
@@ -155,7 +156,7 @@ WITH all_rows AS (
         extra_fields->>'unit_code'                                    AS unit,
         ad.quantity                                                   AS quantity,
         extra_fields->>'notes'                                        AS notes,
-        NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric   AS emissions_tco2e,
+        0::numeric AS emissions_tco2e,
         false                                                         AS is_concrete
     FROM activity_data ad
     WHERE
@@ -180,7 +181,7 @@ WITH all_rows AS (
         'm3'                                                          AS unit,
         NULLIF(NULLIF(extra_fields->>'volume', ''), '-')::numeric                  AS quantity,
         extra_fields->>'notes'                                        AS notes,
-        NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric   AS emissions_tco2e,
+        0::numeric AS emissions_tco2e,
         true                                                          AS is_concrete
     FROM activity_data ad
     WHERE
@@ -207,7 +208,7 @@ WITH all_rows AS (
         'm3'                                                          AS unit,
         NULLIF(NULLIF(extra_fields->>'volume', ''), '-')::numeric                  AS quantity,
         extra_fields->>'notes'                                        AS notes,
-        NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric   AS emissions_tco2e,
+        0::numeric AS emissions_tco2e,
         true                                                          AS is_concrete
     FROM activity_data ad
     WHERE
@@ -460,6 +461,8 @@ async def get_materials_detail(
             detail=f"Database query failed: {exc}",
         )
 
+    raw_rows = result.mappings().all()
+    emissions_by_id = await emissions_totals_by_activity(db, (row.id for row in raw_rows))
     rows = [
         MaterialsDetailRow(
             id=row.id,
@@ -475,10 +478,10 @@ async def get_materials_detail(
             reused_pct=row.reused_pct,
             reused_t=row.reused_t,
             virgin_t=row.virgin_t,
-            emissions_tco2e=row.emissions_tco2e,
+            emissions_tco2e=emissions_by_id.get(row.id, Decimal(0)),
             notes=row.notes,
         )
-        for row in result.mappings().all()
+        for row in raw_rows
     ]
 
     return MaterialsDetailResponse(rows=rows)

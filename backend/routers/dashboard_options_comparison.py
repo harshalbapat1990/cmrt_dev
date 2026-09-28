@@ -130,7 +130,7 @@ er_a1a3 AS (
 -- ── Grade 3/4 Materials rows: A1-A3 and A4 splits ───────────────────────────────────────────
 -- bcDetailedLevel / constructionG3: reads pre-computed values from emissions_results
 --   (written by recalc_grade34_construction_activity_row when activity is saved).
--- recurringG3: kept on old runtime-join path until migrated.
+    -- recurringG3: emissions are persisted on the input row and read here.
 g34_mat_splits AS (
     -- bcDetailedLevel / constructionG3: read from emissions_results (no view join needed)
     SELECT
@@ -154,21 +154,21 @@ g34_mat_splits AS (
 
     UNION ALL
 
-    -- recurringG3: legacy runtime-join path (not yet migrated to emissions_results)
+    -- recurringG3 results are written by the shared ledger synchronizer.
     SELECT
-        LEAST(
-            COALESCE(ef.emission_factor_scope3, 0) * ad.quantity,
-            COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
-        ) AS a1_a3,
-        GREATEST(0,
-            COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0) -
-            COALESCE(ef.emission_factor_scope3, 0) * ad.quantity
-        ) AS a4
+        COALESCE(er_a1a3.value, 0) AS a1_a3,
+        COALESCE(er_a4.value, 0) AS a4
     FROM activity_data ad
-    LEFT JOIN v_grade34_detailed_level ef
-        ON  ef."Jurisdiction"     = :jurisdiction
-        AND ef."Emissions Source" = COALESCE(NULLIF(ad.extra_fields->>'emissions_source_name', ''), '__no_match__')
-        AND ef."UoM"              = COALESCE(NULLIF(ad.extra_fields->>'unit_code', ''), '__no_match__')
+    LEFT JOIN emissions_results er_a1a3
+        ON er_a1a3.activity_data_id = ad.id
+        AND er_a1a3.value_key = 'A1-A3'
+        AND er_a1a3.is_supplementary IS FALSE
+        AND er_a1a3.reporting_measure = 'actual'
+    LEFT JOIN emissions_results er_a4
+        ON er_a4.activity_data_id = ad.id
+        AND er_a4.value_key = 'A4'
+        AND er_a4.is_supplementary IS FALSE
+        AND er_a4.reporting_measure = 'actual'
     WHERE ad.project_id                = :project_id
       AND ad.project_stage_instance_id = :stage_instance_id
       AND ad.project_option_id         = :option_id
@@ -219,8 +219,8 @@ a5_elec AS (
     -- location_based_tco2e / market_based_tco2e from extra_fields (Scope 2+3 totals).
     SELECT COALESCE(SUM(
         CASE WHEN :elec_method = 'market'
-             THEN COALESCE(NULLIF(NULLIF(extra_fields->>'market_based_tco2e',   ''), '-')::numeric, 0)
-             ELSE COALESCE(NULLIF(NULLIF(extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
+             THEN COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
+             ELSE COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
         END
     ), 0) AS val
     FROM activity_data
@@ -236,17 +236,17 @@ a5_sat4p AS (
     -- 'Construction materials' → A1-A3, 'Transport (construction materials)' → A4,
     -- 'Maintenance processes / equipment' / 'Transport (maintenance materials)' → B2-B5,
     -- 'Use phase' → B8 — all excluded by using an explicit IN list.
-    SELECT COALESCE(SUM(
-        COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope3', ''), '-')::numeric, 0) +
-        COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope4', ''), '-')::numeric, 0)
-    ), 0) AS val
-    FROM activity_data
-    WHERE project_id                = :project_id
-      AND project_stage_instance_id = :stage_instance_id
-      AND project_option_id         = :option_id
-      AND (CAST(:submission_period_id AS uuid) IS NULL OR submission_period_id = CAST(:submission_period_id AS uuid))
-      AND ui_table_key = 'shortcutSat4p'
-      AND extra_fields->>'source' IN (
+    SELECT COALESCE(SUM(er.value), 0) AS val
+    FROM activity_data ad
+    JOIN emissions_results er ON er.activity_data_id = ad.id
+      AND er.reporting_measure = 'actual'
+      AND er.is_supplementary IS FALSE
+    WHERE ad.project_id                = :project_id
+      AND ad.project_stage_instance_id = :stage_instance_id
+      AND ad.project_option_id         = :option_id
+      AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
+      AND ad.ui_table_key = 'shortcutSat4p'
+      AND ad.extra_fields->>'source' IN (
           'Construction processes/equipment',
           'Disposal',
           'Transport off-site (waste)'
@@ -258,7 +258,7 @@ b2_b5 AS (
     --   componentRepl  → Component Level Replacement (B4) (Grade 2 and 3)
     --   refurbishment  → Other Maintenance/Repair/Replacement/Refurbishment Activities (Grade 2)
     --   replDetailed   → Detailed Level (Grade 3)  [Offset rows excluded — handled by offsets CTE]
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)), 0) AS val
     FROM activity_data
     WHERE project_id                = :project_id
       AND project_stage_instance_id = :stage_instance_id
@@ -273,8 +273,8 @@ er_b6_elec AS (
     -- Uses location_based_tco2e / market_based_tco2e from extra_fields (Scope 2+3 totals).
     SELECT COALESCE(SUM(
         CASE WHEN :elec_method = 'market'
-             THEN COALESCE(NULLIF(NULLIF(extra_fields->>'market_based_tco2e',   ''), '-')::numeric, 0)
-             ELSE COALESCE(NULLIF(NULLIF(extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
+             THEN COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
+             ELSE COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
         END
     ), 0) AS val
     FROM activity_data
@@ -290,7 +290,7 @@ er_b6_elec AS (
 -- ════════════════════════════════════════════════════════════════════════════
 
 b1 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)), 0) AS val
     FROM activity_data
     WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
       AND project_option_id = :option_id
@@ -304,12 +304,12 @@ b6_op AS (
     SELECT COALESCE(SUM(
         CASE WHEN :elec_method = 'market'
              THEN COALESCE(
-                     NULLIF(NULLIF(extra_fields->>'market_based_total_tco2e', ''), '-')::numeric,
-                     COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
+                     (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)),
+                     COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
                   )
              ELSE COALESCE(
-                     NULLIF(NULLIF(extra_fields->>'location_based_total_tco2e', ''), '-')::numeric,
-                     COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
+                     (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)),
+                     COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
                   )
         END
     ), 0) AS val
@@ -322,7 +322,7 @@ b6_op AS (
 
 b6_detailed AS (
     -- opEnergyDetailed non-Water, non-Offset rows (Offset rows are captured in the offsets CTE)
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)), 0) AS val
     FROM activity_data
     WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
       AND project_option_id = :option_id
@@ -332,7 +332,7 @@ b6_detailed AS (
 ),
 
 b7 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)), 0) AS val
     FROM activity_data
     WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
       AND project_option_id = :option_id
@@ -343,7 +343,7 @@ b7 AS (
 
 b8_road AS (
     -- Small project road users: relativeUserEmissions
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'relativeUserEmissions', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)), 0) AS val
     FROM activity_data
     WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
       AND project_option_id = :option_id
@@ -353,7 +353,7 @@ b8_road AS (
 
 b8_rail AS (
     -- Rail users (small and large): emissions_total_ref_period_tco2e
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'emissions_total_ref_period_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)), 0) AS val
     FROM activity_data
     WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
       AND project_option_id = :option_id
@@ -368,7 +368,7 @@ b8_large_road AS (
     -- Deduplicate: take MAX per unique combination, then sum across combinations.
     SELECT COALESCE(SUM(max_val), 0) AS val
     FROM (
-        SELECT MAX(COALESCE(NULLIF(NULLIF(extra_fields->>'final_user_emissions_tco2e', ''), '-')::numeric, 0)) AS max_val
+        SELECT MAX(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)) AS max_val
         FROM activity_data
         WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
           AND project_option_id = :option_id
@@ -387,7 +387,7 @@ b8 AS (
 ),
 
 offsets AS (
-    SELECT -COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT -COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure = 'offset' AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)), 0) AS val
     FROM activity_data
     WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
       AND project_option_id = :option_id
@@ -404,7 +404,7 @@ offsets AS (
 -- ════════════════════════════════════════════════════════════════════════════
 
 uplift_a1a3 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE activity_data.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0)), 0) AS val
     FROM activity_data
     WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
       AND project_option_id = :option_id
@@ -412,7 +412,7 @@ uplift_a1a3 AS (
       AND ui_table_key = 'completeness' AND extra_fields->>'module' = 'a1_a3'
 ),
 uplift_a4 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE activity_data.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0)), 0) AS val
     FROM activity_data
     WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
       AND project_option_id = :option_id
@@ -420,7 +420,7 @@ uplift_a4 AS (
       AND ui_table_key = 'completeness' AND extra_fields->>'module' = 'a4'
 ),
 uplift_a5 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE activity_data.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0)), 0) AS val
     FROM activity_data
     WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
       AND project_option_id = :option_id
@@ -428,7 +428,7 @@ uplift_a5 AS (
       AND ui_table_key = 'completeness' AND extra_fields->>'module' = 'a5'
 ),
 uplift_b1 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE activity_data.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0)), 0) AS val
     FROM activity_data
     WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
       AND project_option_id = :option_id
@@ -436,7 +436,7 @@ uplift_b1 AS (
       AND ui_table_key = 'completeness' AND extra_fields->>'module' = 'b1'
 ),
 uplift_b2_b5 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE activity_data.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0)), 0) AS val
     FROM activity_data
     WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
       AND project_option_id = :option_id
@@ -444,7 +444,7 @@ uplift_b2_b5 AS (
       AND ui_table_key = 'completeness' AND extra_fields->>'module' = 'b2_b5'
 ),
 uplift_b6 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE activity_data.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0)), 0) AS val
     FROM activity_data
     WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
       AND project_option_id = :option_id
@@ -452,7 +452,7 @@ uplift_b6 AS (
       AND ui_table_key = 'completeness' AND extra_fields->>'module' = 'b6'
 ),
 uplift_b7 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE activity_data.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0)), 0) AS val
     FROM activity_data
     WHERE project_id = :project_id AND project_stage_instance_id = :stage_instance_id
       AND project_option_id = :option_id

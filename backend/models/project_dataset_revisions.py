@@ -1,5 +1,6 @@
 import uuid as _uuid
 from sqlalchemy import Boolean, Column, String, Text, TIMESTAMP, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy import ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -21,6 +22,7 @@ class ProjectDatasetRevision(Base):
     applied_at = Column(TIMESTAMP, nullable=False, server_default=func.now())
     is_locked = Column(Boolean, nullable=False, server_default="false")
     notes = Column(Text, nullable=True)
+    calculation_report = Column(JSONB, nullable=False, server_default="{}")
 
     revision = relationship("DatasetRevision", lazy="selectin", foreign_keys=[dataset_revision_id])
 

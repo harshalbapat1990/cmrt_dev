@@ -105,6 +105,8 @@ async def recalc_inuse_gases_row(
     try:
         resp = await _calculator.calculate(db, req)
     except Exception:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            raise
         logger.exception(
             "useB1G2 calculate unexpected error activity_data=%s",
             activity_row.id,
@@ -112,6 +114,10 @@ async def recalc_inuse_gases_row(
         return None
 
     if resp.total_emissions_tco2e is None:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            from services.project_dataset_recalculation import MissingDatasetDataError
+
+            raise MissingDatasetDataError("Fugitive equipment factors")
         logger.warning(
             "useB1G2: calculator returned None "
             "(leakage_rate=%s scope1_factor=%s) activity_data=%s",

@@ -22,6 +22,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
+from services.emissions_result_aggregates import emissions_totals_by_activity
 
 router = APIRouter(
     prefix="/api/org-dashboard/energy",
@@ -178,7 +179,7 @@ all_rows AS (
         ad.extra_fields->>'unit_code'                                            AS unit,
         ad.quantity                                                              AS quantity,
         NULL::text                                                               AS renewable_status,
-        NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric AS emissions_tco2e,
+        0::numeric AS emissions_tco2e,
         ad.extra_fields->>'notes'                                                AS notes,
         NULL::numeric                                                            AS quantity_each,
         NULL::numeric                                                            AS annual_kwh_per_unit,
@@ -207,7 +208,7 @@ all_rows AS (
         'MWh'                                                                    AS unit,
         NULLIF(NULLIF(ad.extra_fields->>'quantity_mwh', ''), '-')::numeric       AS quantity,
         NULL::text                                                               AS renewable_status,
-        NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric AS emissions_tco2e,
+        0::numeric AS emissions_tco2e,
         ad.extra_fields->>'notes'                                                AS notes,
         NULL::numeric                                                            AS quantity_each,
         NULL::numeric                                                            AS annual_kwh_per_unit,
@@ -238,7 +239,7 @@ all_rows AS (
         ad.extra_fields->>'unit_code'                                            AS unit,
         ad.quantity                                                              AS quantity,
         NULL::text                                                               AS renewable_status,
-        NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric AS emissions_tco2e,
+        0::numeric AS emissions_tco2e,
         ad.extra_fields->>'notes'                                                AS notes,
         NULL::numeric                                                            AS quantity_each,
         NULL::numeric                                                            AS annual_kwh_per_unit,
@@ -271,7 +272,7 @@ all_rows AS (
             ELSE NULL
         END                                                                      AS quantity,
         NULL::text                                                               AS renewable_status,
-        NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric AS emissions_tco2e,
+        0::numeric AS emissions_tco2e,
         ad.extra_fields->>'notes'                                                AS notes,
         ad.quantity                                                              AS quantity_each,
         oe.annual_kwh_per_unit                                                   AS annual_kwh_per_unit,
@@ -309,7 +310,7 @@ all_rows AS (
         ad.extra_fields->>'unit_code'                                            AS unit,
         ad.quantity                                                              AS quantity,
         NULL::text                                                               AS renewable_status,
-        NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric AS emissions_tco2e,
+        0::numeric AS emissions_tco2e,
         ad.extra_fields->>'notes'                                                AS notes,
         NULL::numeric                                                            AS quantity_each,
         NULL::numeric                                                            AS annual_kwh_per_unit,
@@ -338,7 +339,7 @@ all_rows AS (
         'MWh'                                                                    AS unit,
         NULLIF(NULLIF(ad.extra_fields->>'quantity_mwh', ''), '-')::numeric       AS quantity,
         NULL::text                                                               AS renewable_status,
-        NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric AS emissions_tco2e,
+        0::numeric AS emissions_tco2e,
         ad.extra_fields->>'notes'                                                AS notes,
         NULL::numeric                                                            AS quantity_each,
         NULL::numeric                                                            AS annual_kwh_per_unit,
@@ -588,4 +589,8 @@ async def org_energy_detail(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Database query failed: {exc}") from exc
 
-    return OrgEnergyDetailResponse(rows=[OrgEnergyDetailRow(**dict(r)) for r in rows])
+    emissions_by_id = await emissions_totals_by_activity(db, (r["id"] for r in rows))
+    return OrgEnergyDetailResponse(rows=[
+        OrgEnergyDetailRow(**{**dict(r), "emissions_tco2e": emissions_by_id.get(r["id"], Decimal(0))})
+        for r in rows
+    ])

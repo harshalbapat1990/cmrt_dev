@@ -22,6 +22,7 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
+from services.emissions_result_aggregates import emissions_totals_by_activity
 from models.organizations import Organization
 
 router = APIRouter(
@@ -179,7 +180,7 @@ all_rows AS (
         ad.extra_fields->>'unit_code'                                 AS unit,
         ad.quantity                                                   AS quantity,
         ad.extra_fields->>'notes'                                     AS notes,
-        NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric AS emissions_tco2e,
+        0::numeric AS emissions_tco2e,
         false                                                         AS is_concrete
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -206,7 +207,7 @@ all_rows AS (
         'm3'                                                          AS unit,
         NULLIF(NULLIF(ad.extra_fields->>'volume', ''), '-')::numeric  AS quantity,
         ad.extra_fields->>'notes'                                     AS notes,
-        NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric AS emissions_tco2e,
+        0::numeric AS emissions_tco2e,
         true                                                          AS is_concrete
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -235,7 +236,7 @@ all_rows AS (
         'm3'                                                          AS unit,
         NULLIF(NULLIF(ad.extra_fields->>'volume', ''), '-')::numeric  AS quantity,
         ad.extra_fields->>'notes'                                     AS notes,
-        NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric AS emissions_tco2e,
+        0::numeric AS emissions_tco2e,
         true                                                          AS is_concrete
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -427,4 +428,8 @@ async def org_materials_detail(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Database query failed: {exc}") from exc
 
-    return OrgMaterialsDetailResponse(rows=[OrgMaterialsRow(**dict(r)) for r in rows])
+    emissions_by_id = await emissions_totals_by_activity(db, (r["id"] for r in rows))
+    return OrgMaterialsDetailResponse(rows=[
+        OrgMaterialsRow(**{**dict(r), "emissions_tco2e": emissions_by_id.get(r["id"], Decimal(0))})
+        for r in rows
+    ])

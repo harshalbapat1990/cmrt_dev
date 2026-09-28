@@ -7,12 +7,9 @@ export const GRADE34_IDS = [3, 4];
 
 export const apiRowToUiRow = (apiRow: any): any => {
     const extra = apiRow.extra_fields ?? {};
-    const emRaw =
-        extra.total_emissions_tco2e ??
-        extra.emissions_tco2e ??
-        apiRow.total_emissions_tco2e ??
-        apiRow.emissions_tco2e ??
-        null;
+    // ActivityData API responses enrich this field from emissions_results.
+    // Do not revive a potentially stale emissions value from extra_fields.
+    const emRaw = apiRow.emissions_tco2e ?? null;
     const em =
         emRaw !== null && emRaw !== "" && emRaw !== "-" ? Number(emRaw) : null;
     return {

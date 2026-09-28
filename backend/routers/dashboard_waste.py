@@ -43,6 +43,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
+from services.emissions_result_aggregates import emissions_totals_by_activity
 
 router = APIRouter(
     prefix="/api/dashboard/waste",
@@ -191,7 +192,7 @@ _DETAIL_SQL = text("""
         extra_fields->>'emissions_source'                             AS waste_type,
         extra_fields->>'unit_code'                                    AS unit,
         quantity                                                      AS quantity_t,
-        NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric   AS emissions_tco2e,
+        0::numeric AS emissions_tco2e,
         extra_fields->>'notes'                                        AS notes
     FROM activity_data
     WHERE
@@ -321,6 +322,8 @@ async def get_waste_detail(
             detail=f"Database query failed: {exc}",
         )
 
+    raw_rows = result.mappings().all()
+    emissions_by_id = await emissions_totals_by_activity(db, (row.id for row in raw_rows))
     rows = [
         WasteDetailRow(
             id=row.id,
@@ -328,10 +331,10 @@ async def get_waste_detail(
             waste_type=row.waste_type,
             unit=row.unit,
             quantity_t=row.quantity_t,
-            emissions_tco2e=row.emissions_tco2e,
+            emissions_tco2e=emissions_by_id.get(row.id, Decimal(0)),
             notes=row.notes,
         )
-        for row in result.mappings().all()
+        for row in raw_rows
     ]
 
     return WasteDetailResponse(rows=rows)

@@ -177,7 +177,7 @@ grade34_mit AS (
 concrete_actual AS (
     SELECT
         'Concrete'::text AS sub_category,
-        SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)) AS actual_tco2e,
+        SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'actual' AND er.is_supplementary IS FALSE), 0)) AS actual_tco2e,
         0::numeric                                                                    AS mitigation_tco2e
     FROM activity_data
     WHERE
@@ -193,7 +193,7 @@ concrete_mit AS (
     SELECT
         'Concrete'::text AS sub_category,
         0::numeric                                                                    AS actual_tco2e,
-        SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)) AS mitigation_tco2e
+        SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'mitigation' AND er.is_supplementary IS FALSE), 0)) AS mitigation_tco2e
     FROM activity_data
     WHERE
         project_id                    = :project_id
@@ -207,11 +207,8 @@ concrete_mit AS (
 is_materials AS (
     SELECT
         'Other shortcuts'::text AS sub_category,
-        SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'actual_case', ''), '-')::numeric, 0))  AS actual_tco2e,
-        GREATEST(0,
-            SUM(COALESCE(NULLIF(extra_fields->>'base_case',   '')::numeric, 0)) -
-            SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'actual_case', ''), '-')::numeric, 0))
-        )                                                                    AS mitigation_tco2e
+        SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'actual' AND er.is_supplementary IS FALSE), 0)) AS actual_tco2e,
+        SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'baseline_adjustment' AND er.is_supplementary IS FALSE), 0)) AS mitigation_tco2e
     FROM activity_data
     WHERE
         project_id                    = :project_id
@@ -226,20 +223,8 @@ is_materials AS (
 sat4p AS (
     SELECT
         'Other shortcuts'::text AS sub_category,
-        SUM(
-            COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope3', ''), '-')::numeric, 0) +
-            COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope4', ''), '-')::numeric, 0)
-        )                       AS actual_tco2e,
-        GREATEST(0,
-            SUM(
-                COALESCE(NULLIF(NULLIF(extra_fields->>'base_scope1', ''), '-')::numeric, 0) +
-                COALESCE(NULLIF(NULLIF(extra_fields->>'base_scope2', ''), '-')::numeric, 0)
-            ) -
-            SUM(
-                COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope3', ''), '-')::numeric, 0) +
-                COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope4', ''), '-')::numeric, 0)
-            )
-        )                       AS mitigation_tco2e
+        SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'actual' AND er.is_supplementary IS FALSE), 0)) AS actual_tco2e,
+        SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'baseline_adjustment' AND er.is_supplementary IS FALSE), 0)) AS mitigation_tco2e
     FROM activity_data
     WHERE
         project_id                    = :project_id
@@ -350,9 +335,9 @@ SELECT
     'actual'::text                                                                AS row_type,
     'Concrete'::text                                                              AS sub_category,
     COALESCE(extra_fields->>'component_type', '(unspecified)')                    AS item,
-    COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)      AS actual_tco2e,
+    COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'actual' AND er.is_supplementary IS FALSE), 0) AS actual_tco2e,
     0::numeric                                                                    AS mitigation_tco2e,
-    COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)      AS base_case_tco2e,
+    COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'actual' AND er.is_supplementary IS FALSE), 0) AS base_case_tco2e,
     extra_fields->>'unit_code'                                                    AS unit
 FROM activity_data
 WHERE
@@ -371,8 +356,8 @@ SELECT
     'Concrete'::text                                                              AS sub_category,
     COALESCE(extra_fields->>'component_type', '(unspecified)')                    AS item,
     0::numeric                                                                    AS actual_tco2e,
-    COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)      AS mitigation_tco2e,
-    COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)      AS base_case_tco2e,
+    COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'mitigation' AND er.is_supplementary IS FALSE), 0) AS mitigation_tco2e,
+    COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'mitigation' AND er.is_supplementary IS FALSE), 0) AS base_case_tco2e,
     extra_fields->>'unit_code'                                                    AS unit
 FROM activity_data
 WHERE
@@ -394,12 +379,9 @@ SELECT
         NULLIF(extra_fields->>'sub_component_type', ''),
         '(unspecified)'
     )                                                                             AS item,
-    COALESCE(NULLIF(NULLIF(extra_fields->>'actual_case', ''), '-')::numeric, 0)               AS actual_tco2e,
-    GREATEST(0,
-        COALESCE(NULLIF(extra_fields->>'base_case',   '')::numeric, 0) -
-        COALESCE(NULLIF(NULLIF(extra_fields->>'actual_case', ''), '-')::numeric, 0)
-    )                                                                             AS mitigation_tco2e,
-    COALESCE(NULLIF(NULLIF(extra_fields->>'base_case', ''), '-')::numeric, 0)                 AS base_case_tco2e,
+    COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'actual' AND er.is_supplementary IS FALSE), 0) AS actual_tco2e,
+    COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'baseline_adjustment' AND er.is_supplementary IS FALSE), 0) AS mitigation_tco2e,
+    COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure IN ('actual', 'baseline_adjustment') AND er.is_supplementary IS FALSE), 0) AS base_case_tco2e,
     NULL::text                                                                    AS unit
 FROM activity_data
 WHERE
@@ -418,16 +400,9 @@ SELECT
     'actual'::text                                                                AS row_type,
     'Other shortcuts'::text                                                       AS sub_category,
     extra_fields->>'source'                                                       AS item,
-    COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope3', ''), '-')::numeric, 0) +
-        COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope4', ''), '-')::numeric, 0)         AS actual_tco2e,
-    GREATEST(0,
-        COALESCE(NULLIF(NULLIF(extra_fields->>'base_scope1', ''), '-')::numeric, 0) +
-            COALESCE(NULLIF(NULLIF(extra_fields->>'base_scope2', ''), '-')::numeric, 0) -
-        COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope3', ''), '-')::numeric, 0) -
-            COALESCE(NULLIF(NULLIF(extra_fields->>'actual_scope4', ''), '-')::numeric, 0)
-    )                                                                             AS mitigation_tco2e,
-    COALESCE(NULLIF(NULLIF(extra_fields->>'base_scope1', ''), '-')::numeric, 0) +
-        COALESCE(NULLIF(NULLIF(extra_fields->>'base_scope2', ''), '-')::numeric, 0)           AS base_case_tco2e,
+    COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'actual' AND er.is_supplementary IS FALSE), 0) AS actual_tco2e,
+    COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'baseline_adjustment' AND er.is_supplementary IS FALSE), 0) AS mitigation_tco2e,
+    COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure IN ('actual', 'baseline_adjustment') AND er.is_supplementary IS FALSE), 0) AS base_case_tco2e,
     NULL::text                                                                    AS unit
 FROM activity_data
 WHERE

@@ -190,26 +190,22 @@ eligible_projects AS (
 ),
 
 -- ════════════════════════════════════════════════════════════════════════════
--- TIER 3 — Stored carbon (view JOINs, no value_key yet)
--- Mirrors project-level g2_stored_carbon and g34_carbon_storage CTEs.
--- Replace with emissions_results JOIN once developer adds a stored-carbon code.
+-- TIER 3 — Stored carbon from the result ledger.
 -- ════════════════════════════════════════════════════════════════════════════
 
 g2_stored_carbon AS (
     SELECT
         ep.project_id,
         ep.project_name,
-        -- EF is already negative in v_grade2_component_level; no extra negation needed
-        COALESCE(g2."Carbon Storage (tCO2e/UoM)", 0) * COALESCE(ad.quantity, 0) AS stored_carbon
+        er.value AS stored_carbon
     FROM activity_data ad
     JOIN eligible_projects ep
         ON ep.project_id        = ad.project_id
        AND ep.stage_instance_id = ad.project_stage_instance_id
-    LEFT JOIN v_grade2_component_level g2
-        ON  g2."Jurisdiction"           = :jurisdiction
-        AND g2."Emissions Category"     = COALESCE(NULLIF(ad.extra_fields->>'emissions_category',    ''), '__no_match__')
-        AND g2."Emissions Sub-Category" = COALESCE(NULLIF(ad.extra_fields->>'emissions_subcategory', ''), '__no_match__')
-        AND g2."Emissions Source"       = COALESCE(NULLIF(ad.extra_fields->>'emissions_source_name', ''), '__no_match__')
+    JOIN emissions_results er
+        ON er.activity_data_id = ad.id
+       AND er.reporting_measure = 'stored_carbon'
+       AND er.is_supplementary IS FALSE
     WHERE ad.ui_table_key = 'component'
       AND (CAST(:project_option_id    AS uuid) IS NULL OR ad.project_option_id    = CAST(:project_option_id    AS uuid))
       AND (CAST(:submission_period_id AS uuid) IS NULL OR ad.submission_period_id = CAST(:submission_period_id AS uuid))
@@ -219,18 +215,15 @@ g34_carbon_storage AS (
     SELECT
         ep.project_id,
         ep.project_name,
-        -- EF is already negative in v_grade34_detailed_level; no extra negation needed
-        COALESCE(g34."Carbon Storage (tCO2e/UoM)", 0) * COALESCE(ad.quantity, 0) AS stored_carbon
+        er.value AS stored_carbon
     FROM activity_data ad
     JOIN eligible_projects ep
         ON ep.project_id        = ad.project_id
        AND ep.stage_instance_id = ad.project_stage_instance_id
-    LEFT JOIN v_grade34_detailed_level g34
-        ON  g34."Jurisdiction"           = :jurisdiction
-        AND g34."Emissions Category"     = COALESCE(NULLIF(ad.extra_fields->>'emissions_category',    ''), '__no_match__')
-        AND g34."Emissions Sub-Category" = COALESCE(NULLIF(ad.extra_fields->>'emissions_subcategory', ''), '__no_match__')
-        AND g34."Emissions Source"       = COALESCE(NULLIF(ad.extra_fields->>'emissions_source_name', ''), '__no_match__')
-        AND g34."UoM"                    = COALESCE(NULLIF(ad.extra_fields->>'unit_code',              ''), '__no_match__')
+    JOIN emissions_results er
+        ON er.activity_data_id = ad.id
+       AND er.reporting_measure = 'stored_carbon'
+       AND er.is_supplementary IS FALSE
     WHERE ad.ui_table_key = 'bcDetailedLevel'
       AND COALESCE(ad.extra_fields->>'emissions_category', '') <> 'Offset'
       AND (CAST(:project_option_id    AS uuid) IS NULL OR ad.project_option_id    = CAST(:project_option_id    AS uuid))
@@ -246,7 +239,7 @@ b8_large_road_deduped AS (
         SELECT
             ad.project_id,
             ad.project_stage_instance_id,
-            MAX(COALESCE(NULLIF(NULLIF(ad.extra_fields->>'final_user_emissions_tco2e', ''), '-')::numeric, 0)) AS max_val
+            MAX(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)) AS max_val
         FROM activity_data ad
         JOIN eligible_projects ep
             ON ep.project_id = ad.project_id AND ep.stage_instance_id = ad.project_stage_instance_id
@@ -326,8 +319,8 @@ module_rows AS (
     SELECT ep.project_id, ep.project_name,
         0, 0,
         CASE WHEN :elec_method = 'market'
-             THEN COALESCE(NULLIF(NULLIF(ad.extra_fields->>'market_based_tco2e',   ''), '-')::numeric, 0)
-             ELSE COALESCE(NULLIF(NULLIF(ad.extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
+             THEN COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
+             ELSE COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
         END,
         0, 0, 0, 0, 0, 0, 0
     FROM activity_data ad
@@ -345,8 +338,8 @@ module_rows AS (
     -- 'Use phase' → B8 — all excluded by using an explicit IN list.
     SELECT ep.project_id, ep.project_name,
         0, 0,
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'actual_scope3', ''), '-')::numeric, 0) +
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'actual_scope4', ''), '-')::numeric, 0),
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'actual' AND er.is_supplementary IS FALSE), 0) +
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'actual' AND er.is_supplementary IS FALSE), 0),
         0, 0, 0, 0, 0, 0, 0
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -368,7 +361,7 @@ module_rows AS (
     --   replDetailed  → Detailed Level (Grade 3)
     SELECT ep.project_id, ep.project_name,
         0, 0, 0, 0,
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0),
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0),
         0, 0, 0, 0, 0
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -384,8 +377,8 @@ module_rows AS (
     SELECT ep.project_id, ep.project_name,
         0, 0, 0, 0, 0,
         CASE WHEN :elec_method = 'market'
-             THEN COALESCE(NULLIF(NULLIF(ad.extra_fields->>'market_based_tco2e',   ''), '-')::numeric, 0)
-             ELSE COALESCE(NULLIF(NULLIF(ad.extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
+             THEN COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
+             ELSE COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
         END,
         0, 0, 0, 0
     FROM activity_data ad
@@ -404,7 +397,7 @@ module_rows AS (
     -- 7. B1 (useB1G2, useB1G3)
     SELECT ep.project_id, ep.project_name,
         0, 0, 0,
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0),
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0),
         0, 0, 0, 0, 0, 0
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -421,12 +414,12 @@ module_rows AS (
         0, 0, 0, 0, 0,
         CASE WHEN :elec_method = 'market'
              THEN COALESCE(
-                     NULLIF(NULLIF(ad.extra_fields->>'market_based_total_tco2e', ''), '-')::numeric,
-                     COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
+                     COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0),
+                     COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
                   )
              ELSE COALESCE(
-                     NULLIF(NULLIF(ad.extra_fields->>'location_based_total_tco2e', ''), '-')::numeric,
-                     COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
+                     COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0),
+                     COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
                   )
         END,
         0, 0, 0, 0
@@ -442,7 +435,7 @@ module_rows AS (
     -- 9. B6 opEnergyDetailed non-Water, non-Offset rows (Offset rows are captured in row 12)
     SELECT ep.project_id, ep.project_name,
         0, 0, 0, 0, 0,
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0),
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0),
         0, 0, 0, 0
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -457,7 +450,7 @@ module_rows AS (
     -- 10. B7 opEnergyDetailed Water
     SELECT ep.project_id, ep.project_name,
         0, 0, 0, 0, 0, 0,
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0),
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0),
         0, 0, 0
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -472,7 +465,7 @@ module_rows AS (
     -- 11a. B8 small road users: relativeUserEmissions
     SELECT ep.project_id, ep.project_name,
         0, 0, 0, 0, 0, 0, 0,
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'relativeUserEmissions', ''), '-')::numeric, 0),
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'actual' AND er.lifecycle_module_code = 'B8' AND er.is_supplementary IS FALSE), 0),
         0, 0
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -486,7 +479,7 @@ module_rows AS (
     -- 11b. B8 rail users (small and large): emissions_total_ref_period_tco2e
     SELECT ep.project_id, ep.project_name,
         0, 0, 0, 0, 0, 0, 0,
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'emissions_total_ref_period_tco2e', ''), '-')::numeric, 0),
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0),
         0, 0
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -511,7 +504,7 @@ module_rows AS (
     -- 12. Offsets (stored as negative)
     SELECT ep.project_id, ep.project_name,
         0, 0, 0, 0, 0, 0, 0, 0,
-        -COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0),
+        -COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0),
         0
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -550,7 +543,7 @@ module_rows AS (
 
     -- 15a. A1-A3 upscaling
     SELECT ep.project_id, ep.project_name,
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0),
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE ad.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0),
         0, 0, 0, 0, 0, 0, 0, 0, 0
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -563,7 +556,7 @@ module_rows AS (
 
     -- 15b. A4 upscaling
     SELECT ep.project_id, ep.project_name,
-        0, COALESCE(NULLIF(NULLIF(ad.extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0),
+        0, COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE ad.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0),
         0, 0, 0, 0, 0, 0, 0, 0
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -576,7 +569,7 @@ module_rows AS (
 
     -- 15c. A5 upscaling
     SELECT ep.project_id, ep.project_name,
-        0, 0, COALESCE(NULLIF(NULLIF(ad.extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0),
+        0, 0, COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE ad.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0),
         0, 0, 0, 0, 0, 0, 0
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -589,7 +582,7 @@ module_rows AS (
 
     -- 15d. B1 upscaling
     SELECT ep.project_id, ep.project_name,
-        0, 0, 0, COALESCE(NULLIF(NULLIF(ad.extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0),
+        0, 0, 0, COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE ad.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0),
         0, 0, 0, 0, 0, 0
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -602,7 +595,7 @@ module_rows AS (
 
     -- 15e. B2-B5 upscaling
     SELECT ep.project_id, ep.project_name,
-        0, 0, 0, 0, COALESCE(NULLIF(NULLIF(ad.extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0),
+        0, 0, 0, 0, COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE ad.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0),
         0, 0, 0, 0, 0
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -615,7 +608,7 @@ module_rows AS (
 
     -- 15f. B6 upscaling
     SELECT ep.project_id, ep.project_name,
-        0, 0, 0, 0, 0, COALESCE(NULLIF(NULLIF(ad.extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0),
+        0, 0, 0, 0, 0, COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE ad.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0),
         0, 0, 0, 0
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -628,7 +621,7 @@ module_rows AS (
 
     -- 15g. B7 upscaling
     SELECT ep.project_id, ep.project_name,
-        0, 0, 0, 0, 0, 0, COALESCE(NULLIF(NULLIF(ad.extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0),
+        0, 0, 0, 0, 0, 0, COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = CASE ad.extra_fields->>'module' WHEN 'a1_a3' THEN 'A1-A3' WHEN 'a4' THEN 'A4' WHEN 'a5' THEN 'A5' WHEN 'b1' THEN 'B1' WHEN 'b2_b5' THEN 'B2-5' WHEN 'b6' THEN 'B6' WHEN 'b7' THEN 'B7' END AND er.is_supplementary IS FALSE), 0),
         0, 0, 0
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -689,7 +682,7 @@ FROM (
     -- Grade 3/4 detailed rows
     SELECT
         COALESCE(NULLIF(TRIM(ad.extra_fields->>'emissions_category'), ''), 'Other') AS category,
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0) AS val
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0) AS val
     FROM activity_data ad
     JOIN eligible_projects ep
         ON ep.project_id = ad.project_id AND ep.stage_instance_id = ad.project_stage_instance_id
@@ -706,7 +699,7 @@ FROM (
     -- Grade 2 component rows
     SELECT
         COALESCE(NULLIF(TRIM(ad.extra_fields->>'emissions_category'), ''), 'Other') AS category,
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0) AS val
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0) AS val
     FROM activity_data ad
     JOIN eligible_projects ep
         ON ep.project_id = ad.project_id AND ep.stage_instance_id = ad.project_stage_instance_id
@@ -719,7 +712,7 @@ FROM (
     -- Grade 1 asset rows — classified as 'Materials'
     SELECT
         'Materials'::text AS category,
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0) AS val
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0) AS val
     FROM activity_data ad
     JOIN eligible_projects ep
         ON ep.project_id = ad.project_id AND ep.stage_instance_id = ad.project_stage_instance_id
@@ -732,7 +725,7 @@ FROM (
     -- Concrete registers — classified as 'Materials'
     SELECT
         'Materials'::text AS category,
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0) AS val
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0) AS val
     FROM activity_data ad
     JOIN eligible_projects ep
         ON ep.project_id = ad.project_id AND ep.stage_instance_id = ad.project_stage_instance_id
@@ -745,7 +738,7 @@ FROM (
     -- Refurbishment rows
     SELECT
         COALESCE(NULLIF(TRIM(ad.extra_fields->>'emissions_category'), ''), 'Other') AS category,
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0) AS val
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0) AS val
     FROM activity_data ad
     JOIN eligible_projects ep
         ON ep.project_id = ad.project_id AND ep.stage_instance_id = ad.project_stage_instance_id
@@ -759,8 +752,8 @@ FROM (
     SELECT
         'Electricity'::text AS category,
         CASE WHEN :elec_method = 'market'
-             THEN COALESCE(NULLIF(NULLIF(ad.extra_fields->>'market_based_tco2e',   ''), '-')::numeric, 0)
-             ELSE COALESCE(NULLIF(NULLIF(ad.extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
+             THEN COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
+             ELSE COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
         END AS val
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -775,8 +768,8 @@ FROM (
     SELECT
         'Electricity'::text AS category,
         CASE WHEN :elec_method = 'market'
-             THEN COALESCE(NULLIF(NULLIF(ad.extra_fields->>'market_based_tco2e',   ''), '-')::numeric, 0)
-             ELSE COALESCE(NULLIF(NULLIF(ad.extra_fields->>'location_based_tco2e', ''), '-')::numeric, 0)
+             THEN COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
+             ELSE COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
         END AS val
     FROM activity_data ad
     JOIN eligible_projects ep
@@ -792,12 +785,12 @@ FROM (
         'Electricity'::text AS category,
         CASE WHEN :elec_method = 'market'
              THEN COALESCE(
-                     NULLIF(NULLIF(ad.extra_fields->>'market_based_total_tco2e',   ''), '-')::numeric,
-                     COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
+                     COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0),
+                     COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
                   )
              ELSE COALESCE(
-                     NULLIF(NULLIF(ad.extra_fields->>'location_based_total_tco2e', ''), '-')::numeric,
-                     COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
+                     COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0),
+                     COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0)
                   )
         END AS val
     FROM activity_data ad
@@ -812,7 +805,7 @@ FROM (
     -- Shortcut IS Materials — classified as 'Materials'
     SELECT
         'Materials'::text AS category,
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'actual_case', ''), '-')::numeric, 0) AS val
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = CASE WHEN COALESCE(ad.extra_fields->>'emissions_category', '') = 'Offset' THEN 'offset' WHEN ad.project_mitigation_id IS NOT NULL OR ad.ui_table_key LIKE '%-mitigation%' THEN 'mitigation' ELSE 'actual' END AND er.is_supplementary IS FALSE AND er.accounting_basis IN ('common', CASE WHEN :elec_method = 'market' THEN 'market' ELSE 'location' END)), 0) AS val
     FROM activity_data ad
     JOIN eligible_projects ep
         ON ep.project_id = ad.project_id AND ep.stage_instance_id = ad.project_stage_instance_id
@@ -830,8 +823,8 @@ FROM (
             WHEN 'Transport (construction materials)' THEN 'Fuels'
             ELSE                                           'Fuels'
         END AS category,
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'actual_scope3', ''), '-')::numeric, 0) +
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'actual_scope4', ''), '-')::numeric, 0) AS val
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'actual' AND er.is_supplementary IS FALSE), 0) +
+        COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'actual' AND er.is_supplementary IS FALSE), 0) AS val
     FROM activity_data ad
     JOIN eligible_projects ep
         ON ep.project_id = ad.project_id AND ep.stage_instance_id = ad.project_stage_instance_id

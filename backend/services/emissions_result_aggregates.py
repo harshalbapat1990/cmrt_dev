@@ -1,7 +1,7 @@
 """Shared dashboard aggregation over the emissions result ledger."""
 from collections import defaultdict
 from decimal import Decimal
-from typing import Optional
+from typing import Iterable, Optional
 from uuid import UUID
 
 from sqlalchemy import select
@@ -9,6 +9,38 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.activity_data import ActivityData
 from models.emissions_results import EmissionsResult
+
+
+async def emissions_totals_by_activity(
+    db: AsyncSession,
+    activity_data_ids: Iterable[UUID],
+    *,
+    accounting_method: str = "location",
+    measures: tuple[str, ...] = ("actual", "mitigation"),
+) -> dict[UUID, Decimal]:
+    """Return per-input emissions totals from the canonical ledger.
+
+    Input rows may still supply labels and quantities, but reportable amounts
+    are selected here so detailed and summary dashboard paths share the same
+    treatment of accounting basis and reporting measure.
+    """
+    ids = list(set(activity_data_ids))
+    if not ids:
+        return {}
+    bases = ("common", "location") if accounting_method == "location" else ("common", "market")
+    query = (
+        select(EmissionsResult.activity_data_id, EmissionsResult.value)
+        .where(
+            EmissionsResult.activity_data_id.in_(ids),
+            EmissionsResult.is_supplementary.is_(False),
+            EmissionsResult.reporting_measure.in_(measures),
+            EmissionsResult.accounting_basis.in_(bases),
+        )
+    )
+    totals: dict[UUID, Decimal] = {}
+    for activity_id, value in (await db.execute(query)).all():
+        totals[activity_id] = totals.get(activity_id, Decimal(0)) + Decimal(str(value or 0))
+    return totals
 
 
 async def aggregate_emissions_results(

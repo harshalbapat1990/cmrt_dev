@@ -161,8 +161,7 @@ SELECT
     ad.extra_fields->>'unit_code'                                         AS unit,
     ad.quantity,
     g2."Carbon Storage (tCO2e/UoM)"                                       AS carbon_storage_ef,
-    COALESCE(g2."Carbon Storage (tCO2e/UoM)", 0) * COALESCE(ad.quantity, 0)
-                                                                          AS carbon_storage_tco2e
+    COALESCE(er.value, 0)                                                   AS carbon_storage_tco2e
 FROM activity_data ad
 JOIN eligible_projects ep
     ON  ep.project_id        = ad.project_id
@@ -172,6 +171,10 @@ LEFT JOIN v_grade2_component_level g2
     AND g2."Emissions Category"     = COALESCE(NULLIF(ad.extra_fields->>'emissions_category',    ''), '__no_match__')
     AND g2."Emissions Sub-Category" = COALESCE(NULLIF(ad.extra_fields->>'emissions_subcategory', ''), '__no_match__')
     AND g2."Emissions Source"       = COALESCE(NULLIF(ad.extra_fields->>'emissions_source_name', ''), '__no_match__')
+LEFT JOIN emissions_results er
+    ON er.activity_data_id = ad.id
+   AND er.reporting_measure = 'stored_carbon'
+   AND er.is_supplementary IS FALSE
 WHERE ad.ui_table_key = 'component'
   AND COALESCE(ad.extra_fields->>'emissions_category', '') <> 'Offset'
   AND (CAST(:project_option_id    AS uuid) IS NULL OR ad.project_option_id    = CAST(:project_option_id    AS uuid))
@@ -194,8 +197,7 @@ SELECT
     ad.extra_fields->>'unit_code'                                         AS unit,
     ad.quantity,
     g34."Carbon Storage (tCO2e/UoM)"                                      AS carbon_storage_ef,
-    COALESCE(g34."Carbon Storage (tCO2e/UoM)", 0) * COALESCE(ad.quantity, 0)
-                                                                          AS carbon_storage_tco2e
+    COALESCE(er.value, 0)                                                   AS carbon_storage_tco2e
 FROM activity_data ad
 JOIN eligible_projects ep
     ON  ep.project_id        = ad.project_id
@@ -206,6 +208,10 @@ LEFT JOIN v_grade34_detailed_level g34
     AND g34."Emissions Sub-Category" = COALESCE(NULLIF(ad.extra_fields->>'emissions_subcategory', ''), '__no_match__')
     AND g34."Emissions Source"       = COALESCE(NULLIF(ad.extra_fields->>'emissions_source_name', ''), '__no_match__')
     AND g34."UoM"                    = COALESCE(NULLIF(ad.extra_fields->>'unit_code',             ''), '__no_match__')
+LEFT JOIN emissions_results er
+    ON er.activity_data_id = ad.id
+   AND er.reporting_measure = 'stored_carbon'
+   AND er.is_supplementary IS FALSE
 WHERE ad.ui_table_key = 'bcDetailedLevel'
   AND COALESCE(ad.extra_fields->>'emissions_category', '') <> 'Offset'
   AND (CAST(:project_option_id    AS uuid) IS NULL OR ad.project_option_id    = CAST(:project_option_id    AS uuid))

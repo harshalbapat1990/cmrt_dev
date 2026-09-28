@@ -115,7 +115,7 @@ SELECT
     ad.extra_fields->>'unit_code'                                         AS unit,
     ad.quantity,
     g2."Carbon Storage (tCO2e/UoM)"                                       AS carbon_storage_ef,
-    COALESCE(g2."Carbon Storage (tCO2e/UoM)", 0) * COALESCE(ad.quantity, 0)
+    COALESCE((SELECT er.value FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'stored_carbon' AND er.is_supplementary IS FALSE LIMIT 1), 0)
                                                                           AS carbon_storage_tco2e
 FROM activity_data ad
 LEFT JOIN v_grade2_component_level g2
@@ -151,7 +151,7 @@ SELECT
     ad.extra_fields->>'unit_code'                                         AS unit,
     ad.quantity,
     g34."Carbon Storage (tCO2e/UoM)"                                      AS carbon_storage_ef,
-    COALESCE(g34."Carbon Storage (tCO2e/UoM)", 0) * COALESCE(ad.quantity, 0)
+    COALESCE((SELECT er.value FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.reporting_measure = 'stored_carbon' AND er.is_supplementary IS FALSE LIMIT 1), 0)
                                                                           AS carbon_storage_tco2e
 FROM activity_data ad
 LEFT JOIN v_grade34_detailed_level g34

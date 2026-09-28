@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from core.bootstrap import ensure_super_admin
+from services.aus_road_emissions_function import ensure_aus_road_emissions_function
 from core.config import settings
 from core.limiter import limiter
 from core.session import get_engine
@@ -192,6 +193,7 @@ from routers.dashboard_ratings import router as dashboard_ratings_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await ensure_aus_road_emissions_function(get_engine())
     await ensure_super_admin(get_engine())
     yield
 

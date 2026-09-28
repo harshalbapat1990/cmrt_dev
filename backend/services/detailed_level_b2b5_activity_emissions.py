@@ -88,7 +88,20 @@ async def recalc_detailed_b2b5_row(
 
     try:
         resp = await _calculator.calculate(db, req)
+    except ValueError as exc:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            from services.project_dataset_recalculation import MissingDatasetDataError
+
+            raise MissingDatasetDataError("Detailed level maintenance factors", str(exc)) from exc
+        logger.warning(
+            "replDetailed calculation lookup failed activity_data=%s: %s",
+            activity_row.id,
+            exc,
+        )
+        return None
     except Exception:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            raise
         logger.exception(
             "replDetailed unexpected error activity_data=%s",
             activity_row.id,

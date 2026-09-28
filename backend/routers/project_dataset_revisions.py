@@ -14,6 +14,7 @@ from schemas.dataset_revisions import DatasetRevisionOut
 from schemas.project_dataset_revisions import (
     ProjectDatasetRevisionCreate,
     ProjectDatasetRevisionOut,
+    ProjectDatasetRevisionMigrationOut,
     ProjectDatasetRevisionUpdate,
 )
 from crud.project_dataset_revisions import (
@@ -26,6 +27,10 @@ from crud.project_dataset_revisions import (
     upsert_project_dataset_revision,
 )
 from models.project_dataset_revisions import ProjectDatasetRevision as ProjectDatasetRevisionModel
+from services.project_dataset_recalculation import (
+    ProjectDatasetRecalculationError,
+    recalculate_project_for_revision,
+)
 
 
 router = APIRouter(prefix="/api/project-dataset-revisions", tags=["project-dataset-revisions"])
@@ -37,7 +42,7 @@ class MigrateRequest(BaseModel):
     notes: Optional[str] = None
 
 
-@router.post("", response_model=ProjectDatasetRevisionOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ProjectDatasetRevisionMigrationOut, status_code=status.HTTP_201_CREATED)
 async def create_new_project_dataset_revision(payload: ProjectDatasetRevisionCreate, db: AsyncSession = Depends(get_session)):
     rev_status = await get_revision_status(db, payload.dataset_revision_id)
     if rev_status is None:
@@ -51,6 +56,32 @@ async def create_new_project_dataset_revision(payload: ProjectDatasetRevisionCre
             detail=f"Cannot bind a project to a revision with status '{rev_status}' (must be 'published')",
         )
     obj = await upsert_project_dataset_revision(db, payload)
+    try:
+        recalc_report = await recalculate_project_for_revision(
+            db, obj.project_id, obj.dataset_revision_id
+        )
+    except ProjectDatasetRecalculationError as exc:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "code": "dataset_recalculation_failed",
+                "message": "The dataset revision was not changed because some entries could not be recalculated.",
+                **exc.report,
+            },
+        ) from exc
+    except Exception as exc:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "code": "dataset_recalculation_failed",
+                "message": "The dataset revision was not changed because recalculation failed.",
+                "missing_data": [],
+                "calculation_errors": [{"entry": "Project recalculation", "message": str(exc)}],
+            },
+        ) from exc
+    obj.calculation_report = recalc_report
     await touch_project(db, obj.project_id)
     await db.commit()
     await write_audit_event(
@@ -62,10 +93,11 @@ async def create_new_project_dataset_revision(payload: ProjectDatasetRevisionCre
     )
     await db.commit()
     result = await db.execute(sa_select(ProjectDatasetRevisionModel).where(ProjectDatasetRevisionModel.id == obj.id))
-    return result.scalars().first() or obj
+    output = ProjectDatasetRevisionMigrationOut.model_validate(result.scalars().first() or obj)
+    return output.model_copy(update=recalc_report)
 
 
-@router.post("/migrate", response_model=ProjectDatasetRevisionOut, status_code=status.HTTP_201_CREATED)
+@router.post("/migrate", response_model=ProjectDatasetRevisionMigrationOut, status_code=status.HTTP_201_CREATED)
 async def migrate_project_revision(
     payload: MigrateRequest,
     db: AsyncSession = Depends(get_session),
@@ -86,6 +118,32 @@ async def migrate_project_revision(
             notes=payload.notes,
         ),
     )
+    try:
+        recalc_report = await recalculate_project_for_revision(
+            db, payload.project_id, payload.to_revision_id
+        )
+    except ProjectDatasetRecalculationError as exc:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "code": "dataset_recalculation_failed",
+                "message": "The dataset revision was not changed because some entries could not be recalculated.",
+                **exc.report,
+            },
+        ) from exc
+    except Exception as exc:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "code": "dataset_recalculation_failed",
+                "message": "The dataset revision was not changed because recalculation failed.",
+                "missing_data": [],
+                "calculation_errors": [{"entry": "Project recalculation", "message": str(exc)}],
+            },
+        ) from exc
+    new_pdr.calculation_report = recalc_report
     await touch_project(db, payload.project_id)
     await db.commit()
     await write_audit_event(
@@ -96,11 +154,15 @@ async def migrate_project_revision(
         metadata={
             "project_id": str(payload.project_id),
             "to_revision_id": str(payload.to_revision_id),
+            "recalculated_rows": recalc_report["recalculated_count"],
+            "missing_data_count": len(recalc_report["missing_data"]),
+            "calculation_error_count": len(recalc_report["calculation_errors"]),
         },
     )
     await db.commit()
     result = await db.execute(sa_select(ProjectDatasetRevisionModel).where(ProjectDatasetRevisionModel.id == new_pdr.id))
-    return result.scalars().first() or new_pdr
+    output = ProjectDatasetRevisionMigrationOut.model_validate(result.scalars().first() or new_pdr)
+    return output.model_copy(update=recalc_report)
 
 
 @router.get("/by-project/{project_id}", response_model=List[ProjectDatasetRevisionOut])
@@ -125,6 +187,31 @@ async def get_project_dataset_revisions_by_project(project_id: UUID, db: AsyncSe
             notes="Auto-assigned latest published DEFAULT dataset revision",
         ),
     )
+    try:
+        auto_bound.calculation_report = await recalculate_project_for_revision(
+            db, project_id, latest_default.id
+        )
+    except ProjectDatasetRecalculationError as exc:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "code": "dataset_recalculation_failed",
+                "message": "The default dataset could not be assigned because some entries could not be recalculated.",
+                **exc.report,
+            },
+        ) from exc
+    except Exception as exc:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "code": "dataset_recalculation_failed",
+                "message": "The default dataset was not assigned because recalculation failed.",
+                "missing_data": [],
+                "calculation_errors": [{"entry": "Project recalculation", "message": str(exc)}],
+            },
+        ) from exc
     await touch_project(db, project_id)
     await db.commit()
     await write_audit_event(

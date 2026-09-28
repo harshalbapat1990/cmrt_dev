@@ -25,6 +25,35 @@ async def test_create_project_dataset_revision(client):
     assert "id" in data
     assert data["project_id"] == _PROJECT_ID
     assert data["is_locked"] is False
+    assert data["calculation_report"] == {
+        "missing_data": [],
+        "calculation_errors": [],
+        "recalculated_count": 0,
+    }
+
+
+@pytest.mark.asyncio
+async def test_revision_switch_returns_diagnostics_and_does_not_report_success_on_failure(client, monkeypatch):
+    import routers.project_dataset_revisions as pdr_router
+
+    async def fail_recalculation(_db, _project_id, _revision_id):
+        raise pdr_router.ProjectDatasetRecalculationError({
+            "missing_data": [{"entry": "Drainage", "dataset_table": "Grade 2 factors"}],
+            "calculation_errors": [{"entry": "Road users", "message": "factor lookup failed"}],
+            "recalculated_count": 3,
+        })
+
+    monkeypatch.setattr(pdr_router, "recalculate_project_for_revision", fail_recalculation)
+    response = await client.post(
+        "/api/project-dataset-revisions",
+        json={"project_id": str(uuid4()), "dataset_revision_id": str(uuid4())},
+    )
+
+    assert response.status_code == 422
+    detail = response.json()["detail"]
+    assert detail["code"] == "dataset_recalculation_failed"
+    assert detail["missing_data"][0]["dataset_table"] == "Grade 2 factors"
+    assert detail["calculation_errors"][0]["message"] == "factor lookup failed"
 
 
 @pytest.mark.asyncio

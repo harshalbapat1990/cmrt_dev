@@ -1,6 +1,6 @@
 import uuid as _uuid
 
-from sqlalchemy import Boolean, Column, ForeignKey, Numeric, String, TIMESTAMP, UniqueConstraint
+from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer, Numeric, String, TIMESTAMP, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 
@@ -22,7 +22,14 @@ class EmissionsResult(Base):
     activity_data_id = Column(
         UUID(as_uuid=True),
         ForeignKey("activity_data.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
+    )
+    project_option_id = Column(UUID(as_uuid=True), ForeignKey("project_options.id", ondelete="CASCADE"), nullable=True)
+    assessment_year = Column(Integer, nullable=True)
+    dataset_revision_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("dataset_revisions.id", ondelete="SET NULL"),
+        nullable=True,
     )
 
     value_key = Column(String(50), nullable=False)
@@ -47,5 +54,11 @@ class EmissionsResult(Base):
         UniqueConstraint(
             "activity_data_id", "value_key",
             name="emissions_results_activity_value_key",
+        ),
+        Index(
+            "uq_emissions_results_option_year_key",
+            "project_option_id", "assessment_year", "value_key",
+            unique=True,
+            postgresql_where=assessment_year.isnot(None),
         ),
     )

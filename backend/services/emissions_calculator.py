@@ -28,6 +28,7 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import delete
 
 from models.activity_data import ActivityData
 from models.maintenance_replacement_factors import MaintenanceReplacementFactor
@@ -50,6 +51,7 @@ from services.grade2_component_activity_emissions import recalc_grade2_component
 from services.concrete_activity_emissions import recalc_concrete_row
 from services.shortcut_activity_emissions import recalc_shortcut_is_materials_row, recalc_use_b1g3_row
 from services.inuse_gases_activity_emissions import recalc_inuse_gases_row
+from services.ui_table_key_normalization import mitigation_base_table_key
 from services.ui_table_key_normalization import matches_base_table_key
 from services.maintenance_replacement_component_level_calcs import (
     MaintenanceCalcRequest,
@@ -62,6 +64,8 @@ logger = logging.getLogger(__name__)
 async def _calculate_and_store_impl(
     db: AsyncSession,
     activity_row: ActivityData,
+    *,
+    raise_errors: bool = False,
 ) -> Optional[Decimal]:
     """
     Compute emissions for a single activity_data row and persist the result.
@@ -73,6 +77,40 @@ async def _calculate_and_store_impl(
     try:
         if activity_row.ui_table_key == "completeness":
             return None
+
+        if mitigation_base_table_key(activity_row.ui_table_key) in {"railUsers", "largeRailUsers"}:
+            extra = dict(activity_row.extra_fields or {})
+            rail_type = str(extra.get("vehicle_type") or "").strip()
+            terrain = str(extra.get("terrain") or "").strip()
+            freight_raw = extra.get("freight") or activity_row.quantity
+            if not rail_type or not terrain or freight_raw in (None, ""):
+                return None
+            from schemas.user_emissions_rail import RailEmissionsCalculateRequest
+            from services.user_emissions_rail_calculations import calculate_rail
+
+            try:
+                rail_result = await calculate_rail(
+                    db,
+                    RailEmissionsCalculateRequest(
+                        project_id=activity_row.project_id,
+                        rail_type=rail_type,
+                        terrain=terrain,
+                        freight_quantity_gtk_per_year=Decimal(str(freight_raw)),
+                    ),
+                )
+            except ValueError as exc:
+                if "No emissions factor found" in str(exc) or "No fuel consumption data" in str(exc):
+                    from services.project_dataset_recalculation import MissingDatasetDataError
+
+                    raise MissingDatasetDataError("Rail user-emissions factors", str(exc)) from exc
+                raise
+            extra.update({
+                "emissions_intensity_tco2e_kl": str(rail_result.emissions_intensity_tco2e_kl),
+                "emissions_annual_tco2e": str(rail_result.emissions_annual_tco2e),
+                "emissions_total_ref_period_tco2e": str(rail_result.emissions_total_ref_period_tco2e),
+            })
+            activity_row.extra_fields = extra
+            return rail_result.emissions_total_ref_period_tco2e
 
         # 1. Resolve the emission factor metric. ActivityData stores the stable
         # natural key; metric_id is retained only as a legacy compatibility path.
@@ -123,7 +161,10 @@ async def _calculate_and_store_impl(
                             and activity_row.unit_id != factor.unit_id
                         ):
                             conv = await get_conversion_factor(
-                                db, activity_row.unit_id, factor.unit_id
+                                db,
+                                activity_row.unit_id,
+                                factor.unit_id,
+                                activity_row.dataset_revision_id,
                             )
                             if conv is not None:
                                 calc_quantity = calc_quantity * float(conv)
@@ -225,6 +266,13 @@ async def _calculate_and_store_impl(
                 metric_natural_key,
                 getattr(activity_row, "metric_id", None),
             )
+            if metric_natural_key:
+                from services.project_dataset_recalculation import MissingDatasetDataError
+
+                raise MissingDatasetDataError(
+                    "Background grade metrics",
+                    "The selected revision does not contain the background grade metric used by this entry.",
+                )
             return None
 
         if metric.value is None:
@@ -244,9 +292,19 @@ async def _calculate_and_store_impl(
             and activity_row.unit_id != metric.unit_id
         ):
             conv_factor = await get_conversion_factor(
-                db, activity_row.unit_id, metric.unit_id
+                db,
+                activity_row.unit_id,
+                metric.unit_id,
+                activity_row.dataset_revision_id,
             )
             if conv_factor is None:
+                if raise_errors and getattr(activity_row, "_strict_dataset_recalculation", False):
+                    from services.project_dataset_recalculation import MissingDatasetDataError
+
+                    raise MissingDatasetDataError(
+                        "Unit conversions",
+                        "No conversion exists between the entered unit and the selected dataset unit.",
+                    )
                 logger.warning(
                     "calculate_and_store: no unit conversion found from unit %s to metric unit %s "
                     "for activity_data %s; using raw quantity",
@@ -281,6 +339,8 @@ async def _calculate_and_store_impl(
         logger.exception(
             "calculate_and_store failed for activity_data %s: %s", activity_row.id, exc
         )
+        if raise_errors:
+            raise
         try:
             await db.rollback()
         except Exception:
@@ -291,10 +351,17 @@ async def _calculate_and_store_impl(
 async def calculate_and_store(
     db: AsyncSession,
     activity_row: ActivityData,
+    *,
+    raise_errors: bool = False,
 ) -> Optional[Decimal]:
     """Calculate a row and synchronize its reportable facts into the result ledger."""
     activity_row_id = activity_row.id
-    result = await _calculate_and_store_impl(db, activity_row)
+    # Replace the row's facts on every recalculation. This prevents result keys
+    # from an earlier calculator path from remaining in dashboard totals.
+    from models.emissions_results import EmissionsResult
+
+    await db.execute(delete(EmissionsResult).where(EmissionsResult.activity_data_id == activity_row_id))
+    result = await _calculate_and_store_impl(db, activity_row, raise_errors=raise_errors)
     # _calculate_and_store_impl rolls back the session when a calculation or
     # result write fails. Do not touch an expired ORM row after that rollback:
     # doing so can trigger an implicit async refresh (MissingGreenlet).
@@ -310,6 +377,8 @@ async def calculate_and_store(
         await persist_legacy_outputs(db, activity_row)
     except Exception:
         logger.exception("Failed to synchronize result ledger for activity_data %s", activity_row_id)
+        if raise_errors:
+            raise
         # Keep the shared session usable and make the backfill's transaction
         # check stop immediately instead of continuing in an aborted transaction.
         try:

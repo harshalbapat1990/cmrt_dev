@@ -35,6 +35,7 @@ from schemas.user_emissions_nz import (
     NzEmissionsCalculateRequest,
     NzEmissionsCalculateResponse,
 )
+from services.user_emissions_result_ledger import sync_annual_road_results
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -252,10 +253,14 @@ async def calculate_and_store_nz(
     )
     years = list(range(commencement_year, commencement_year + operational_life_years))
 
-    # ── 2. Resolve dataset_revision_id (always from latest active revision) ──
-    dataset_revision_id: Optional[UUID] = None
+    # The project binding is authoritative; only unbound legacy projects fall
+    # back to the latest published dataset revision.
+    from services.project_context_helper import ProjectContextHelper
+
+    dataset_revision_id: Optional[UUID] = await ProjectContextHelper.fetch_project_dataset_revision(
+        db, req.project_id
+    )
     if dataset_revision_id is None:
-        # Fall back to the latest active VEPM revision
         row = (
             await db.execute(
                 text(
@@ -469,6 +474,7 @@ async def calculate_and_store_nz(
     else:
         final_user_emissions = (interim_total - base_case_interim_rounded).quantize(Decimal("0.0001"))
 
+    await sync_annual_road_results(db, project_option_id=req.project_option_id, project_class="SMALL", is_nz=True)
     return NzEmissionsCalculateResponse(
         project_id=req.project_id,
         project_stage_instance_id=req.project_stage_instance_id,

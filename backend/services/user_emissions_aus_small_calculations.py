@@ -49,6 +49,7 @@ from schemas.user_emissions_aus_small import (
     AusSmallEmissionsCalculateRequest,
     AusSmallEmissionsCalculateResponse,
 )
+from services.user_emissions_result_ledger import sync_annual_road_results
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Vehicle class mapping: request field prefix → ATAP vehicle class name
@@ -83,7 +84,7 @@ _AUS_INTENSITY_SQL = text("""
     FROM fn_veh_emissions_intensity_aus(
         :p_year, :p_state, :p_scenario,
         :p_gradient, :p_curvature, :p_iri,
-        :p_speed_kph
+        :p_speed_kph, :p_dataset_revision_id
     )
 """)
 
@@ -219,6 +220,11 @@ async def calculate_and_store_aus_small(
     commencement_year, operational_life_years, state_name = await _get_project_reference_period(
         db, req.project_id
     )
+    from services.project_context_helper import ProjectContextHelper
+
+    dataset_revision_id = await ProjectContextHelper.fetch_project_dataset_revision(db, req.project_id)
+    if dataset_revision_id is None:
+        raise ValueError("No dataset revision is selected for this project.")
     years = list(range(commencement_year, commencement_year + operational_life_years))
 
     # ── 2. Group vehicle types by speed ───────────────────────────────────────
@@ -249,14 +255,15 @@ async def calculate_and_store_aus_small(
         await db.execute(
             text(
                 "SELECT LEAST("
-                "    (SELECT MAX(year) FROM ev_uptake_factors),"
-                "    (SELECT MAX(year) FROM electric_decarb_factors)"
+                "    (SELECT MAX(year) FROM ev_uptake_factors WHERE dataset_revision_id = :dataset_revision_id),"
+                "    (SELECT MAX(year) FROM electric_decarb_factors WHERE dataset_revision_id = :dataset_revision_id)"
                 ") AS max_year,"
                 "GREATEST("
-                "    (SELECT MIN(year) FROM ev_uptake_factors),"
-                "    (SELECT MIN(year) FROM electric_decarb_factors)"
+                "    (SELECT MIN(year) FROM ev_uptake_factors WHERE dataset_revision_id = :dataset_revision_id),"
+                "    (SELECT MIN(year) FROM electric_decarb_factors WHERE dataset_revision_id = :dataset_revision_id)"
                 ") AS min_year"
-            )
+            ),
+            {"dataset_revision_id": str(dataset_revision_id)},
         )
     ).mappings().first()
     aus_min_year: Optional[int] = int(aus_range_row["min_year"]) if aus_range_row and aus_range_row["min_year"] is not None else None
@@ -289,6 +296,7 @@ async def calculate_and_store_aus_small(
                         "p_curvature": _DEFAULT_CURVATURE,
                         "p_iri":       _DEFAULT_IRI,
                         "p_speed_kph": speed_val,
+                        "p_dataset_revision_id": str(dataset_revision_id),
                     },
                 )
             ).mappings().all()
@@ -439,6 +447,7 @@ async def calculate_and_store_aus_small(
     else:
         final_user_emissions = (interim_total_rounded - base_case_interim_rounded).quantize(Decimal("0.0001"))
 
+    await sync_annual_road_results(db, project_option_id=req.project_option_id, project_class="SMALL", is_nz=False)
     return AusSmallEmissionsCalculateResponse(
         project_id=req.project_id,
         project_stage_instance_id=req.project_stage_instance_id,

@@ -49,6 +49,7 @@ from schemas.user_emissions_aus_large_road import (
     AusLargeRoadCalculateResponse,
     VehicleTypeAnnualResult,
 )
+from services.user_emissions_result_ledger import sync_annual_road_results
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -89,7 +90,7 @@ _AUS_INTENSITY_SQL = text("""
     FROM fn_veh_emissions_intensity_aus(
         :p_year, :p_state, :p_scenario,
         :p_gradient, :p_curvature, :p_iri,
-        :p_speed_kph
+        :p_speed_kph, :p_dataset_revision_id
     )
 """)
 
@@ -195,20 +196,21 @@ async def _get_project_reference_period(
 # Data-range clamp helper (same as AUS small — data only goes to 2050)
 # ─────────────────────────────────────────────────────────────────────────────
 
-async def _get_aus_year_range(db: AsyncSession) -> tuple[int, int]:
+async def _get_aus_year_range(db: AsyncSession, dataset_revision_id: UUID) -> tuple[int, int]:
     """Returns (min_year, max_year) across ev_uptake_factors and electric_decarb_factors."""
     row = (
         await db.execute(
             text(
                 "SELECT LEAST("
-                "    (SELECT MAX(year) FROM ev_uptake_factors),"
-                "    (SELECT MAX(year) FROM electric_decarb_factors)"
+                "    (SELECT MAX(year) FROM ev_uptake_factors WHERE dataset_revision_id = :dataset_revision_id),"
+                "    (SELECT MAX(year) FROM electric_decarb_factors WHERE dataset_revision_id = :dataset_revision_id)"
                 ") AS max_year,"
                 "GREATEST("
-                "    (SELECT MIN(year) FROM ev_uptake_factors),"
-                "    (SELECT MIN(year) FROM electric_decarb_factors)"
+                "    (SELECT MIN(year) FROM ev_uptake_factors WHERE dataset_revision_id = :dataset_revision_id),"
+                "    (SELECT MIN(year) FROM electric_decarb_factors WHERE dataset_revision_id = :dataset_revision_id)"
                 ") AS min_year"
-            )
+            ),
+            {"dataset_revision_id": str(dataset_revision_id)},
         )
     ).mappings().first()
     min_y = int(row["min_year"]) if row and row["min_year"] is not None else 2020
@@ -307,6 +309,11 @@ async def calculate_and_store_aus_large_road(
     commencement_year, operational_life_years, state_name = (
         await _get_project_reference_period(db, req.project_id)
     )
+    from services.project_context_helper import ProjectContextHelper
+
+    dataset_revision_id = await ProjectContextHelper.fetch_project_dataset_revision(db, req.project_id)
+    if dataset_revision_id is None:
+        raise ValueError("No dataset revision is selected for this project.")
     ref_years = list(range(commencement_year, commencement_year + operational_life_years))
 
     # ── 2. Road parameter mapping ────────────────────────────────────────────
@@ -332,7 +339,7 @@ async def calculate_and_store_aus_large_road(
 
     # ── 3. Data year clamp range ─────────────────────────────────────────────
     # Confirmed: retain flat values for post-2050 (James Addis, 2026-04-24)
-    aus_min_year, aus_max_year = await _get_aus_year_range(db)
+    aus_min_year, aus_max_year = await _get_aus_year_range(db, dataset_revision_id)
 
     # ── 4. Build per-vehicle anchor lists and interpolate for all years ──────
     # Collect anchors keyed by vehicle_type.
@@ -384,6 +391,7 @@ async def calculate_and_store_aus_large_road(
                             "p_curvature": curvature_val,
                             "p_iri":       iri_val,
                             "p_speed_kph": float(speed),
+                            "p_dataset_revision_id": str(dataset_revision_id),
                         },
                     )
                 ).mappings().all()
@@ -482,6 +490,7 @@ async def calculate_and_store_aus_large_road(
             interim_total_rounded - base_case_interim_rounded
         ).quantize(Decimal("0.000001"))
 
+    await sync_annual_road_results(db, project_option_id=req.project_option_id, project_class="LARGE", is_nz=False)
     return AusLargeRoadCalculateResponse(
         project_id=req.project_id,
         project_option_id=req.project_option_id,

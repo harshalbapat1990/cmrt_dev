@@ -73,6 +73,8 @@ async def recalc_operational_fuel_water_row(
     try:
         jurisdiction = await ProjectContextHelper.fetch_jurisdiction(db, activity_row.project_id)
     except ValueError as exc:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            raise
         logger.warning(
             "opEnergyDetailed skip: project context unavailable activity_data=%s: %s",
             activity_row.id,
@@ -93,7 +95,20 @@ async def recalc_operational_fuel_water_row(
 
     try:
         resp = await _calculator.calculate(db, req)
+    except ValueError as exc:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            from services.project_dataset_recalculation import MissingDatasetDataError
+
+            raise MissingDatasetDataError("Operational fuel and water factors", str(exc)) from exc
+        logger.warning(
+            "opEnergyDetailed lookup failed activity_data=%s: %s",
+            activity_row.id,
+            exc,
+        )
+        return None
     except Exception:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            raise
         logger.exception(
             "opEnergyDetailed unexpected error activity_data=%s",
             activity_row.id,

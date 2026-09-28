@@ -155,19 +155,19 @@ SELECT
     SUM(
         CASE
             WHEN ad.ui_table_key IN ('roadUsers', 'largeRoadUsers', 'largeRoadParams')
-            THEN COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
+            THEN (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', 'location'))
             ELSE 0
         END
     )                                                                               AS road_emissions_tco2e,
     SUM(
         CASE
             WHEN ad.ui_table_key IN ('railUsers', 'largeRailUsers')
-            THEN COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
+            THEN (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', 'location'))
             ELSE 0
         END
     )                                                                               AS rail_emissions_tco2e,
     SUM(
-        COALESCE(NULLIF(NULLIF(ad.extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)
+        (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = ad.id AND er.is_supplementary IS FALSE AND er.reporting_measure IN ('actual', 'mitigation') AND er.accounting_basis IN ('common', 'location'))
     )                                                                               AS total_emissions_tco2e
 FROM activity_data ad
 JOIN eligible_projects ep

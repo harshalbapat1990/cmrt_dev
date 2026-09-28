@@ -28,7 +28,8 @@ async def backfill(project_id: Optional[UUID]) -> int:
               AND table_name = 'emissions_results'
         """))).scalars().all())
         required_columns = {
-            "source_category", "emissions_scope", "accounting_basis", "reporting_measure"
+            "source_category", "emissions_scope", "accounting_basis", "reporting_measure",
+            "dataset_revision_id",
         }
         missing = sorted(required_columns - dimension_columns)
         if missing:

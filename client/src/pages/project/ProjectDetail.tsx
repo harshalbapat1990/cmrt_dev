@@ -7,7 +7,6 @@ import { useUser } from "@/context/UserContext";
 import { SelectListbox } from "@/components/common/Select";
 import LookupsService from "@/services/Lookups.service";
 import ActivityDataService from "@/services/ActivityData.service";
-import ProjectAccessService from "@/services/ProjectAccess.service";
 import type { StageAccess } from "@/types/authorization";
 
 type DatasetRevisionInfo = {
@@ -182,6 +181,22 @@ export default function ProjectDetail() {
   const [bindableRevisions, setBindableRevisions] = useState<DatasetRevisionInfo[]>([]);
   const [switchingDataset, setSwitchingDataset] = useState(false);
   const [pendingRevision, setPendingRevision] = useState<DatasetRevisionInfo | null>(null);
+  const [datasetIssues, setDatasetIssues] = useState<Array<{
+    activity_data_id: string;
+    entry: string;
+    data_entry_table: string;
+    dataset_table: string;
+  }>>([]);
+  const [calculationErrors, setCalculationErrors] = useState<Array<{
+    activity_data_id: string;
+    entry: string;
+    data_entry_table: string;
+    message: string;
+  }>>([]);
+  const [switchFailure, setSwitchFailure] = useState<{
+    message: string;
+    errors: Array<{ activity_data_id?: string | null; entry: string; data_entry_table?: string | null; message: string }>;
+  } | null>(null);
 
   const { roles } = useUser();
 
@@ -230,12 +245,28 @@ export default function ProjectDetail() {
       http.get(`/api/project-dataset-revisions/by-project/${projectId}`),
       http.get(`/api/project-dataset-revisions/bindable/${projectId}`),
     ]).then(([pdrRes, bindableRes]) => {
-      const bindings = pdrRes.data as Array<{ revision?: DatasetRevisionInfo }>;
+      const bindings = pdrRes.data as Array<{
+        revision?: DatasetRevisionInfo;
+        calculation_report?: {
+          missing_data?: Array<{ activity_data_id: string; entry: string; data_entry_table: string; dataset_table: string }>;
+          calculation_errors?: Array<{ activity_data_id: string; entry: string; data_entry_table: string; message: string }>;
+        };
+      }>;
       if (bindings.length > 0 && bindings[0].revision) {
         setActiveRevision(bindings[0].revision);
+        setDatasetIssues(bindings[0].calculation_report?.missing_data ?? []);
+        setCalculationErrors(bindings[0].calculation_report?.calculation_errors ?? []);
       }
       setBindableRevisions(bindableRes.data as DatasetRevisionInfo[]);
-    }).catch(() => { /* non-critical — silently ignore */ });
+    }).catch((loadError: any) => {
+      const detail = loadError?.response?.data?.detail;
+      if (detail?.code === "dataset_recalculation_failed") {
+        setSwitchFailure({
+          message: detail.message ?? "The project dataset could not be initialized because recalculation failed.",
+          errors: detail.calculation_errors ?? [],
+        });
+      }
+    });
 
     return () => clearProjectHeader();
   }, [projectId]);
@@ -281,17 +312,34 @@ export default function ProjectDetail() {
   async function handleSwitchDataset() {
     if (!project || !pendingRevision) return;
     setSwitchingDataset(true);
+    setSwitchFailure(null);
     try {
-      await http.post("/api/project-dataset-revisions/migrate", {
+      const response = await http.post("/api/project-dataset-revisions/migrate", {
         project_id: project.id,
         to_revision_id: pendingRevision.id,
       });
       LookupsService.clearProjectDatasetRevisionCache(project.id);
       ActivityDataService.clearProjectDatasetRevisionCache(project.id);
+      setDatasetIssues(response.data?.missing_data ?? []);
+      setCalculationErrors(response.data?.calculation_errors ?? []);
+      setSwitchFailure(null);
       setActiveRevision(pendingRevision);
       setPendingRevision(null);
-    } catch {
-        alert("Failed to switch dataset. Please try again.");
+    } catch (error: any) {
+      const detail = error?.response?.data?.detail;
+      if (detail?.code === "dataset_recalculation_failed") {
+        setSwitchFailure({
+          message: detail.message ?? "The dataset revision was not changed because recalculation failed.",
+          errors: detail.calculation_errors ?? [],
+        });
+      } else {
+        setSwitchFailure({
+          message: typeof detail === "string"
+            ? detail
+            : detail?.message ?? "Failed to switch dataset. Please try again.",
+          errors: [],
+        });
+      }
     } finally {
       setSwitchingDataset(false);
     }
@@ -454,7 +502,7 @@ export default function ProjectDetail() {
             </h2>
 
             <p className="text-xs text-gray-400 mb-4">
-              All project calculations reference data from the selected dataset revision. Results update on the next calculation save.
+              All project calculations use the selected dataset revision. Existing entries are recalculated when you switch revisions.
             </p>
 
             {activeRevision ? (
@@ -476,13 +524,72 @@ export default function ProjectDetail() {
               }))}
               onChange={(id) => {
                 const rev = bindableRevisions.find((r) => r.id === id);
-                if (rev && rev.id !== activeRevision?.id) setPendingRevision(rev);
+                if (rev && rev.id !== activeRevision?.id) {
+                  setSwitchFailure(null);
+                  setPendingRevision(rev);
+                }
               }}
               disabled={!canChangeDataset || switchingDataset}
               loading={switchingDataset}
               placeholder="Select a dataset revision…"
               noOptionsLabel="No published dataset revisions available"
             />
+
+            {datasetIssues.length > 0 && (
+              <div role="alert" className="mt-5 rounded border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+                <h3 className="font-semibold">Some entries could not be calculated from this dataset</h3>
+                <p className="mt-1">
+                  The following entries lack necessary data to calculate emissions. You may add data to the selected dataset, remove the entries, or change the dataset selection to the previous one.
+                </p>
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full border-collapse text-left">
+                    <thead>
+                      <tr className="border-b border-amber-300">
+                        <th className="py-2 pr-4">Entry</th>
+                        <th className="py-2 pr-4">Data entry table</th>
+                        <th className="py-2">Dataset table missing data</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {datasetIssues.map((issue) => (
+                        <tr key={issue.activity_data_id} className="border-b border-amber-200 last:border-0">
+                          <td className="py-2 pr-4">{issue.entry}</td>
+                          <td className="py-2 pr-4">{issue.data_entry_table}</td>
+                          <td className="py-2">{issue.dataset_table}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {calculationErrors.length > 0 && (
+              <div role="alert" className="mt-4 rounded border border-red-300 bg-red-50 p-4 text-sm text-red-900">
+                <h3 className="font-semibold">Some calculations need attention</h3>
+                <p className="mt-1">These entries could not be recalculated. Review the calculation errors before trying another dataset revision.</p>
+                <ul className="mt-2 list-disc pl-5">
+                  {calculationErrors.map((issue) => (
+                    <li key={issue.activity_data_id}>{issue.entry} ({issue.data_entry_table}): {issue.message}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {switchFailure && (
+              <div role="alert" className="mt-4 rounded border border-red-300 bg-red-50 p-4 text-sm text-red-900">
+                <h3 className="font-semibold">Dataset revision was not changed</h3>
+                <p className="mt-1">{switchFailure.message}</p>
+                {switchFailure.errors.length > 0 && (
+                  <ul className="mt-2 list-disc pl-5">
+                  {switchFailure.errors.map((issue, index) => (
+                      <li key={issue.activity_data_id ?? `${issue.data_entry_table ?? issue.entry}-${index}`}>
+                        {issue.entry}{issue.data_entry_table ? ` (${issue.data_entry_table})` : ""}: {issue.message}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
           </section>
 
           {/* Stage progress */}
@@ -633,7 +740,7 @@ export default function ProjectDetail() {
               <ScopeBadge scope={pendingRevision.scope_type} />? All project calculations will reference data from this revision going forward.
             </p>
             <p className="text-xs text-gray-400">
-              Results will update on the next calculation save. This change is recorded in the audit log.
+              Existing entries will be recalculated against this revision before the switch completes. Entries without required dataset data will be set to zero and listed on the project page. This change is recorded in the audit log.
             </p>
             <div className="flex justify-end gap-3 pt-2">
               <button

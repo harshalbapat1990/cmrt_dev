@@ -261,7 +261,7 @@ GROUP BY lifecycle_stage
 
 _REPL_EMISSIONS_SQL = text("""
 WITH repl_actual AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM((SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure = 'actual' AND er.accounting_basis IN ('common', 'location'))), 0) AS val
     FROM activity_data
     WHERE project_id                = :project_id
       AND project_stage_instance_id = :stage_instance_id
@@ -273,7 +273,7 @@ WITH repl_actual AS (
       AND COALESCE(extra_fields->>'emissions_category', '') != 'Materials'
 ),
 repl_mit AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM((SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure = 'mitigation' AND er.accounting_basis IN ('common', 'location'))), 0) AS val
     FROM activity_data
     WHERE project_id                = :project_id
       AND project_stage_instance_id = :stage_instance_id
@@ -288,7 +288,7 @@ repl_mit AS (
       AND COALESCE(extra_fields->>'emissions_category', '') != 'Materials'
 ),
 uplift_b2_b5 AS (
-    SELECT COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'upscaling_adjustment_tco2e', ''), '-')::numeric, 0)), 0) AS val
+    SELECT COALESCE(SUM(COALESCE((SELECT SUM(er.value) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.reporting_measure = 'baseline_adjustment' AND er.lifecycle_module_code = 'B2-5' AND er.is_supplementary IS FALSE), 0)), 0) AS val
     FROM activity_data
     WHERE project_id                = :project_id
       AND project_stage_instance_id = :stage_instance_id
@@ -314,7 +314,7 @@ SELECT
 
 _OFFSETS_SQL = text("""
 SELECT
-    -COALESCE(SUM(COALESCE(NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric, 0)), 0)
+    -COALESCE(SUM((SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.activity_data_id = activity_data.id AND er.is_supplementary IS FALSE AND er.reporting_measure = 'offset' AND er.accounting_basis IN ('common', 'location'))), 0)
         AS offsets_tco2e
 FROM activity_data
 WHERE project_id                = :project_id

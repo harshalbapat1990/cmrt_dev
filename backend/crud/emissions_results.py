@@ -84,6 +84,7 @@ async def upsert_result(
             project_id=project_id,
             project_stage_instance_id=project_stage_instance_id,
             activity_data_id=activity_data_id,
+            dataset_revision_id=activity.dataset_revision_id if activity is not None else None,
             value_key=value_key,
             lifecycle_module_code=lifecycle_module_code,
             is_supplementary=is_supplementary,
@@ -96,6 +97,7 @@ async def upsert_result(
             set_={
                 "value": value,
                 "unit_id": unit_id,
+                "dataset_revision_id": activity.dataset_revision_id if activity is not None else None,
                 "lifecycle_module_code": lifecycle_module_code,
                 **dims,
             },

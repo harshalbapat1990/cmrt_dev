@@ -33,6 +33,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
+from services.emissions_result_aggregates import emissions_totals_by_activity
 
 router = APIRouter(
     prefix="/api/dashboard/offsetting",
@@ -130,7 +131,7 @@ _DETAIL_SQL = text("""
         extra_fields->>'emissions_source'                                 AS emissions_source,
         extra_fields->>'unit_code'                                          AS unit,
         quantity,
-        NULLIF(NULLIF(extra_fields->>'total_emissions_tco2e', ''), '-')::numeric       AS emissions_tco2e,
+        0::numeric AS emissions_tco2e,
         extra_fields->>'notes'                                            AS notes
     FROM activity_data
     WHERE
@@ -235,6 +236,10 @@ async def get_offsetting_detail(
             detail=f"Database query failed: {exc}",
         )
 
+    raw_rows = result.mappings().all()
+    emissions_by_id = await emissions_totals_by_activity(
+        db, (row.id for row in raw_rows), measures=("offset",)
+    )
     rows = [
         OffsetDetailRow(
             id=row.id,
@@ -243,10 +248,10 @@ async def get_offsetting_detail(
             emissions_source=row.emissions_source,
             unit=row.unit,
             quantity=row.quantity,
-            emissions_tco2e=row.emissions_tco2e,
+            emissions_tco2e=emissions_by_id.get(row.id, Decimal(0)),
             notes=row.notes,
         )
-        for row in result.mappings().all()
+        for row in raw_rows
     ]
 
     return OffsetDetailResponse(rows=rows)

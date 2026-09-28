@@ -10,11 +10,10 @@ project options in a stage instance.
       project_id        UUID  required
       stage_instance_id UUID  required
 
-Road data source (depends on project class and jurisdiction):
-  NZ Small   → user_emissions_nz_results         + activity_data[roadUsers]
-  AUS Small  → user_emissions_aus_small_results  + activity_data[roadUsers]
-  NZ Large   → user_emissions_nz_large_road_results
-  AUS Large  → user_emissions_aus_large_road_results
+Road emissions are sourced from emissions_results, keyed by project option,
+assessment year, and vehicle type. Specialist user_emissions_* tables continue
+to supply annual intensity and calculation detail. Activity_data supplies VKT,
+speed, and rail inputs.
 
 Rail data source (from activity_data):
   Small (NZ or AUS) / NZ Large → ui_table_key = 'railUsers'
@@ -135,6 +134,7 @@ class UserEmissionsDashboardResponse(DashboardBase):
 _PROJECT_CONTEXT_SQL = text("""
     SELECT
         p.project_class::text                AS project_class,
+        COALESCE(p.operational_life_years, 1) AS operational_life_years,
         COALESCE(j.name, '')                 AS jurisdiction_name
     FROM   project p
     JOIN   organization  o ON o.id = p.proponent_org_id
@@ -159,20 +159,20 @@ _OPTIONS_SQL = text("""
 
 _NZ_SMALL_ROAD_SQL = text("""
     SELECT
-        assessment_year,
+        r.assessment_year,
         general_fleet_intensity_gco2e_km,
         light_vehicle_intensity_gco2e_km,
         heavy_vehicle_intensity_gco2e_km,
         bus_intensity_gco2e_km,
-        general_fleet_emissions_tco2e,
-        light_vehicle_emissions_tco2e,
-        heavy_vehicle_emissions_tco2e,
-        bus_emissions_tco2e,
-        total_annual_emissions_tco2e
-    FROM   user_emissions_nz_results
-    WHERE  project_stage_instance_id = CAST(:stage_id AS uuid)
-      AND  project_option_id         = CAST(:option_id AS uuid)
-    ORDER  BY assessment_year
+        (SELECT er.value FROM emissions_results er WHERE er.project_option_id = r.project_option_id AND er.assessment_year = r.assessment_year AND er.value_key = 'b8_road_general_fleet') AS general_fleet_emissions_tco2e,
+        (SELECT er.value FROM emissions_results er WHERE er.project_option_id = r.project_option_id AND er.assessment_year = r.assessment_year AND er.value_key = 'b8_road_light_vehicle') AS light_vehicle_emissions_tco2e,
+        (SELECT er.value FROM emissions_results er WHERE er.project_option_id = r.project_option_id AND er.assessment_year = r.assessment_year AND er.value_key = 'b8_road_heavy_vehicle') AS heavy_vehicle_emissions_tco2e,
+        (SELECT er.value FROM emissions_results er WHERE er.project_option_id = r.project_option_id AND er.assessment_year = r.assessment_year AND er.value_key = 'b8_road_bus') AS bus_emissions_tco2e,
+        (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.project_option_id = r.project_option_id AND er.assessment_year = r.assessment_year AND er.value_key ~ '^b8_road_') AS total_annual_emissions_tco2e
+    FROM   user_emissions_nz_results r
+    WHERE  r.project_stage_instance_id = CAST(:stage_id AS uuid)
+      AND  r.project_option_id         = CAST(:option_id AS uuid)
+    ORDER  BY r.assessment_year
 """)
 
 # ---------------------------------------------------------------------------
@@ -181,20 +181,20 @@ _NZ_SMALL_ROAD_SQL = text("""
 
 _AUS_SMALL_ROAD_SQL = text("""
     SELECT
-        assessment_year,
+        r.assessment_year,
         light_vehicle_intensity_gco2e_km,
         medium_vehicle_intensity_gco2e_km,
         heavy_vehicle_intensity_gco2e_km,
         super_heavy_vehicle_intensity_gco2e_km,
-        light_vehicle_emissions_tco2e,
-        medium_vehicle_emissions_tco2e,
-        heavy_vehicle_emissions_tco2e,
-        super_heavy_vehicle_emissions_tco2e,
-        total_annual_emissions_tco2e
-    FROM   user_emissions_aus_small_results
-    WHERE  project_stage_instance_id = CAST(:stage_id AS uuid)
-      AND  project_option_id         = CAST(:option_id AS uuid)
-    ORDER  BY assessment_year
+        (SELECT er.value FROM emissions_results er WHERE er.project_option_id = r.project_option_id AND er.assessment_year = r.assessment_year AND er.value_key = 'b8_road_light_vehicle') AS light_vehicle_emissions_tco2e,
+        (SELECT er.value FROM emissions_results er WHERE er.project_option_id = r.project_option_id AND er.assessment_year = r.assessment_year AND er.value_key = 'b8_road_medium_vehicle') AS medium_vehicle_emissions_tco2e,
+        (SELECT er.value FROM emissions_results er WHERE er.project_option_id = r.project_option_id AND er.assessment_year = r.assessment_year AND er.value_key = 'b8_road_heavy_vehicle') AS heavy_vehicle_emissions_tco2e,
+        (SELECT er.value FROM emissions_results er WHERE er.project_option_id = r.project_option_id AND er.assessment_year = r.assessment_year AND er.value_key = 'b8_road_super_heavy_vehicle') AS super_heavy_vehicle_emissions_tco2e,
+        (SELECT COALESCE(SUM(er.value), 0) FROM emissions_results er WHERE er.project_option_id = r.project_option_id AND er.assessment_year = r.assessment_year AND er.value_key ~ '^b8_road_') AS total_annual_emissions_tco2e
+    FROM   user_emissions_aus_small_results r
+    WHERE  r.project_stage_instance_id = CAST(:stage_id AS uuid)
+      AND  r.project_option_id         = CAST(:option_id AS uuid)
+    ORDER  BY r.assessment_year
 """)
 
 # ---------------------------------------------------------------------------
@@ -203,16 +203,16 @@ _AUS_SMALL_ROAD_SQL = text("""
 
 _NZ_LARGE_ROAD_SQL = text("""
     SELECT
-        assessment_year,
-        vehicle_type,
+        r.assessment_year,
+        r.vehicle_type,
         vkt_calc,
         speed_kph_calc,
         emissions_intensity_gco2e_km  AS emissions_intensity,
-        emissions_tco2e
-    FROM   user_emissions_nz_large_road_results
-    WHERE  project_stage_instance_id = CAST(:stage_id AS uuid)
-      AND  project_option_id         = CAST(:option_id AS uuid)
-    ORDER  BY vehicle_type, assessment_year
+        (SELECT er.value FROM emissions_results er WHERE er.project_option_id = r.project_option_id AND er.assessment_year = r.assessment_year AND er.value_key = 'b8_road_' || regexp_replace(lower(r.vehicle_type), '[^a-z0-9]+', '_', 'g')) AS emissions_tco2e
+    FROM   user_emissions_nz_large_road_results r
+    WHERE  r.project_stage_instance_id = CAST(:stage_id AS uuid)
+      AND  r.project_option_id         = CAST(:option_id AS uuid)
+    ORDER  BY r.vehicle_type, r.assessment_year
 """)
 
 # ---------------------------------------------------------------------------
@@ -221,16 +221,16 @@ _NZ_LARGE_ROAD_SQL = text("""
 
 _AUS_LARGE_ROAD_SQL = text("""
     SELECT
-        assessment_year,
-        vehicle_type,
+        r.assessment_year,
+        r.vehicle_type,
         vkt_calc,
         speed_kph_calc,
         emissions_intensity_gco2e_vkt AS emissions_intensity,
-        emissions_tco2e
-    FROM   user_emissions_aus_large_road_results
-    WHERE  project_stage_instance_id = CAST(:stage_id AS uuid)
-      AND  project_option_id         = CAST(:option_id AS uuid)
-    ORDER  BY vehicle_type, assessment_year
+        (SELECT er.value FROM emissions_results er WHERE er.project_option_id = r.project_option_id AND er.assessment_year = r.assessment_year AND er.value_key = 'b8_road_' || regexp_replace(lower(r.vehicle_type), '[^a-z0-9]+', '_', 'g')) AS emissions_tco2e
+    FROM   user_emissions_aus_large_road_results r
+    WHERE  r.project_stage_instance_id = CAST(:stage_id AS uuid)
+      AND  r.project_option_id         = CAST(:option_id AS uuid)
+    ORDER  BY r.vehicle_type, r.assessment_year
 """)
 
 # ---------------------------------------------------------------------------
@@ -257,6 +257,7 @@ _ROAD_INPUTS_SQL = text("""
 
 _RAIL_ACTIVITY_SQL = text("""
     SELECT
+        id::text AS activity_data_id,
         extra_fields->>'vehicle_type' AS train_type,
         extra_fields->>'terrain'      AS terrain,
         extra_fields->>'freight'      AS gtk_value
@@ -269,21 +270,19 @@ _RAIL_ACTIVITY_SQL = text("""
     ORDER  BY created_at
 """)
 
-# ---------------------------------------------------------------------------
-# SQL — diesel emission intensity (scope1 + scope3, kL basis)
-# ---------------------------------------------------------------------------
-
-_DIESEL_INTENSITY_SQL = text("""
-    SELECT COALESCE(emission_factor_scope1, 0) + COALESCE(emission_factor_scope3, 0)
-               AS diesel_intensity
-    FROM   v_grade34_detailed_level
-    WHERE  "Jurisdiction"     = :jurisdiction
-      AND  "Emissions Source" = :fuel_source
-      AND  "UoM"              = 'kL'
-    ORDER  BY (emission_factor_scope1 IS NOT NULL)::int
-              + (emission_factor_scope3 IS NOT NULL)::int DESC,
-              emission_factor_scope1 DESC NULLS LAST
-    LIMIT  1
+_RAIL_LEDGER_SQL = text("""
+    SELECT ad.id::text AS activity_data_id, er.assessment_year,
+           SUM(er.value) AS emissions_annual
+    FROM emissions_results er
+    JOIN activity_data ad
+      ON er.value_key = 'b8_rail_' || replace(ad.id::text, '-', '') || '_' || er.assessment_year::text
+    WHERE er.project_stage_instance_id = CAST(:stage_id AS uuid)
+      AND ad.id = ANY(CAST(:activity_ids AS uuid[]))
+      AND er.assessment_year IS NOT NULL
+      AND er.lifecycle_module_code = 'B8'
+      AND er.is_supplementary IS FALSE
+      AND er.reporting_measure = 'actual'
+    GROUP BY ad.id, er.assessment_year
 """)
 
 # ---------------------------------------------------------------------------
@@ -522,9 +521,9 @@ def _build_large_road_grid(
 def _build_rail_grid(
     rail_rows: list,
     frf_map: Dict[tuple, Decimal],
-    diesel_intensity: Decimal,
+    emissions_by_activity_year: Dict[tuple, Decimal],
     years: List[int],
-    base_case_rail_annual: Decimal,
+    base_case_rail_by_year: Dict[int, Decimal],
     road_relative_per_year: Dict[int, Decimal],
 ) -> tuple:
     """
@@ -533,7 +532,7 @@ def _build_rail_grid(
     Row order:
       1. {train} (GTK)              – constant from activity_data
       2. {train} diesel (kL)        – calculated: fc × GTK / 1,000,000
-      3. {train} emissions (tCO2e)  – calculated: diesel_kl × diesel_intensity
+      3. {train} emissions (tCO2e)  – read from the saved result ledger
       4. Absolute emissions - all trains (tCO2e)
       5. Relative train user emissions (B8) (tCO2e)
       6. Relative road & rail user emissions (B8) (tCO2e)
@@ -544,7 +543,7 @@ def _build_rail_grid(
     grid: List[UserEmissionsGridRow] = []
 
     # Per-train calculations
-    rail_by_type: Dict[str, tuple] = {}   # train_type → (gtk, fuel_kl, annual)
+    rail_by_type: Dict[str, tuple] = {}   # train_type → (gtk, fuel_kl, annual values by year)
     train_order: List[str] = []
     for r in rail_rows:
         tt = r["train_type"] or ""
@@ -554,8 +553,11 @@ def _build_rail_grid(
         gtk = _dec(r["gtk_value"]) or Decimal("0")
         fc = frf_map.get((tt.lower(), ter), Decimal("0"))
         fuel_kl = fc * gtk / Decimal("1000000")
-        annual = fuel_kl * diesel_intensity
-        rail_by_type[tt] = (gtk, fuel_kl, annual)
+        annual_values = {
+            year: emissions_by_activity_year.get((str(r["activity_data_id"]), year), Decimal("0"))
+            for year in years
+        }
+        rail_by_type[tt] = (gtk, fuel_kl, annual_values)
 
     # 1. GTK rows
     for tt in train_order:
@@ -581,33 +583,41 @@ def _build_rail_grid(
 
     # 3. Emissions (tCO2e) rows
     for tt in train_order:
-        _, _, annual = rail_by_type[tt]
+        _, _, annual_values = rail_by_type[tt]
         grid.append(UserEmissionsGridRow(
             row_key=f"{_normalize_key(tt)}_emissions",
             label=f"{tt} emissions (tCO2e)",
             row_type="calculated",
             unit="tCO2e",
-            values=[annual] * n,
+            values=[annual_values.get(year, Decimal("0")) for year in years],
         ))
 
     # 4. Absolute total
-    opt_rail_annual = sum((v[2] for v in rail_by_type.values()), Decimal("0"))
+    annual_total_by_year = {
+        year: sum((values[2].get(year, Decimal("0")) for values in rail_by_type.values()), Decimal("0"))
+        for year in years
+    }
+    opt_rail_annual = annual_total_by_year.get(years[0], Decimal("0")) if years else Decimal("0")
     grid.append(UserEmissionsGridRow(
         row_key="total_annual_rail_emissions",
         label="Absolute emissions - all trains (tCO2e)",
         row_type="total",
         unit="tCO2e",
-        values=[opt_rail_annual] * n,
+        values=[annual_total_by_year.get(year, Decimal("0")) for year in years],
     ))
 
     # 5. Relative train
-    rel_rail = opt_rail_annual - base_case_rail_annual
+    rel_rail_by_year = {
+        year: annual_total_by_year.get(year, Decimal("0")) - base_case_rail_by_year.get(year, Decimal("0"))
+        for year in years
+    }
+    rel_rail = rel_rail_by_year.get(years[0], Decimal("0")) if years else Decimal("0")
     grid.append(UserEmissionsGridRow(
         row_key="relative_train_emissions",
         label="Relative train user emissions (B8) (tCO2e)",
         row_type="relative",
         unit="tCO2e",
-        values=[rel_rail] * n,
+        values=[rel_rail_by_year.get(year, Decimal("0")) for year in years],
     ))
 
     # 6. Combined relative road & rail
@@ -617,7 +627,7 @@ def _build_rail_grid(
         row_type="relative",
         unit="tCO2e",
         values=[
-            road_relative_per_year.get(yr, Decimal("0")) + rel_rail
+            road_relative_per_year.get(yr, Decimal("0")) + rel_rail_by_year.get(yr, Decimal("0"))
             for yr in years
         ],
     ))
@@ -637,12 +647,7 @@ def _build_rail_grid(
     description=(
         "Returns road and rail user emissions datagrid data for all options in a "
         "project stage instance.\n\n"
-        "Road data source depends on project class and jurisdiction:\n"
-        "- NZ Small   → user_emissions_nz_results\n"
-        "- AUS Small  → user_emissions_aus_small_results\n"
-        "- NZ Large   → user_emissions_nz_large_road_results\n"
-        "- AUS Large  → user_emissions_aus_large_road_results\n\n"
-        "Rail data is sourced from activity_data (railUsers / largeRailUsers).\n\n"
+        "Annual road emissions are sourced from emissions_results. Dedicated road result tables provide intensity and calculation detail. Rail emissions are also sourced from emissions_results, with activity_data providing train inputs.\n\n"
         "Each option section includes road rows (grid of year × metric), rail rows "
         "and summary totals (interim absolute, base-case, and relative user emissions)."
     ),
@@ -675,20 +680,8 @@ async def get_user_emissions_dashboard(
         is_large = project_class == "LARGE"
 
         # ------------------------------------------------------------------
-        # 2. Diesel emission intensity for rail calculations
-        # ------------------------------------------------------------------
-        grade34_jur = "New Zealand" if is_nz else "Australia"
-        fuel_source  = "Diesel" if is_nz else "Diesel oil"
-        di_row = (
-            await db.execute(
-                _DIESEL_INTENSITY_SQL,
-                {"jurisdiction": grade34_jur, "fuel_source": fuel_source},
-            )
-        ).mappings().first()
-        diesel_intensity: Decimal = Decimal(str(di_row["diesel_intensity"])) if di_row else Decimal("0")
-
-        # ------------------------------------------------------------------
-        # 3. Freight rail factors (published revision)
+        # 2. Freight rail factors provide the displayed fuel quantity. Emissions
+        #    values themselves are read from emissions_results below.
         # ------------------------------------------------------------------
         frf_rows = (await db.execute(_FREIGHT_RAIL_FACTORS_SQL)).mappings().all()
         frf_map: Dict[tuple, Decimal] = {}
@@ -941,17 +934,27 @@ async def get_user_emissions_dashboard(
             rail_db_rows = (await db.execute(_RAIL_ACTIVITY_SQL, params)).mappings().all()
             option_rail_db[opt_id] = list(rail_db_rows)
 
-        # 6b. Base-case rail annual total (for relative row)
-        base_case_rail_annual = Decimal("0")
-        if base_case_option_id and base_case_option_id in option_rail_db:
-            for r in option_rail_db[base_case_option_id]:
-                tt  = (r["train_type"] or "").lower()
-                ter = (r["terrain"] or "").lower()
-                gtk = _dec(r["gtk_value"]) or Decimal("0")
-                fc  = frf_map.get((tt, ter), Decimal("0"))
-                base_case_rail_annual += (fc * gtk / Decimal("1000000")) * diesel_intensity
+        rail_activity_ids = [
+            row["activity_data_id"]
+            for rows in option_rail_db.values()
+            for row in rows
+        ]
+        emissions_by_activity_year: Dict[tuple, Decimal] = {}
+        if rail_activity_ids:
+            ledger_rows = (await db.execute(
+                _RAIL_LEDGER_SQL,
+                {
+                    "stage_id": str(stage_instance_id),
+                    "activity_ids": [UUID(str(activity_id)) for activity_id in rail_activity_ids],
+                },
+            )).mappings().all()
+            emissions_by_activity_year = {
+                (str(row["activity_data_id"]), int(row["assessment_year"])):
+                    (_dec(row["emissions_annual"]) or Decimal("0"))
+                for row in ledger_rows
+            }
 
-        # 6c. Shared years list (from first road section that has data)
+        # 6b. Shared years list (from first road section that has data)
         all_years: List[int] = []
         for opt in opt_rows:
             rs = option_road_sections.get(opt["id"])
@@ -959,7 +962,17 @@ async def get_user_emissions_dashboard(
                 all_years = rs.years
                 break
 
-        # 6d. Build rail grids per option
+        # Base-case rail annual totals are direct sums of saved annual ledger facts.
+        base_case_rail_by_year: Dict[int, Decimal] = {year: Decimal("0") for year in all_years}
+        if base_case_option_id and base_case_option_id in option_rail_db:
+            for row in option_rail_db[base_case_option_id]:
+                for year in all_years:
+                    base_case_rail_by_year[year] += emissions_by_activity_year.get(
+                        (str(row["activity_data_id"]), year), Decimal("0")
+                    )
+        base_case_rail_annual = base_case_rail_by_year.get(all_years[0], Decimal("0")) if all_years else Decimal("0")
+
+        # 6c. Build rail grids per option
         option_rail_sections: Dict[str, Optional[UserEmissionsRailSection]] = {}
         for opt in opt_rows:
             opt_id = opt["id"]
@@ -978,9 +991,9 @@ async def get_user_emissions_dashboard(
             grid_rows, opt_rail_annual = _build_rail_grid(
                 rail_rows=rail_rows,
                 frf_map=frf_map,
-                diesel_intensity=diesel_intensity,
+                emissions_by_activity_year=emissions_by_activity_year,
                 years=all_years,
-                base_case_rail_annual=base_case_rail_annual,
+                base_case_rail_by_year=base_case_rail_by_year,
                 road_relative_per_year=road_relative_per_year,
             )
 

@@ -11,7 +11,8 @@ class EmissionsResultOut(BaseModel):
     id: UUID
     project_id: UUID
     project_stage_instance_id: UUID
-    activity_data_id: UUID
+    activity_data_id: Optional[UUID] = None
+    dataset_revision_id: Optional[UUID] = None
     lifecycle_module_code: Optional[str] = None
     value: Decimal
     unit_id: Optional[UUID] = None

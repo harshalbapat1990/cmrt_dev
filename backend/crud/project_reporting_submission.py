@@ -1,14 +1,13 @@
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 #from sqlalchemy.future import select
-from sqlalchemy import select, update as sql_update, func, cast, Numeric
+from sqlalchemy import select, update as sql_update, func
 from models.project_reporting_submission import ProjectReportingSubmission
 from schemas.project_reporting_submission import (
     ProjectReportingSubmissionCreate,
     ProjectReportingSubmissionUpdate,
     ConstructionPeriodCreate,
 )
-from sqlalchemy.sql.elements import ColumnElement
 
 from datetime import date, datetime
 from decimal import Decimal
@@ -20,6 +19,7 @@ from models.project_stage_config import ProjectStageConfig, ProjectStage, Report
 from models.project_reporting_submission import ProjectReportingSubmission
 from models.activity_data import ActivityData
 from models.project_options import ProjectOption
+from models.emissions_results import EmissionsResult
 
 
 async def create_submission(db: AsyncSession, payload: ProjectReportingSubmissionCreate) -> ProjectReportingSubmission:
@@ -453,39 +453,24 @@ async def get_emissions_by_period_ids(
     if not period_ids:
         return {}
 
-    _CONSTRUCTION_KEYS = ["constructionG2", "constructionG3", "electricity", "recurringG3"]
-    _tco2e: ColumnElement[Decimal] = cast(ActivityData.extra_fields["total_emissions_tco2e"].astext, Numeric)
-    _uplift: ColumnElement[Decimal] = cast(ActivityData.extra_fields["upscaling_adjustment_tco2e"].astext, Numeric)
-
     rows = (await db.execute(
         select(
             ActivityData.submission_period_id,
-            func.coalesce(func.sum(_tco2e), 0).label("total"),
+            func.coalesce(func.sum(EmissionsResult.value), 0).label("total"),
         )
+        .join(EmissionsResult, EmissionsResult.activity_data_id == ActivityData.id)
         .outerjoin(ProjectOption, ProjectOption.id == ActivityData.project_option_id)
         .where(ActivityData.submission_period_id.in_(period_ids))
-        .where(ActivityData.ui_table_key.in_(_CONSTRUCTION_KEYS))
+        .where(ActivityData.ui_table_key.in_(["constructionG2", "constructionG3", "electricity", "recurringG3", "completeness"]))
+        .where(EmissionsResult.reporting_measure.in_(["actual", "mitigation", "baseline_adjustment"]))
+        .where(EmissionsResult.is_supplementary.is_(False))
+        .where(EmissionsResult.accounting_basis.in_(["common", "location"]))
         .where(
             (ActivityData.project_option_id == None) | (ProjectOption.is_default == True)
         )
         .group_by(ActivityData.submission_period_id)
     )).all()
-    #return {row.submission_period_id: Decimal(str(row.total)) for row in rows}
     totals = {row.submission_period_id: Decimal(str(row.total)) for row in rows}
-
-    uplift_rows = (await db.execute(
-        select(
-            ActivityData.submission_period_id,
-            func.coalesce(func.sum(func.coalesce(_uplift, 0)), 0).label("uplift"),
-        )
-        .where(ActivityData.submission_period_id.in_(period_ids))
-        .where(ActivityData.ui_table_key == "completeness")
-        .group_by(ActivityData.submission_period_id)
-    )).all()
-    for row in uplift_rows:
-        pid = row.submission_period_id
-        totals[pid] = totals.get(pid, Decimal(0)) + Decimal(str(row.uplift))
-
     return totals
 
 
@@ -494,34 +479,23 @@ async def get_total_construction_emissions(
     stage_instance_id: UUID,
 ) -> Decimal:
 
-    _CONSTRUCTION_KEYS = ["constructionG2", "constructionG3", "electricity", "recurringG3"]
-    _tco2e: ColumnElement[Decimal] = cast(ActivityData.extra_fields["total_emissions_tco2e"].astext, Numeric)
-    _uplift: ColumnElement[Decimal] = cast(ActivityData.extra_fields["upscaling_adjustment_tco2e"].astext, Numeric)
     row = (await db.execute(
-        select(func.coalesce(func.sum(_tco2e), 0).label("total"))
+        select(func.coalesce(func.sum(EmissionsResult.value), 0).label("total"))
+        .select_from(ActivityData)
+        .join(EmissionsResult, EmissionsResult.activity_data_id == ActivityData.id)
         .join(
             ProjectReportingSubmission,
             ProjectReportingSubmission.id == ActivityData.submission_period_id,
         )
         .outerjoin(ProjectOption, ProjectOption.id == ActivityData.project_option_id)
         .where(ProjectReportingSubmission.stage_instance_id == stage_instance_id)
-        .where(ActivityData.ui_table_key.in_(_CONSTRUCTION_KEYS))
+        .where(ActivityData.ui_table_key.in_(["constructionG2", "constructionG3", "electricity", "recurringG3", "completeness"]))
+        .where(EmissionsResult.reporting_measure.in_(["actual", "mitigation", "baseline_adjustment"]))
+        .where(EmissionsResult.is_supplementary.is_(False))
+        .where(EmissionsResult.accounting_basis.in_(["common", "location"]))
         .where(
             (ActivityData.project_option_id == None) | (ProjectOption.is_default == True)
         )
     )).first()
-    #return Decimal(str(row.total)) if row else Decimal(0)
     construction_total = Decimal(str(row.total)) if row else Decimal(0)
-
-    uplift_row = (await db.execute(
-        select(func.coalesce(func.sum(func.coalesce(_uplift, 0)), 0).label("total"))
-        .join(
-            ProjectReportingSubmission,
-            ProjectReportingSubmission.id == ActivityData.submission_period_id,
-        )
-        .where(ProjectReportingSubmission.stage_instance_id == stage_instance_id)
-        .where(ActivityData.ui_table_key == "completeness")
-    )).first()
-    uplift_total = Decimal(str(uplift_row.total)) if uplift_row else Decimal(0)
-
-    return construction_total + uplift_total
+    return construction_total

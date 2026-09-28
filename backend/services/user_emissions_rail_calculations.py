@@ -137,6 +137,13 @@ async def _get_dataset_revision_id(db: AsyncSession) -> UUID:
     return row["id"]
 
 
+async def _get_project_dataset_revision_id(db: AsyncSession, project_id: UUID) -> UUID:
+    from services.project_context_helper import ProjectContextHelper
+
+    revision_id = await ProjectContextHelper.fetch_project_dataset_revision(db, project_id)
+    return revision_id or await _get_dataset_revision_id(db)
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Main calculation entry point
 # ─────────────────────────────────────────────────────────────────────────────
@@ -160,7 +167,7 @@ async def calculate_rail(
     operational_life_years, jurisdiction_name = await _get_project_info(db, req.project_id)
 
     # ── 2. Dataset revision ───────────────────────────────────────────────────
-    dataset_revision_id = await _get_dataset_revision_id(db)
+    dataset_revision_id = await _get_project_dataset_revision_id(db, req.project_id)
 
     # ── 3. AUS vs NZ fuel source ──────────────────────────────────────────────
     #   NZ projects have jurisdiction_name = 'New Zealand'.
@@ -170,12 +177,33 @@ async def calculate_rail(
     grade34_jurisdiction = "New Zealand" if is_nz else "Australia"
 
     # ── 4. Emissions intensity from v_grade34_detailed_level ──────────────────
-    ef_row = (
-        await db.execute(
-            _DIESEL_EF_SQL,
-            {"jurisdiction": grade34_jurisdiction, "source": fuel_source},
+    has_revision_column = bool((await db.execute(text("""
+        SELECT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_schema = current_schema()
+            AND table_name = 'v_grade34_detailed_level'
+            AND column_name = 'dataset_revision_id'
         )
-    ).mappings().first()
+    """))).scalar())
+    diesel_sql = _DIESEL_EF_SQL
+    diesel_params = {"jurisdiction": grade34_jurisdiction, "source": fuel_source}
+    if has_revision_column:
+        diesel_sql = text("""
+            SELECT COALESCE(emission_factor_scope1, 0) + COALESCE(emission_factor_scope3, 0)
+                AS diesel_intensity_tco2e_kl
+            FROM v_grade34_detailed_level
+            WHERE "Jurisdiction" = :jurisdiction
+              AND "Emissions Source" = :source
+              AND "UoM" = 'kL'
+              AND (dataset_revision_id = :rid OR dataset_revision_id IS NULL)
+            ORDER BY (dataset_revision_id = :rid) DESC,
+                     (emission_factor_scope1 IS NOT NULL)::int
+                       + (emission_factor_scope3 IS NOT NULL)::int DESC,
+                     emission_factor_scope1 DESC NULLS LAST
+            LIMIT 1
+        """)
+        diesel_params["rid"] = str(dataset_revision_id)
+    ef_row = (await db.execute(diesel_sql, diesel_params)).mappings().first()
 
     if ef_row is None:
         raise ValueError(

@@ -84,6 +84,10 @@ async def recalc_grade2_b4_replacement_row(
     try:
         resp = await _calculator.calculate(db, req)
     except ValueError as exc:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            from services.project_dataset_recalculation import MissingDatasetDataError
+
+            raise MissingDatasetDataError("Grade 2 replacement factors", str(exc)) from exc
         logger.warning(
             "grade2_b4_replacement calculate failed activity_data=%s: %s",
             activity_row.id,
@@ -91,6 +95,8 @@ async def recalc_grade2_b4_replacement_row(
         )
         return None
     except Exception:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            raise
         logger.exception(
             "grade2_b4_replacement unexpected error activity_data=%s",
             activity_row.id,

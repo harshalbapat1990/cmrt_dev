@@ -66,6 +66,8 @@ async def recalc_operational_row(
     try:
         ctx = await ProjectContextHelper.get_project_context(db, activity_row.project_id)
     except ValueError as exc:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            raise
         logger.warning(
             "opEnergy skip: project context unavailable activity_data=%s: %s",
             activity_row.id,
@@ -94,6 +96,10 @@ async def recalc_operational_row(
     try:
         resp = await _calculator.calculate(db, req)
     except ValueError as exc:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            from services.project_dataset_recalculation import MissingDatasetDataError
+
+            raise MissingDatasetDataError("Operational equipment factors", str(exc)) from exc
         logger.warning(
             "opEnergy calculate failed activity_data=%s: %s",
             activity_row.id,
@@ -101,6 +107,8 @@ async def recalc_operational_row(
         )
         return None
     except Exception:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            raise
         logger.exception(
             "opEnergy unexpected error activity_data=%s",
             activity_row.id,

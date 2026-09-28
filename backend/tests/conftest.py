@@ -1826,6 +1826,7 @@ class DummyProjectDatasetRevision:
     notes: Optional[str] = None
     applied_at: Optional[datetime] = None
     is_locked: bool = False
+    calculation_report: Dict = field(default_factory=dict)
 
 
 @dataclass
