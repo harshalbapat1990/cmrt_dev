@@ -143,7 +143,6 @@ class ElectricityDetailedRequest(BaseModel):
     # --- Construction window (from construction_start_date / construction_end_date) ---
     construction_start_year: Optional[int] = Field(
         None,
-        ge=2026,
         # le=2100,
         description=(
             "Start year of the construction period (from construction_start_date). "
@@ -152,7 +151,6 @@ class ElectricityDetailedRequest(BaseModel):
     )
     construction_end_year: Optional[int] = Field(
         None,
-        ge=2026,
         # le=2100,
         description=(
             "End year of the construction period (from construction_end_date). "
@@ -471,7 +469,7 @@ class ElectricityDetailedCalculator:
         lb_mult = _LB_MULTIPLIERS[request.emission_source]
         mb_mult = _MB_MULTIPLIERS[request.emission_source]
         
-        print(f"DEBUG: emission_source={request.emission_source}, lb_mult={lb_mult}, mb_mult={mb_mult}")
+        # print(f"DEBUG: emission_source={request.emission_source}, lb_mult={lb_mult}, mb_mult={mb_mult}")
 
         # Convert quantity to MWh based on unit
         _unit_to_mwh: dict[str, float] = {"kWh": 0.001, "MWh": 1.0, "GWh": 1000.0}
@@ -480,7 +478,7 @@ class ElectricityDetailedCalculator:
         # Total Grid + Offsite MWh for the year — SUMIFS resolved from activity_data.
         # Only needed for Grid Electricity (mb_mult = 1); skip the query otherwise.
         if mb_mult != 0 and request.project_stage_instance_id and request.project_option_id:
-            print(f"DEBUG: Fetching SUMIFS total for project_stage_instance_id={request.project_stage_instance_id}, project_option_id={request.project_option_id}, year={request.year}, project_id={request.project_id}")
+            # print(f"DEBUG: Fetching SUMIFS total for project_stage_instance_id={request.project_stage_instance_id}, project_option_id={request.project_option_id}, year={request.year}, project_id={request.project_id}")
             total_yr_mwh: float = await self._fetch_sumifs_from_activity_data(
                 db,
                 project_stage_instance_id=request.project_stage_instance_id,
@@ -489,14 +487,14 @@ class ElectricityDetailedCalculator:
                 project_id=request.project_id,
             )
             if total_yr_mwh == 0:
-                print("DEBUG: SUMIFS query returned 0 total MWh for the year; using single-row quantity for total_yr_mwh.")
+                # print("DEBUG: SUMIFS query returned 0 total MWh for the year; using single-row quantity for total_yr_mwh.")
                 total_yr_mwh = qty
         else:
-            print("Fallback: skipping SUMIFS query; using single-row quantity for total_yr_mwh.")
+            # print("Fallback: skipping SUMIFS query; using single-row quantity for total_yr_mwh.")
             # Fallback: single-row calculation (no cross-row context available)
             total_yr_mwh = qty
 
-        print(f"DEBUG: jurisdiction={jurisdiction}, region={region}, year={request.year}, qty={qty}, total_yr_mwh={total_yr_mwh}")
+        # print(f"DEBUG: jurisdiction={jurisdiction}, region={region}, year={request.year}, qty={qty}, total_yr_mwh={total_yr_mwh}")
 
         f_s2_lb = factors.get("scope2_location")
         f_s3_lb = factors.get("scope3_location")
@@ -526,18 +524,18 @@ class ElectricityDetailedCalculator:
         else:
             net_mb_qty = qty - total_yr_mwh * rpp
 
-            print(f"DEBUG: qty={qty}, total_yr_mwh={total_yr_mwh}, rpp={rpp}, net_mb_qty={net_mb_qty}")
+            # print(f"DEBUG: qty={qty}, total_yr_mwh={total_yr_mwh}, rpp={rpp}, net_mb_qty={net_mb_qty}")
 
             s2_mb = (mb_mult * net_mb_qty * f_s2_mb) if f_s2_mb is not None else None
             s3_mb = (mb_mult * net_mb_qty * f_s3_mb) if f_s3_mb is not None else None
 
-            print(f"DEBUG: s2_mb={s2_mb}, s3_mb={s3_mb}, f_s2_mb={f_s2_mb}, f_s3_mb={f_s3_mb}" )
+            # print(f"DEBUG: s2_mb={s2_mb}, s3_mb={s3_mb}, f_s2_mb={f_s2_mb}, f_s3_mb={f_s3_mb}" )
 
 
         lb_total = (s2_lb + s3_lb) if (s2_lb is not None and s3_lb is not None) else None
         mb_total = (s2_mb + s3_mb) if (s2_mb is not None and s3_mb is not None) else None
 
-        print(f"DEBUG: lb_total={lb_total}, mb_total={mb_total}, s2_lb={s2_lb}, s3_lb={s3_lb}, s2_mb={s2_mb}, s3_mb={s3_mb}")
+        # print(f"DEBUG: lb_total={lb_total}, mb_total={mb_total}, s2_lb={s2_lb}, s3_lb={s3_lb}, s2_mb={s2_mb}, s3_mb={s3_mb}")
 
         return ElectricityDetailedResponse(
             project_id=request.project_id,

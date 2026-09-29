@@ -63,19 +63,34 @@ base_params AS (
     FROM vehicle_classes vc
     -- Vehicle energy conversion rates (Table57 in Excel)
     -- Provides: ev_projection_category, primary_ice_fuel, hybrid/PHEV savings%, BEV/FCEV energy factors
-    JOIN vehicle_energy_conversion_rates vecr
-        ON vecr.vehicle_class_id = vc.id
-        AND vecr.dataset_revision_id = p_dataset_revision_id
+    JOIN LATERAL (
+        SELECT rates.*
+        FROM vehicle_energy_conversion_rates rates
+        WHERE rates.vehicle_class_id = vc.id
+          AND (rates.dataset_revision_id = p_dataset_revision_id OR rates.dataset_revision_id IS NULL)
+        ORDER BY (rates.dataset_revision_id = p_dataset_revision_id) DESC NULLS LAST
+        LIMIT 1
+    ) vecr ON TRUE
     -- Uninterrupted coefficients — matched on gradient + curvature (user inputs)
-    JOIN uninterrupted_vehicles uv
-        ON  uv.vehicle_class_id      = vc.id
-        AND uv.gradient_m_per_km     = p_gradient
-        AND uv.curvature_deg_per_km  = p_curvature
-        AND uv.dataset_revision_id = p_dataset_revision_id
+    JOIN LATERAL (
+        SELECT coefficients.*
+        FROM uninterrupted_vehicles coefficients
+        WHERE coefficients.vehicle_class_id = vc.id
+          AND coefficients.gradient_m_per_km = p_gradient
+          AND coefficients.curvature_deg_per_km = p_curvature
+          AND (coefficients.dataset_revision_id = p_dataset_revision_id OR coefficients.dataset_revision_id IS NULL)
+        ORDER BY (coefficients.dataset_revision_id = p_dataset_revision_id) DESC NULLS LAST
+        LIMIT 1
+    ) uv ON TRUE
     -- Stop-start coefficients
-    JOIN interrupted_vehicles iv
-        ON iv.vehicle_class_id = vc.id
-        AND iv.dataset_revision_id = p_dataset_revision_id
+    JOIN LATERAL (
+        SELECT coefficients.*
+        FROM interrupted_vehicles coefficients
+        WHERE coefficients.vehicle_class_id = vc.id
+          AND (coefficients.dataset_revision_id = p_dataset_revision_id OR coefficients.dataset_revision_id IS NULL)
+        ORDER BY (coefficients.dataset_revision_id = p_dataset_revision_id) DESC NULLS LAST
+        LIMIT 1
+    ) iv ON TRUE
     -- GVM for uninterrupted formula
     JOIN vehicle_masses vm
         ON vm.vehicle_class_id = vc.id
@@ -97,7 +112,7 @@ base_params AS (
 -- ─────────────────────────────────────────────────────────────────────────────
 ev_uptake AS (
     SELECT
-        vecr.vehicle_class_id,
+        bp.vehicle_class_id,
         MAX(CASE WHEN eet.name = 'BEV'    THEN euf.uptake_pct END) AS bev_pct,
         MAX(CASE WHEN eet.name = 'FCEV'   THEN euf.uptake_pct END) AS fcev_pct,
         MAX(CASE WHEN eet.name = 'Hybrid' THEN euf.uptake_pct END) AS hybrid_pct,
@@ -108,14 +123,13 @@ ev_uptake AS (
     JOIN jurisdictions j        ON euf.jurisdiction_id      = j.id
     JOIN ev_vehicle_categories evc ON euf.vehicle_category_code = evc.code
     JOIN ev_energy_types eet    ON euf.energy_type_code     = eet.code
-    -- Join back to vehicle_energy_conversion_rates to link ev category → vehicle class
-    JOIN vehicle_energy_conversion_rates vecr ON vecr.ev_projection_category = evc.name
-        AND vecr.dataset_revision_id = p_dataset_revision_id
+    -- Use the revision-selected vehicle/category mapping from base_params.
+    JOIN base_params bp ON bp.ev_projection_category = evc.name
     WHERE euf.dataset_revision_id = p_dataset_revision_id
       AND est.name   = p_scenario
       AND j.name     = p_state
       AND euf.year   = p_year
-    GROUP BY vecr.vehicle_class_id
+    GROUP BY bp.vehicle_class_id
 ),
 
 -- ─────────────────────────────────────────────────────────────────────────────

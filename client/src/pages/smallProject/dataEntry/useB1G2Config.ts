@@ -12,7 +12,30 @@ const pickLabel = (v: any) => {
 };
 
 
-export const GASES_CATEGORY_ID = "00000000-0007-0000-0000-000000000004";
+export const requireGasesCategoryId = async (): Promise<string> => {
+  const categories = await LookupsService.fetchCategories(true);
+  const gasesCategory = categories.find(
+    (category: any) =>
+      category?.is_active !== false &&
+      category?.name?.trim().toLowerCase() === "gases" &&
+      category?.parent_category_id == null,
+  );
+  if (!gasesCategory?.id) {
+    throw new Error('The active "Gases" emissions category could not be found.');
+  }
+  return String(gasesCategory.id);
+};
+
+const fetchProjectFugitives = async (projectId?: string) => {
+  if (!projectId) return [];
+  const datasetRevisionId = await LookupsService.resolveProjectDatasetRevisionId(projectId);
+  if (!datasetRevisionId) return [];
+
+  const res = await http.get("/api/fugitives", {
+    params: { limit: 500, dataset_revision_id: datasetRevisionId, global_only: false },
+  });
+  return Array.isArray(res.data) ? res.data : [];
+};
 
 export const useB1G2Config = (jurisdictionName: string | null, projectId?: string, ) => ({
   tableName: "Component Level (Grade 2)",
@@ -92,18 +115,7 @@ export const useB1G2Config = (jurisdictionName: string | null, projectId?: strin
       required: true,
       lookup: {
         fetch: async () => {
-          let datasetRevisionId: string | null = null;
-          if (projectId) {
-            try {
-              const revResp = await http.get(`/api/project-dataset-revisions/by-project/${projectId}`);
-              const bindings = Array.isArray(revResp.data) ? revResp.data : [];
-              datasetRevisionId = bindings[0]?.dataset_revision_id ?? null;
-            } catch {}
-          }
-          const params = new URLSearchParams({ limit: "500" });
-          if (datasetRevisionId) params.set("dataset_revision_id", datasetRevisionId);
-          const res = await http.get(`/api/fugitives?${params.toString()}`);
-          const list: any[] = Array.isArray(res.data) ? res.data : [];
+          const list = await fetchProjectFugitives(projectId);
           const filtered = jurisdictionName
             ? list.filter((item: any) => item.jurisdiction?.name === jurisdictionName)
             : list;
@@ -118,7 +130,8 @@ export const useB1G2Config = (jurisdictionName: string | null, projectId?: strin
       required: true,
       lookup: {
         fetch: async () => {
-          const list = await LookupsService.fetchSubcategoriesByCategory(GASES_CATEGORY_ID, projectId);
+          const gasesCategoryId = await requireGasesCategoryId();
+          const list = await LookupsService.fetchSubcategoriesByCategory(gasesCategoryId, projectId);
           return mapToOptions(list);
         },
       },
@@ -150,18 +163,7 @@ export const useB1G2Config = (jurisdictionName: string | null, projectId?: strin
       editorType: "select",
       idKey: "application_type_id",
       getOptions: async () => {
-        let datasetRevisionId: string | null = null;
-        if (projectId) {
-          try {
-            const revResp = await http.get(`/api/project-dataset-revisions/by-project/${projectId}`);
-            const bindings = Array.isArray(revResp.data) ? revResp.data : [];
-            datasetRevisionId = bindings[0]?.dataset_revision_id ?? null;
-          } catch {}
-        }
-        const params = new URLSearchParams({ limit: "500" });
-        if (datasetRevisionId) params.set("dataset_revision_id", datasetRevisionId);
-        const res = await http.get(`/api/fugitives?${params.toString()}`);
-        const list: any[] = Array.isArray(res.data) ? res.data : [];
+        const list = await fetchProjectFugitives(projectId);
         const filtered = jurisdictionName
           ? list.filter((item: any) => item.jurisdiction?.name === jurisdictionName)
           : list;
@@ -186,7 +188,8 @@ export const useB1G2Config = (jurisdictionName: string | null, projectId?: strin
       editorType: "select",
       idKey: "emissions_subcategory_id",
       getOptions: async () => {
-        const list = await LookupsService.fetchSubcategoriesByCategory(GASES_CATEGORY_ID, projectId);
+        const gasesCategoryId = await requireGasesCategoryId();
+        const list = await LookupsService.fetchSubcategoriesByCategory(gasesCategoryId, projectId);
         return mapToOptions(list);
       },
       clearsOnChange: ["gas"],

@@ -12,13 +12,17 @@ from models.maintenance_replacement_factors import MaintenanceReplacementFactor
 from models.project import Project
 from models.project_stage_instances import ProjectStageInstance
 from services.emissions_calculator import calculate_and_store
+from services.dataset_recalculation_labels import (
+    data_entry_table_display_name,
+    dataset_table_display_name,
+)
 
 
 class MissingDatasetDataError(Exception):
     """A required record is absent from the selected published dataset."""
 
     def __init__(self, dataset_table: str, message: str | None = None):
-        self.dataset_table = dataset_table
+        self.dataset_table = dataset_table_display_name(dataset_table)
         super().__init__(message or f"Required data is missing from {dataset_table}.")
 
 
@@ -169,7 +173,7 @@ async def recalculate_project_for_revision(
             errors.append({
                 "activity_data_id": str(row.id),
                 "entry": _entry_label(row),
-                "data_entry_table": row.ui_table_key,
+                "data_entry_table": await data_entry_table_display_name(db, row),
                 "message": f"Could not rebuild automatic mitigation: {exc}",
             })
 
@@ -246,7 +250,7 @@ async def recalculate_project_for_revision(
             missing.append({
                 "activity_data_id": str(row.id),
                 "entry": _entry_label(row),
-                "data_entry_table": row.ui_table_key,
+                "data_entry_table": await data_entry_table_display_name(db, row),
                 "dataset_table": exc.dataset_table,
                 "message": str(exc),
             })
@@ -254,7 +258,7 @@ async def recalculate_project_for_revision(
             errors.append({
                 "activity_data_id": str(row.id),
                 "entry": _entry_label(row),
-                "data_entry_table": row.ui_table_key,
+                "data_entry_table": await data_entry_table_display_name(db, row),
                 "message": str(exc),
             })
     try:
@@ -267,7 +271,7 @@ async def recalculate_project_for_revision(
         errors.append({
             "activity_data_id": None,
             "entry": "Annual road user emissions",
-            "data_entry_table": "roadUsers / largeRoadUsers",
+            "data_entry_table": "Project-Users (B8)-Road users",
             "message": str(exc),
         })
 

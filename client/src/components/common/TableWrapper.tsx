@@ -56,7 +56,9 @@ const TableWrapper: React.FC<TableWrapperProps> = ({
   isConstructionStage = false,
 }) => {
 
-  const hideToolbarActions = isConstructionStage || uploadKey === "componentRepl" || uploadKey === "electricity" || uploadKey === "opEnergyElectricity";
+  const isElectricityTable = uploadKey === "electricity" || uploadKey === "opEnergyElectricity";
+  const hideToolbarActions =
+    (isConstructionStage && !isElectricityTable) || uploadKey === "componentRepl";
   const hideAddRow = isConstructionStage || uploadKey === "componentRepl";
   const actionsBtn = uploadKey === "concreteRegDetailed";
 

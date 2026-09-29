@@ -105,6 +105,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
 from services.emissions_result_aggregates import aggregate_emissions_results
+from services.project_context_helper import ProjectContextHelper
 
 router = APIRouter(
     prefix="/api/dashboard/emissions-breakdown",

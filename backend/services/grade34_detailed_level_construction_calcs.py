@@ -56,6 +56,7 @@
 
 from decimal import Decimal
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, Field
 from sqlalchemy import text
@@ -69,6 +70,21 @@ from services._calc_utils import round_result
 # ─────────────────────────────────────────────────────────────────────────────
 
 _TRANSPORT_CATEGORIES = frozenset({"Materials", "Waste"})
+
+_GRADE34_UNIT_ALIASES = {
+    "ton": "t",
+    "tons": "t",
+    "tonne": "t",
+    "tonnes": "t",
+    "metric tonne": "t",
+    "metric tonnes": "t",
+}
+
+
+def _grade34_factor_unit_code(unit: str) -> str:
+    """Normalize common equivalent labels to the symbols used by dataset factors."""
+    cleaned = " ".join(str(unit or "").strip().split())
+    return _GRADE34_UNIT_ALIASES.get(cleaned.casefold(), cleaned)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -86,6 +102,9 @@ class Grade34ConstructionRequest(BaseModel):
     emissions_source: str = Field(..., description="e.g. 'Diesel oil'")
     unit: str = Field(..., description="Unit of measure, e.g. 'kL', 't', 'm3'")
     quantity: float = Field(..., gt=0, description="Quantity in the stated unit")
+    dataset_revision_id: Optional[UUID] = Field(
+        None, description="Selected project dataset revision used for factor lookups"
+    )
 
     model_config = {
         "json_schema_extra": {
@@ -308,7 +327,7 @@ class Grade34ConstructionCalculator:
         # ── 3a. Tonnage conversion ──────────────────────────────────────────
         # If unit is already 't', use qty directly.
         # Otherwise, lookup density and multiply: qty × density → tonnes.
-        if request.unit.lower() == "t":
+        if _grade34_factor_unit_code(request.unit).casefold() == "t":
             tonnage = qty
             density_used = None
         else:
@@ -331,9 +350,9 @@ class Grade34ConstructionCalculator:
 
         # ── 3c. Transport EFs from v_grade34_detailed_level ─────────────────
         # EF lookup: XLOOKUP(transport_mode → Emissions Source → Scope3 EF)
-        truck_ef   = await self._fetch_transport_ef(db, request.jurisdiction, truck_mode)
-        rail_ef    = await self._fetch_transport_ef(db, request.jurisdiction, rail_mode)
-        sea_ef     = await self._fetch_transport_ef(db, request.jurisdiction, sea_mode)
+        truck_ef   = await self._fetch_transport_ef(db, request, truck_mode)
+        rail_ef    = await self._fetch_transport_ef(db, request, rail_mode)
+        sea_ef     = await self._fetch_transport_ef(db, request, sea_mode)
 
         # ── 3d. SUMPRODUCT(distances × EFs) → A4 tCO2e ─────────────────────
         # Formula: TonnageConversion × SUMPRODUCT([distances], [EFs])
@@ -380,12 +399,19 @@ class Grade34ConstructionCalculator:
             SELECT
                 "emission_factor_scope1",
                 "emission_factor_scope3"
-            FROM v_grade34_detailed_level
+            FROM v_grade34_detailed_level AS factor_row
             WHERE "Jurisdiction"          = :jurisdiction
               AND "Emissions Category"    = :emissions_category
               AND "Emissions Sub-Category" = :emissions_sub_category
               AND "Emissions Source"      = :emissions_source
               AND "UoM"                  = :unit
+              AND (
+                    CAST(:dataset_revision_id AS text) IS NULL
+                    OR to_jsonb(factor_row)->>'dataset_revision_id' IS NULL
+                    OR to_jsonb(factor_row)->>'dataset_revision_id' = CAST(:dataset_revision_id AS text)
+              )
+            ORDER BY
+                (to_jsonb(factor_row)->>'dataset_revision_id' = CAST(:dataset_revision_id AS text)) DESC NULLS LAST
             LIMIT 1
         """)
         result = await db.execute(query, {
@@ -393,7 +419,8 @@ class Grade34ConstructionCalculator:
             "emissions_category":    request.emissions_category,
             "emissions_sub_category": request.emissions_sub_category,
             "emissions_source":      request.emissions_source,
-            "unit":                  request.unit,
+            "unit":                  _grade34_factor_unit_code(request.unit),
+            "dataset_revision_id": str(request.dataset_revision_id) if request.dataset_revision_id else None,
         })
         row = result.fetchone()
         return dict(row._mapping) if row else None
@@ -412,16 +439,24 @@ class Grade34ConstructionCalculator:
         """
         query = text("""
             SELECT "emission_factor_scope3"
-            FROM v_grade34_detailed_level
+            FROM v_grade34_detailed_level AS factor_row
             WHERE "Jurisdiction"     = :jurisdiction
               AND "Emissions Source" = :emissions_source
               AND "UoM"             = :unit
+              AND (
+                    CAST(:dataset_revision_id AS text) IS NULL
+                    OR to_jsonb(factor_row)->>'dataset_revision_id' IS NULL
+                    OR to_jsonb(factor_row)->>'dataset_revision_id' = CAST(:dataset_revision_id AS text)
+              )
+            ORDER BY
+                (to_jsonb(factor_row)->>'dataset_revision_id' = CAST(:dataset_revision_id AS text)) DESC NULLS LAST
             LIMIT 1
         """)
         result = await db.execute(query, {
             "jurisdiction":     request.jurisdiction,
             "emissions_source": request.emissions_source,
-            "unit":             request.unit,
+            "unit":             _grade34_factor_unit_code(request.unit),
+            "dataset_revision_id": str(request.dataset_revision_id) if request.dataset_revision_id else None,
         })
         row = result.fetchone()
         if row is None:
@@ -491,7 +526,7 @@ class Grade34ConstructionCalculator:
     async def _fetch_transport_ef(
         self,
         db: AsyncSession,
-        jurisdiction: str,
+        request: Grade34ConstructionRequest,
         transport_mode: Optional[str],
     ) -> Optional[float]:
         """
@@ -504,14 +539,22 @@ class Grade34ConstructionCalculator:
 
         query = text("""
             SELECT "emission_factor_scope3"
-            FROM v_grade34_detailed_level
+            FROM v_grade34_detailed_level AS factor_row
             WHERE "Jurisdiction"     = :jurisdiction
               AND "Emissions Source" = :transport_mode
+              AND (
+                    CAST(:dataset_revision_id AS text) IS NULL
+                    OR to_jsonb(factor_row)->>'dataset_revision_id' IS NULL
+                    OR to_jsonb(factor_row)->>'dataset_revision_id' = CAST(:dataset_revision_id AS text)
+              )
+            ORDER BY
+                (to_jsonb(factor_row)->>'dataset_revision_id' = CAST(:dataset_revision_id AS text)) DESC NULLS LAST
             LIMIT 1
         """)
         result = await db.execute(query, {
-            "jurisdiction":   jurisdiction,
+            "jurisdiction":   request.jurisdiction,
             "transport_mode": transport_mode,
+            "dataset_revision_id": str(request.dataset_revision_id) if request.dataset_revision_id else None,
         })
         row = result.fetchone()
         if row is None:

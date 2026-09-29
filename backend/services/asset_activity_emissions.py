@@ -63,6 +63,9 @@ async def recalc_asset_row(
         return None
 
     jurisdiction = await ProjectContextHelper.fetch_jurisdiction(db, activity_row.project_id)
+    dataset_revision_id = await ProjectContextHelper.fetch_project_dataset_revision(
+        db, activity_row.project_id
+    )
 
     req = Grade1CalculationRequest(
         jurisdiction=jurisdiction,
@@ -71,6 +74,7 @@ async def recalc_asset_row(
         sensitivity=sensitivity,
         quantity=quantity,
         functional_unit=functional_unit,
+        dataset_revision_id=dataset_revision_id,
     )
 
     try:

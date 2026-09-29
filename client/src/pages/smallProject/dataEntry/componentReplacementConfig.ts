@@ -1,5 +1,6 @@
 import LookupsService from "@/services/Lookups.service";
 import EmissionCalculationsService from "@/services/EmissionCalculations.service";
+import { formatDisplayNumber } from "@/utils/utils";
 
 const GRADE2_IDS = [2];
 
@@ -233,7 +234,7 @@ export const componentReplacementConfig = (projectId?: string) => ({
       render: (row: any) =>
         row.emissions_tco2e == null || row.emissions_tco2e === "-"
           ? "-"
-          : row.emissions_tco2e,
+          : formatDisplayNumber(row.emissions_tco2e),
     },
     {
       header: "Notes / Comments (optional)",

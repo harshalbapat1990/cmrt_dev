@@ -284,7 +284,7 @@ const projectCategory = useMemo(() => {
 
   const [submission, setSubmission] = useState<string>("");
   const [intervalId, setIntervalId] = useState("");
-  const [accountingMethod, setAccountingMethod] = useState<AccountingMethod | "">("");
+  const [accountingMethod, setAccountingMethod] = useState<AccountingMethod>("location");
   const [projectOptionId, setProjectOptionId] = useState<string | undefined>();
   const [submissionPeriodId, setSubmissionPeriodId] = useState<string | undefined>();
   const [intervals, setIntervals] = useState<ConstructionPeriod[]>([]);
@@ -303,7 +303,7 @@ const projectCategory = useMemo(() => {
     // Reset all filters when section changes
     setSubmission("");
     setIntervalId("");
-    setAccountingMethod(activeSection === "Detailed Results" ? "market" : "");
+    setAccountingMethod(activeSection === "Detailed Results" ? "market" : "location");
     setProjectOptionId(undefined);
     setSubmissionPeriodId(undefined);
     setIntervals([]);
@@ -563,7 +563,7 @@ const showProjectOptionDropdown =
   const clearFilters = () => {
     setSubmission("");
     setIntervalId("");
-    setAccountingMethod(activeSection === "Detailed Results" ? "market" : "");
+    setAccountingMethod(activeSection === "Detailed Results" ? "market" : "location");
   };
 
   const NoData = () => (

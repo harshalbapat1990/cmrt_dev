@@ -8,7 +8,7 @@ import {
 } from "./stageConstants";
 import { isValidEmission } from "./dataEntryValidation";
 import { mitigationUiKey, type MitigationSubstitutionLeg, isUsersMitigationBaseKey } from "./mitigationConstants";
-import { GASES_CATEGORY_ID } from "./useB1G2Config";
+import { requireGasesCategoryId } from "./useB1G2Config";
 import { fetchAllActiveMrFactors } from "./refurbishmentTableConfig";
 import ActivityDataService from "@/services/ActivityData.service";
 import ProjectMitigationsService from "@/services/ProjectMitigations.service";
@@ -121,7 +121,8 @@ export function useMitigationHandlers({
                     extra_fields = { ...extra_fields, unit_display: "MWh" };
                 } else if (tableKey === "useB1G2") {
                     unit_id = null;
-                    const metricDraft = { ...draft, emissions_category_id: GASES_CATEGORY_ID };
+                    const gasesCategoryId = await requireGasesCategoryId();
+                    const metricDraft = { ...draft, emissions_category_id: gasesCategoryId };
                     extra_fields = { ...draft };
                     metricId = await resolveMetricId(metricDraft, "useB1G2");
                 } else if (tableKey === "asset") {
@@ -575,7 +576,8 @@ const mitigationInlineEditDeps = useMemo(
                         row = { ...row, unit_display: "MWh" };
                     } else if (tableKey === "useB1G2") {
                         unit_id = null;
-                        metricId = await resolveMetricId({ ...row, emissions_category_id: GASES_CATEGORY_ID }, "useB1G2");
+                        const gasesCategoryId = await requireGasesCategoryId();
+                        metricId = await resolveMetricId({ ...row, emissions_category_id: gasesCategoryId }, "useB1G2");
                     } else if (tableKey === "asset") {
                         row = { ...row, mastertype_id: row.mastertype_id ?? null, typecast_id: row.mastertype_id ? row.typecast_id : null };
                         metricId = await resolveMetricId(row, tableKey);

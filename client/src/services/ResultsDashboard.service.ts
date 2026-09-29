@@ -73,7 +73,8 @@ export class ResultsDashboardService extends BaseService {
         submissionPeriodId?: string
     ): Promise<any> {
         try {
-            let url = `/dashboard/emissions-breakdown/summary?project_id=${projectId}&stage_instance_id=${stageInstanceId}&elec_method=${accountingMethod}`;
+            const elecMethod = accountingMethod === "market" ? "market" : "location";
+            let url = `/dashboard/emissions-breakdown/summary?project_id=${projectId}&stage_instance_id=${stageInstanceId}&elec_method=${elecMethod}`;
 
             if (
                 (submissionLabel === "Business case" ||

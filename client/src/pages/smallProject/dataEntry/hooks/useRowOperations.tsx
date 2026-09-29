@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import { NumericInput } from "@/components/common/NumericInput";
 import ActivityDataService from "@/services/ActivityData.service";
 import { fetchAllActiveMrFactors } from "../refurbishmentTableConfig";
-import { GASES_CATEGORY_ID } from "../useB1G2Config";
+import { requireGasesCategoryId } from "../useB1G2Config";
 import {
     type UploadKey,
     isElectricityTable,
@@ -769,7 +769,8 @@ export function useRowOperations({
                         row = { ...row, unit_display: row.unit_display ?? "MWh" };
                     } else if (tableKey === "useB1G2") {
                         unit_id = null;
-                        const metricDraft = { ...row, emissions_category_id: GASES_CATEGORY_ID };
+                        const gasesCategoryId = await requireGasesCategoryId();
+                        const metricDraft = { ...row, emissions_category_id: gasesCategoryId };
                         metricId = await resolveMetricId(metricDraft, "useB1G2");
                     } else if (tableKey === "asset") {
                         row = {
@@ -960,7 +961,8 @@ export function useRowOperations({
                     extra_fields = { ...extra_fields, unit_display: draft.unit_display ?? "MWh" };
                 } else if (tableKey === "useB1G2") {
                     unit_id = null;
-                    const metricDraft = { ...draft, emissions_category_id: GASES_CATEGORY_ID };
+                    const gasesCategoryId = await requireGasesCategoryId();
+                    const metricDraft = { ...draft, emissions_category_id: gasesCategoryId };
                     extra_fields = { ...draft };
                     metricId = await resolveMetricId(metricDraft, "useB1G2");
                 } else if (tableKey === "asset") {

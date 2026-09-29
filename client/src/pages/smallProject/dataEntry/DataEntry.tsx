@@ -1326,18 +1326,26 @@ items.push({
 
     useEffect(() => {					 
         if (activeSubStage !== "Use (B1)" || projectClass !== "LARGE") return;
-        if (fugitiveList.length > 0) return;
         let ignore = false;
         (async () => {
             try {
-                const res = await http.get("/api/fugitives?limit=500");
+                const datasetRevisionId = projectId
+                    ? await LookupsService.resolveProjectDatasetRevisionId(projectId)
+                    : null;
+                if (!datasetRevisionId) {
+                    if (!ignore) setFugitiveList([]);
+                    return;
+                }
+                const res = await http.get("/api/fugitives", {
+                    params: { limit: 500, dataset_revision_id: datasetRevisionId, global_only: false },
+                });
                 if (!ignore) setFugitiveList(Array.isArray(res.data) ? res.data : []);
             } catch (e) {
                 console.warn("Failed to load fugitive list:", e);
             }
         })();
         return () => { ignore = true; };
-    }, [activeSubStage, projectClass]);
+    }, [activeSubStage, projectClass, projectId]);
 
     const onOptionsChange = useCallback(async () => {
         if (!activeStageInstance) return;

@@ -114,6 +114,7 @@ async def recalc_grade34_construction_activity_row(
         emissions_source=emissions_source,
         unit=unit,
         quantity=qty_f,
+        dataset_revision_id=activity_row.dataset_revision_id,
     )
 
     try:

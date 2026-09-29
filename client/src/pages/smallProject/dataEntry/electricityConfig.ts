@@ -117,14 +117,27 @@ export const electricityConfig = (projectId: string) => ({
 
   },
 
-  // No file-upload headers — electricity rows are entered manually only.
-  fileHeaders: [] as { key: string; label: string }[],
+  // Used by the Operational energy (B6) table's blank template and bulk upload.
+  fileHeaders: [
+    { key: "emission_source", label: "Emission source" },
+    { key: "year", label: "Year" },
+    { key: "quantity_mwh", label: "Quantity (MWh)" },
+    { key: "unit_display", label: "Unit" },
+    { key: "notes", label: "Notes/Comments (optional)" },
+  ],
 
   // Validation rules (used by handleSaveNewRow required-field check)
   rules: [
-    { label: "emission_source", key: "emission_source", required: true },
+    {
+      label: "Emission source",
+      key: "emission_source",
+      required: true,
+      options: [...ELECTRICITY_EMISSION_SOURCES],
+    },
     { label: "year", key: "year", number: true, required: true },
     { label: "quantity_mwh", key: "quantity_mwh", number: true, required: true },
+    { label: "Unit", key: "unit_display" },
+    { label: "Notes/Comments", key: "notes" },
   ],
 
   columns: () => [

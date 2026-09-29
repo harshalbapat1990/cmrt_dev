@@ -10,8 +10,8 @@ log() { echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] $*"; }
 : "${APP_MODULE:=main:app}"  # e.g., change if your app module isn't main.py
 
 # Always run Alembic migrations before starting the app
-log "Running Alembic migrations..."
-alembic upgrade head
+log "Checking and upgrading Alembic migrations..."
+alembic upgrade heads
 log "Alembic migrations complete."
 
 if [[ "${DATA_MIGRATION:-}" == "true" ]]; then

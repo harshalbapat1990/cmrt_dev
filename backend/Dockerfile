@@ -21,6 +21,5 @@ ENV APP_MODULE=app.main:app \
     APP_PORT=8000 \
     APP_HOST=0.0.0.0
 
-# Run FastAPI application with Uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-# ENTRYPOINT ["/app/entrypoint.sh"]
+# Apply any pending Alembic revisions before the API starts.
+ENTRYPOINT ["/app/entrypoint.sh"]

@@ -94,15 +94,27 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-            compare_type=True,
-            compare_server_default=True,
-        )
+        # Serialize upgrades from the application startup check, container
+        # entrypoint, and concurrent deployment replicas.
+        connection.exec_driver_sql("SELECT pg_advisory_lock(827314991204)")
+        # The session lock survives this commit, while clearing SQLAlchemy's
+        # implicit transaction lets Alembic manage migration transactions.
+        connection.commit()
+        try:
+            context.configure(
+                connection=connection,
+                target_metadata=target_metadata,
+                compare_type=True,
+                compare_server_default=True,
+            )
 
-        with context.begin_transaction():
-            context.run_migrations()
+            with context.begin_transaction():
+                context.run_migrations()
+        finally:
+            if connection.in_transaction():
+                connection.rollback()
+            connection.exec_driver_sql("SELECT pg_advisory_unlock(827314991204)")
+            connection.commit()
 
 
 if context.is_offline_mode():

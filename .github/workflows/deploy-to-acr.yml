@@ -54,6 +54,12 @@ jobs:
           username: ${{ env.AUSTROADS_ACR_USERNAME }}
           password: ${{ env.AUSTROADS_ACR_PASSWORD }}
 
+      - name: Verify backend deployment applies database migrations
+        shell: bash
+        run: |
+          grep -Fq 'ENTRYPOINT ["/app/entrypoint.sh"]' Dockerfile
+          grep -Fq 'alembic upgrade heads' entrypoint.sh
+
       - name: Build & Push Backend Image
         run: |
           docker build \

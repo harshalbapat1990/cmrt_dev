@@ -15,6 +15,10 @@ from models.user_emissions_aus_large_road import UserEmissionsAusLargeRoadResult
 from models.user_emissions_aus_small import UserEmissionsAusSmallResult
 from models.user_emissions_nz import UserEmissionsNzResult
 from models.user_emissions_nz_large_road import UserEmissionsNzLargeRoadResult
+from services.dataset_recalculation_labels import (
+    data_entry_table_display_name,
+    dataset_table_display_name,
+)
 
 
 def _base_key(row: ActivityData) -> str:
@@ -112,8 +116,10 @@ async def _mark_small_road_gaps(
                 missing[str(source.id)] = {
                     "activity_data_id": str(source.id),
                     "entry": vehicle.title(),
-                    "data_entry_table": source.ui_table_key,
-                    "dataset_table": "VEPM factors" if is_nz else "Australian road emission factors",
+                    "data_entry_table": await data_entry_table_display_name(db, source),
+                    "dataset_table": dataset_table_display_name(
+                        "VEPM factors" if is_nz else "Australian road emission factors"
+                    ),
                     "message": "No emission factor was found for this vehicle and year in the selected dataset.",
                 }
         output.total_annual_emissions_tco2e = sum(
@@ -151,8 +157,10 @@ async def _mark_large_road_gaps(
             missing[str(source.id)] = {
                 "activity_data_id": str(source.id),
                 "entry": str(output.vehicle_type),
-                "data_entry_table": source.ui_table_key,
-                "dataset_table": "VEPM factors" if is_nz else "Australian road emission factors",
+                "data_entry_table": await data_entry_table_display_name(db, source),
+                "dataset_table": dataset_table_display_name(
+                    "VEPM factors" if is_nz else "Australian road emission factors"
+                ),
                 "message": f"No emission factor was found for {output.assessment_year} in the selected dataset.",
             }
     await db.flush()
@@ -253,10 +261,14 @@ async def recalculate_annual_road_results(
                     db, option_id=option_id, project_class=project_class, is_nz=is_nz
                 )
             except Exception as exc:
+                source_row = next(
+                    row for row in small_rows
+                    if row.project_stage_instance_id == stage_id and row.project_option_id == option_id
+                )
                 errors.append({
                     "activity_data_id": None,
                     "entry": "Road user emissions",
-                    "data_entry_table": "roadUsers",
+                    "data_entry_table": await data_entry_table_display_name(db, source_row),
                     "message": str(exc),
                 })
 
@@ -331,7 +343,7 @@ async def recalculate_annual_road_results(
                 errors.append({
                     "activity_data_id": None,
                     "entry": "Road user emissions",
-                    "data_entry_table": "largeRoadUsers",
+                    "data_entry_table": await data_entry_table_display_name(db, user_rows[0]),
                     "message": str(exc),
                 })
 

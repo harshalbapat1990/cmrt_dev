@@ -317,7 +317,7 @@ export default function ProjectDetail() {
       const response = await http.post("/api/project-dataset-revisions/migrate", {
         project_id: project.id,
         to_revision_id: pendingRevision.id,
-      });
+      }, { timeout: 300000 });
       LookupsService.clearProjectDatasetRevisionCache(project.id);
       ActivityDataService.clearProjectDatasetRevisionCache(project.id);
       setDatasetIssues(response.data?.missing_data ?? []);
@@ -334,9 +334,11 @@ export default function ProjectDetail() {
         });
       } else {
         setSwitchFailure({
-          message: typeof detail === "string"
-            ? detail
-            : detail?.message ?? "Failed to switch dataset. Please try again.",
+          message: error?.code === "ECONNABORTED"
+            ? "Recalculation is taking longer than expected. The request may still be processing; refresh the project before retrying."
+            : typeof detail === "string"
+              ? detail
+              : detail?.message ?? "Failed to switch dataset. Please try again.",
           errors: [],
         });
       }

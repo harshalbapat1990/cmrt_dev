@@ -38,6 +38,7 @@ class Grade1CalculationRequest(BaseModel):
     quantity: float                # CAPEX amount in dollars (or units depending on functional_unit)
     functional_unit: str = "CAPEX" # "CAPEX" or other functional unit types
     source: Optional[str] = None   # e.g., "CMRT MVP" - specific data source (optional)
+    dataset_revision_id: Optional[UUID] = None
     
     class Config:
         json_schema_extra = {
@@ -257,6 +258,93 @@ class Grade1AssetCalculator:
         # Non-CAPEX rows carry their actual unit code (e.g. "aud_material_spend", "lane_km").
         # Source is NOT used for routing — Functional_Unit is the single source of truth.
 
+        # The legacy pivot view combines values from every dataset revision. When
+        # the project supplies a revision, pivot the source rows here so all stage
+        # intensities come from that revision only.
+        if request.dataset_revision_id is not None:
+            query = text("""
+                SELECT
+                    j.name AS "Jurisdiction",
+                    mastertype.name AS "Mastertype",
+                    typecast.name AS "Typecast",
+                    bgm.source AS "Source",
+                    unit.code AS "Functional_Unit",
+                    MAX(CASE WHEN metric.code = 'material_share_capex'
+                              AND bgm.lifecycle_module_code IS NULL
+                              AND bgm.band_code = 'Low' THEN bgm.value END)
+                        AS "Material share of capex - Low",
+                    MAX(CASE WHEN metric.code = 'material_share_capex'
+                              AND bgm.lifecycle_module_code IS NULL
+                              AND bgm.band_code = 'Mid' THEN bgm.value END)
+                        AS "Material share of capex - Mid",
+                    MAX(CASE WHEN metric.code = 'material_share_capex'
+                              AND bgm.lifecycle_module_code IS NULL
+                              AND bgm.band_code = 'High' THEN bgm.value END)
+                        AS "Material share of capex - High",
+                    MAX(CASE WHEN bgm.lifecycle_module_code = 'A1-A3'
+                              AND bgm.band_code = 'Low' THEN bgm.value END)
+                        AS "Product stage (A1-A3) - Low",
+                    MAX(CASE WHEN bgm.lifecycle_module_code = 'A1-A3'
+                              AND bgm.band_code = 'Mid' THEN bgm.value END)
+                        AS "Product stage (A1-A3) - Mid",
+                    MAX(CASE WHEN bgm.lifecycle_module_code = 'A1-A3'
+                              AND bgm.band_code = 'High' THEN bgm.value END)
+                        AS "Product stage (A1-A3) - High",
+                    MAX(CASE WHEN bgm.lifecycle_module_code = 'A4'
+                              AND bgm.band_code = 'Low' THEN bgm.value END)
+                        AS "transport (A4) - Low",
+                    MAX(CASE WHEN bgm.lifecycle_module_code = 'A4'
+                              AND bgm.band_code = 'Mid' THEN bgm.value END)
+                        AS "transport (A4) - Mid",
+                    MAX(CASE WHEN bgm.lifecycle_module_code = 'A4'
+                              AND bgm.band_code = 'High' THEN bgm.value END)
+                        AS "transport (A4) - High",
+                    MAX(CASE WHEN bgm.lifecycle_module_code = 'A5'
+                              AND bgm.band_code = 'Low' THEN bgm.value END)
+                        AS "Construction (A5) - Low",
+                    MAX(CASE WHEN bgm.lifecycle_module_code = 'A5'
+                              AND bgm.band_code = 'Mid' THEN bgm.value END)
+                        AS "Construction (A5) - Mid",
+                    MAX(CASE WHEN bgm.lifecycle_module_code = 'A5'
+                              AND bgm.band_code = 'High' THEN bgm.value END)
+                        AS "Construction (A5) - High"
+                FROM background_grade_metrics bgm
+                JOIN jurisdictions j ON j.id = bgm.jurisdiction_id
+                JOIN benchmark_mastertypes mastertype ON mastertype.id = bgm.mastertype_id
+                JOIN benchmark_typecasts typecast ON typecast.id = bgm.typecast_id
+                JOIN metric_types metric ON metric.id = bgm.metric_type_id
+                LEFT JOIN units unit ON unit.id = bgm.unit_id
+                WHERE bgm.grade_id = 1
+                  AND bgm.is_active = TRUE
+                  AND bgm.dataset_revision_id = :dataset_revision_id
+                  AND j.name = :jurisdiction
+                  AND mastertype.name = :mastertype
+                  AND typecast.name = :typecast
+                  AND unit.code = :functional_unit
+                  AND (CAST(:source AS TEXT) IS NULL OR bgm.source = :source)
+                GROUP BY j.name, mastertype.name, typecast.name, bgm.source, unit.code
+                ORDER BY bgm.source
+            """)
+            result = await db.execute(
+                query,
+                {
+                    "dataset_revision_id": request.dataset_revision_id,
+                    "jurisdiction": request.jurisdiction,
+                    "mastertype": request.mastertype,
+                    "typecast": request.typecast,
+                    "functional_unit": request.functional_unit,
+                    "source": request.source,
+                },
+            )
+            rows = result.fetchall()
+            if not rows:
+                return None
+            lookup_dict = dict(rows[0]._mapping)
+            for key, value in lookup_dict.items():
+                if isinstance(value, Decimal):
+                    lookup_dict[key] = float(value)
+            return lookup_dict
+
         if request.functional_unit == "CAPEX":
             query = text("""
                 SELECT 
@@ -355,11 +443,9 @@ class Grade1AssetCalculator:
         
         Returns: float value in tCO2e
         
-        Formula for A1-A3 (with material share):
-          Emissions = Material Share (%) * Quantity * Emission Intensity (tCO2e/$ material spend)
-        
-        Formula for A4, A5 (without material share):
-          Emissions = Quantity * Emission Intensity (tCO2e/$ material spend or tCO2e/unit)
+        CAPEX rows apply the material share to each lifecycle stage:
+          Emissions = Material Share * Quantity * Stage Emission Intensity
+        Non-CAPEX rows have no material share and use quantity * intensity.
         """
         
         # Extract material share if applicable
