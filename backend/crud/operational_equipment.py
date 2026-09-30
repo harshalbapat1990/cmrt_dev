@@ -36,7 +36,6 @@ async def get_operational_equipment_by_item(
         OperationalEquipment.item == item,
         OperationalEquipment.is_active.is_(True),
     )
-    print(f"dataset_revision_id: {dataset_revision_id}")
     if dataset_revision_id is not None:
         q = q.where(OperationalEquipment.dataset_revision_id == dataset_revision_id)
     result = await db.execute(q)
@@ -54,7 +53,6 @@ async def list_operational_equipment(
         .where(OperationalEquipment.is_active.is_(True))
         .order_by(OperationalEquipment.group_name, OperationalEquipment.item)
     )
-    print(f"dataset_revision_id: {dataset_revision_id}")
     if dataset_revision_id is not None:
         q = q.where(OperationalEquipment.dataset_revision_id == dataset_revision_id)
     result = await db.execute(q.offset(skip).limit(limit))

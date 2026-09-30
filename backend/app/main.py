@@ -205,7 +205,6 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 origins = settings.cors_origins_list
-print(f"CORS allowed origins: {origins}")
 
 app.add_middleware(
     CORSMiddleware,

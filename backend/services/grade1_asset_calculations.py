@@ -336,6 +336,54 @@ class Grade1AssetCalculator:
                     "source": request.source,
                 },
             )
+            # # 1. Define your parameters in a clean dictionary
+            # params = {
+            #     "dataset_revision_id": request.dataset_revision_id,
+            #     "jurisdiction": f"'{request.jurisdiction}'",  # Wrapped in quotes for SQL syntax
+            #     "mastertype": f"'{request.mastertype}'",
+            #     "typecast": f"'{request.typecast}'",
+            #     "functional_unit": f"'{request.functional_unit}'",
+            #     "source": f"'{request.source}'" if request.source is not None else "NULL",
+            # }
+
+            # # 2. Print using a simple f-string format
+            # print(f"""
+            # SELECT 
+            #     j.name AS "Jurisdiction", 
+            #     mastertype.name AS "Mastertype", 
+            #     typecast.name AS "Typecast", 
+            #     bgm.source AS "Source", 
+            #     unit.code AS "Functional_Unit", 
+            #     MAX(CASE WHEN metric.code = 'material_share_capex' AND bgm.lifecycle_module_code IS NULL AND bgm.band_code = 'Low' THEN bgm.value END) AS "Material share of capex - Low", 
+            #     MAX(CASE WHEN metric.code = 'material_share_capex' AND bgm.lifecycle_module_code IS NULL AND bgm.band_code = 'Mid' THEN bgm.value END) AS "Material share of capex - Mid", 
+            #     MAX(CASE WHEN metric.code = 'material_share_capex' AND bgm.lifecycle_module_code IS NULL AND bgm.band_code = 'High' THEN bgm.value END) AS "Material share of capex - High", 
+            #     MAX(CASE WHEN bgm.lifecycle_module_code = 'A1-A3' AND bgm.band_code = 'Low' THEN bgm.value END) AS "Product stage (A1-A3) - Low", 
+            #     MAX(CASE WHEN bgm.lifecycle_module_code = 'A1-A3' AND bgm.band_code = 'Mid' THEN bgm.value END) AS "Product stage (A1-A3) - Mid", 
+            #     MAX(CASE WHEN bgm.lifecycle_module_code = 'A1-A3' AND bgm.band_code = 'High' THEN bgm.value END) AS "Product stage (A1-A3) - High", 
+            #     MAX(CASE WHEN bgm.lifecycle_module_code = 'A4' AND bgm.band_code = 'Low' THEN bgm.value END) AS "transport (A4) - Low", 
+            #     MAX(CASE WHEN bgm.lifecycle_module_code = 'A4' AND bgm.band_code = 'Mid' THEN bgm.value END) AS "transport (A4) - Mid", 
+            #     MAX(CASE WHEN bgm.lifecycle_module_code = 'A4' AND bgm.band_code = 'High' THEN bgm.value END) AS "transport (A4) - High", 
+            #     MAX(CASE WHEN bgm.lifecycle_module_code = 'A5' AND bgm.band_code = 'Low' THEN bgm.value END) AS "Construction (A5) - Low", 
+            #     MAX(CASE WHEN bgm.lifecycle_module_code = 'A5' AND bgm.band_code = 'Mid' THEN bgm.value END) AS "Construction (A5) - Mid", 
+            #     MAX(CASE WHEN bgm.lifecycle_module_code = 'A5' AND bgm.band_code = 'High' THEN bgm.value END) AS "Construction (A5) - High"
+            # FROM background_grade_metrics bgm 
+            # JOIN jurisdictions j ON j.id = bgm.jurisdiction_id 
+            # JOIN benchmark_mastertypes mastertype ON mastertype.id = bgm.mastertype_id 
+            # JOIN benchmark_typecasts typecast ON typecast.id = bgm.typecast_id 
+            # JOIN metric_types metric ON metric.id = bgm.metric_type_id 
+            # LEFT JOIN units unit ON unit.id = bgm.unit_id 
+            # WHERE bgm.grade_id = 1 
+            # AND bgm.is_active = TRUE 
+            # AND bgm.dataset_revision_id = {params['dataset_revision_id']} 
+            # AND j.name = {params['jurisdiction']} 
+            # AND mastertype.name = {params['mastertype']} 
+            # AND typecast.name = {params['typecast']} 
+            # AND unit.code = {params['functional_unit']} 
+            # AND ({params['source']} IS NULL OR bgm.source = {params['source']}) 
+            # GROUP BY j.name, mastertype.name, typecast.name, bgm.source, unit.code 
+            # ORDER BY bgm.source;
+            # """)
+
             rows = result.fetchall()
             if not rows:
                 return None

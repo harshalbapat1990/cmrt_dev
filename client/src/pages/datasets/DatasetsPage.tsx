@@ -3282,7 +3282,7 @@ useMemo(() => {
               </select> */}
               <SelectListbox 
                 value={g1Filter.typecast_id}
-                onChange={(e: any) => setG1Filter(p => ({ ...p, typecast_id: e.target.value }))}
+                onChange={(v) => setG1Filter(p => ({ ...p, typecast_id: v }))}
                 placeholder="All Typecasts"
                 options={allTypecastsRaw
                   .filter(t => !g1Filter.mastertype_id || t.mastertype_id === g1Filter.mastertype_id)
