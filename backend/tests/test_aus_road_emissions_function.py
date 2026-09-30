@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 import pytest
 
@@ -61,14 +62,19 @@ async def test_startup_installs_or_refreshes_revision_aware_function(tmp_path: P
     assert engine.connection.statements[-1] == sql_file.read_text(encoding="utf-8")
 
 
-def test_function_definition_filters_all_revision_scoped_factors():
+def test_function_definition_uses_revision_scoped_factors_with_legacy_fallbacks():
     definition = function_service._FUNCTION_SQL.read_text(encoding="utf-8-sig")
+    normalized = re.sub(r"\s+", " ", definition).lower()
 
-    assert "p_dataset_revision_id uuid" in definition
-    assert "vecr.dataset_revision_id = p_dataset_revision_id" in definition
-    assert "uv.dataset_revision_id = p_dataset_revision_id" in definition
-    assert "iv.dataset_revision_id = p_dataset_revision_id" in definition
-    assert "vm.dataset_revision_id = p_dataset_revision_id" in definition
-    assert "euf.dataset_revision_id = p_dataset_revision_id" in definition
-    assert "edf.dataset_revision_id = p_dataset_revision_id" in definition
-    assert "to_jsonb(factor_row)->>'dataset_revision_id'" in definition
+    assert "p_dataset_revision_id uuid" in normalized
+    # These tables support legacy, unscoped rows. Revision-specific rows take
+    # precedence, with NULL revision rows retained as a fallback.
+    assert "rates.dataset_revision_id = p_dataset_revision_id or rates.dataset_revision_id is null" in normalized
+    assert normalized.count(
+        "coefficients.dataset_revision_id = p_dataset_revision_id or coefficients.dataset_revision_id is null"
+    ) == 2
+    # These factors must match the selected revision exactly.
+    assert "vm.dataset_revision_id = p_dataset_revision_id" in normalized
+    assert "euf.dataset_revision_id = p_dataset_revision_id" in normalized
+    assert "edf.dataset_revision_id = p_dataset_revision_id" in normalized
+    assert "to_jsonb(factor_row)->>'dataset_revision_id'" in normalized

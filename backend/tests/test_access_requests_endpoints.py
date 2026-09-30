@@ -142,6 +142,36 @@ async def test_create_access_request(client):
 
 
 @pytest.mark.asyncio
+async def test_super_admin_request_must_be_self_service(client):
+    r = await client.post("/api/access-requests", json={
+        "request_type": "SUPER_ADMIN",
+        "target_user_id": str(uuid4()),
+        "scope_type": "GLOBAL",
+        "scope_id": None,
+        "reason": "Need global access",
+    })
+    assert r.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_super_admin_request_requires_reason(client):
+    r = await client.post("/api/access-requests", json={
+        "request_type": "SUPER_ADMIN",
+        "scope_type": "GLOBAL",
+        "scope_id": None,
+        "reason": "   ",
+    })
+    assert r.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_current_user_super_admin_request_status_is_self_scoped(client):
+    r = await client.get("/api/access-requests/mine/super-admin")
+    assert r.status_code == 200
+    assert r.json() is None
+
+
+@pytest.mark.asyncio
 async def test_list_access_requests_empty(client):
     """GET /api/access-requests → 200 empty list when no requests exist."""
     r = await client.get("/api/access-requests")

@@ -42,6 +42,21 @@ class AccessRequestsService extends BaseService {
   async reject(id: string, reason: string): Promise<void> {
     await this.post(`/${id}/reject`, { decision_note: reason });
   }
+
+  async fetchMySuperAdminRequest(): Promise<AccessRequestEnriched | null> {
+    const res = await this.get('/mine/super-admin');
+    return res?.data ?? null;
+  }
+
+  async requestSuperAdmin(reason: string): Promise<AccessRequestEnriched> {
+    const res = await this.post('', {
+      request_type: 'SUPER_ADMIN',
+      scope_type: 'GLOBAL',
+      scope_id: null,
+      reason,
+    });
+    return res.data;
+  }
 }
 
 export default new AccessRequestsService();

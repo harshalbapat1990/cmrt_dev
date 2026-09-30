@@ -13,6 +13,8 @@ export type UserRoleEnriched = {
   is_active: boolean;
 };
 
+export type SuperAdminCandidate = { user_id: string; email: string; display_name: string | null };
+
 class UserRolesService extends BaseService {
   constructor() {
     super('/api/user-roles');
@@ -42,6 +44,21 @@ class UserRolesService extends BaseService {
 
   async assignOrgAdminForSA(orgId: string, userId: string): Promise<void> {
     await this.post('/assign-org-admin', { org_id: orgId, user_id: userId });
+  }
+
+  async fetchSuperAdmins(): Promise<UserRoleEnriched[]> {
+    const res = await this.get('/super-admins');
+    return res?.data ?? [];
+  }
+
+  async searchSuperAdminCandidates(search: string): Promise<SuperAdminCandidate[]> {
+    const params = new URLSearchParams({ search, limit: '100' });
+    const res = await this.get(`/super-admins/assignable-users?${params.toString()}`);
+    return res?.data ?? [];
+  }
+
+  async assignSuperAdmin(userId: string): Promise<void> {
+    await this.post('/super-admins', { user_id: userId });
   }
 }
 

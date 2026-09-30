@@ -1,7 +1,9 @@
 from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, or_, select
 
 from core.rbac import assert_can_grant_role, validate_scope, SUPER_ADMIN, ORG_ADMIN, PROJECT_ADMIN, get_effective_role_names, get_org_scoped_role_names, get_project_ids_where_admin, require_role
 from core.security import Principal, get_current_principal
@@ -17,8 +19,98 @@ from crud.user_roles import (
     update_user_role,
     delete_user_role
 )
+from models.user_roles import UserRole
 
 router = APIRouter(prefix="/api/user-roles", tags=["user-roles"])
+
+
+class SuperAdminAssignRequest(BaseModel):
+    user_id: UUID
+
+
+@router.get("/super-admins")
+async def list_super_admin_assignments(
+    _: None = Depends(require_role(SUPER_ADMIN)),
+    db: AsyncSession = Depends(get_session),
+):
+    return await list_user_roles_enriched(
+        db, role_name=SUPER_ADMIN, scope_type="GLOBAL", limit=1000
+    )
+
+
+@router.get("/super-admins/assignable-users")
+async def search_super_admin_targets(
+    search: str = Query("", max_length=120),
+    limit: int = Query(100, ge=1, le=250),
+    _: None = Depends(require_role(SUPER_ADMIN)),
+    db: AsyncSession = Depends(get_session),
+):
+    from models.users import User
+
+    role = await get_role_by_name(db, SUPER_ADMIN)
+    if role is None:
+        return []
+    active_assignment = select(UserRole.id).where(
+        UserRole.user_id == User.id,
+        UserRole.role_id == role.id,
+        UserRole.scope_type == "GLOBAL",
+        UserRole.scope_id.is_(None),
+        UserRole.is_active == True,
+    ).exists()
+    query = select(
+        User.id.label("user_id"),
+        User.email,
+        func.nullif(func.trim(func.coalesce(User.first_name, "") + " " + func.coalesce(User.last_name, "")), "").label("display_name"),
+    ).where(User.is_active == True, ~active_assignment)
+    normalized = search.strip()
+    if normalized:
+        pattern = f"%{normalized}%"
+        query = query.where(or_(User.email.ilike(pattern), User.first_name.ilike(pattern), User.last_name.ilike(pattern)))
+    result = await db.execute(query.order_by(User.email).limit(limit))
+    return [
+        {"user_id": str(row.user_id), "email": row.email, "display_name": row.display_name}
+        for row in result.all()
+    ]
+
+
+@router.post("/super-admins", status_code=status.HTTP_201_CREATED)
+async def assign_super_admin(
+    payload: SuperAdminAssignRequest,
+    principal: Principal = Depends(get_current_principal),
+    _: None = Depends(require_role(SUPER_ADMIN)),
+    db: AsyncSession = Depends(get_session),
+):
+    from models.users import User
+
+    target = await db.get(User, payload.user_id)
+    if target is None or not target.is_active:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Active user not found")
+    role = await get_role_by_name(db, SUPER_ADMIN)
+    if role is None:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="SUPER_ADMIN role is not configured")
+    existing_result = await db.execute(select(UserRole).where(
+        UserRole.user_id == target.id,
+        UserRole.role_id == role.id,
+        UserRole.scope_type == "GLOBAL",
+        UserRole.scope_id.is_(None),
+    ).limit(1))
+    assignment = existing_result.scalars().first()
+    if assignment and assignment.is_active:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already has Super Admin access")
+    if assignment:
+        assignment.is_active = True
+        await db.flush()
+        action = "REACTIVATE_SUPER_ADMIN"
+    else:
+        assignment = await create_user_role(db, target.id, role.id, "GLOBAL", None, True)
+        action = "GRANT_SUPER_ADMIN"
+    await write_audit_event(
+        db, entity_type="user_role", entity_id=assignment.id, action=action,
+        performed_by=principal.user_id, performed_by_org=principal.organization_id,
+        metadata={"target_user_id": str(target.id), "role": SUPER_ADMIN, "scope_type": "GLOBAL"},
+    )
+    await db.commit()
+    return {"user_role_id": str(assignment.id), "user_id": str(target.id), "email": target.email, "role": SUPER_ADMIN, "is_active": True}
 
 
 @router.post("", response_model=UserRoleOut, status_code=status.HTTP_201_CREATED)
@@ -318,6 +410,8 @@ async def update_user_role_by_id(
     principal: Principal = Depends(get_current_principal),
     db: AsyncSession = Depends(get_session),
 ):
+    if payload.is_active is None:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="is_active must be provided")
     user_role = await get_user_role(db, user_role_id)
     if not user_role:
         raise HTTPException(
@@ -331,8 +425,33 @@ async def update_user_role_by_id(
         if SUPER_ADMIN not in caller_roles:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only SUPER_ADMIN can revoke an ORG_ADMIN role")
 
+    super_admin_change = target_role is not None and target_role.name == SUPER_ADMIN
+    if super_admin_change:
+        caller_roles = await get_effective_role_names(db, principal.user_id)
+        if SUPER_ADMIN not in caller_roles:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only SUPER_ADMIN can change a SUPER_ADMIN role")
+        if user_role.scope_type != "GLOBAL" or user_role.scope_id is not None:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="SUPER_ADMIN assignments must use GLOBAL scope")
+        if payload.is_active is False and user_role.is_active:
+            active_count = await db.execute(select(func.count(UserRole.id)).where(
+                UserRole.role_id == user_role.role_id,
+                UserRole.scope_type == "GLOBAL",
+                UserRole.scope_id.is_(None),
+                UserRole.is_active == True,
+            ))
+            if int(active_count.scalar_one() or 0) <= 1:
+                raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="The final active Super Admin cannot be removed")
+
     user_role = await update_user_role(db, user_role_id, is_active=payload.is_active)
-    action = "REVOKE" if payload.is_active is False else "REACTIVATE"
+    action = (
+        "REVOKE_SUPER_ADMIN" if super_admin_change and payload.is_active is False
+        else "REACTIVATE_SUPER_ADMIN" if super_admin_change and payload.is_active is True
+        else "REVOKE" if payload.is_active is False
+        else "REACTIVATE"
+    )
+    metadata = {"target_user_id": str(user_role.user_id)}
+    if target_role is not None:
+        metadata["role"] = target_role.name
     await write_audit_event(
         db,
         entity_type="user_role",
@@ -340,6 +459,7 @@ async def update_user_role_by_id(
         action=action,
         performed_by=principal.user_id,
         performed_by_org=principal.organization_id,
+        metadata=metadata,
     )
     await db.commit()
     return user_role
@@ -348,13 +468,51 @@ async def update_user_role_by_id(
 @router.delete("/{user_role_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_user_role(
     user_role_id: UUID,
+    principal: Principal = Depends(get_current_principal),
     db: AsyncSession = Depends(get_session),
 ):
-    ok = await delete_user_role(db, user_role_id)
-    if not ok:
+    user_role = await get_user_role(db, user_role_id)
+    if not user_role:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User-Role mapping not found"
         )
+    target_role = await get_role(db, user_role.role_id)
+    caller_roles = await get_effective_role_names(db, principal.user_id)
+    if SUPER_ADMIN not in caller_roles:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only SUPER_ADMIN can delete user-role assignments")
+    if target_role is not None and target_role.name == SUPER_ADMIN:
+        if user_role.scope_type != "GLOBAL" or user_role.scope_id is not None:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="SUPER_ADMIN assignments must use GLOBAL scope")
+        if user_role.is_active:
+            active_count = await db.execute(select(func.count(UserRole.id)).where(
+                UserRole.role_id == user_role.role_id,
+                UserRole.scope_type == "GLOBAL",
+                UserRole.scope_id.is_(None),
+                UserRole.is_active == True,
+            ))
+            if int(active_count.scalar_one() or 0) <= 1:
+                raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="The final active Super Admin cannot be removed")
+        # Preserve assignment history and enforce the same last-admin rule as PATCH.
+        user_role.is_active = False
+        await db.flush()
+        action = "REVOKE_SUPER_ADMIN"
+        metadata = {"target_user_id": str(user_role.user_id), "role": SUPER_ADMIN, "scope_type": "GLOBAL"}
+        await write_audit_event(
+            db, entity_type="user_role", entity_id=user_role.id, action=action,
+            performed_by=principal.user_id, performed_by_org=principal.organization_id,
+            metadata=metadata,
+        )
+        await db.commit()
+        return None
+
+    ok = await delete_user_role(db, user_role_id)
+    if not ok:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User-Role mapping not found")
+    await write_audit_event(
+        db, entity_type="user_role", entity_id=user_role_id, action="DELETE",
+        performed_by=principal.user_id, performed_by_org=principal.organization_id,
+        metadata={"target_user_id": str(user_role.user_id), "role": target_role.name if target_role else None},
+    )
     await db.commit()
     return None

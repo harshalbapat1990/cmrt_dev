@@ -19,10 +19,12 @@ export type AdminAccessRequest = {
 
 export type SuperAdminAccessRequest = {
   id: string;
+  requestType?: string;
   requestedBy: string;
   email: string;
   organisation: string;
   dateRequested: string;
+  reason?: string | null;
   action?: string;
 };
 

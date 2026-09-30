@@ -3,7 +3,7 @@ import type { SuperAdminAccessRequest } from "../../types/access";
 import { useToast } from "../../components/common/ToastProvider";
 import alertIconUrl from "../../assets/icons/emergency_home.svg";
 import accessRequestsService from "../../services/accessRequests.service";
-import userRolesService, { type UserRoleEnriched } from "../../services/userRoles.service";
+import userRolesService, { type UserRoleEnriched, type SuperAdminCandidate } from "../../services/userRoles.service";
 import orgAdminService, { type OrgUser } from "../../services/orgAdmin.service";
 
 const th =
@@ -30,10 +30,12 @@ const SuperAdminAccessPage: React.FC = () => {
         setItems(
           combined.map((r) => ({
             id: r.id,
+            requestType: r.request_type,
             requestedBy: r.requester_display_name || r.requester_email || 'Unknown',
             email: r.requester_email || '',
-            organisation: r.organisation_name || 'Unknown',
+            organisation: r.organisation_name || (r.request_type === 'SUPER_ADMIN' ? 'Platform-wide' : 'Unknown'),
             dateRequested: r.created_on || '',
+            reason: r.reason,
             action: 'Review request',
           }))
         );
@@ -75,6 +77,48 @@ const SuperAdminAccessPage: React.FC = () => {
   const [removeTarget, setRemoveTarget] = useState<UserRoleEnriched | null>(null);
   const [transferTarget, setTransferTarget] = useState<UserRoleEnriched | null>(null);
   const [addTarget, setAddTarget] = useState<{ orgId: string; orgName: string } | null>(null);
+  const [superAdmins, setSuperAdmins] = useState<UserRoleEnriched[]>([]);
+  const [superAdminsLoading, setSuperAdminsLoading] = useState(true);
+  const [showAddSuperAdmin, setShowAddSuperAdmin] = useState(false);
+  const [removeSuperAdminTarget, setRemoveSuperAdminTarget] = useState<UserRoleEnriched | null>(null);
+
+  const refreshSuperAdmins = async () => {
+    const assignments = await userRolesService.fetchSuperAdmins();
+    setSuperAdmins(assignments);
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    userRolesService.fetchSuperAdmins()
+      .then((assignments) => { if (!cancelled) setSuperAdmins(assignments); })
+      .catch(() => { if (!cancelled) error('Failed to load Super Admins.'); })
+      .finally(() => { if (!cancelled) setSuperAdminsLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleAddSuperAdmin = async (userId: string) => {
+    try {
+      await userRolesService.assignSuperAdmin(userId);
+      await refreshSuperAdmins();
+      success('Super Admin access assigned successfully');
+    } catch (err: any) {
+      error(err?.response?.data?.detail ?? 'Failed to assign Super Admin access.');
+    } finally {
+      setShowAddSuperAdmin(false);
+    }
+  };
+
+  const handleRemoveSuperAdmin = async (member: UserRoleEnriched) => {
+    try {
+      await userRolesService.revokeRole(member.user_role_id);
+      await refreshSuperAdmins();
+      success(`${member.user_display_name || member.user_email} removed as Super Admin`);
+    } catch (err: any) {
+      error(err?.response?.data?.detail ?? 'Failed to remove Super Admin access.');
+    } finally {
+      setRemoveSuperAdminTarget(null);
+    }
+  };
 
   const handleRemoveOrgAdmin = async (m: UserRoleEnriched) => {
     try {
@@ -155,6 +199,13 @@ const SuperAdminAccessPage: React.FC = () => {
     try {
       await accessRequestsService.approve(r.id);
       setItems((prev) => prev.filter((x) => x.id !== r.id));
+      if (r.requestType === 'SUPER_ADMIN') {
+        try {
+          await refreshSuperAdmins();
+        } catch {
+          error('Request approved, but the Super Admin list could not be refreshed.');
+        }
+      }
       success(`Access request for ${r.requestedBy} has been approved`);
     } catch {
       error("Failed to approve. Please try again.");
@@ -256,6 +307,46 @@ const SuperAdminAccessPage: React.FC = () => {
         </section>
 
         <section className="mt-8 overflow-hidden rounded-[var(--radius-3)] border border-slate-200 bg-white">
+          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">
+            <h3 className="text-2xl font-light text-slate-900">
+              Super Admins {!superAdminsLoading && `(${superAdmins.length})`}
+            </h3>
+            <button
+              type="button"
+              onClick={() => setShowAddSuperAdmin(true)}
+              className="rounded bg-primary px-4 py-2 text-sm font-medium text-white"
+            >
+              Add Super Admin
+            </button>
+          </div>
+          {superAdminsLoading ? (
+            <div className="px-6 py-8 text-sm text-slate-500">Loading…</div>
+          ) : superAdmins.length === 0 ? (
+            <div className="px-6 py-8 text-sm text-slate-500">No active Super Admin assignments found.</div>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {superAdmins.map((member) => (
+                <li key={member.user_role_id} className="flex items-center justify-between px-6 py-4">
+                  <div>
+                    <div className="text-sm font-medium text-slate-800">{member.user_display_name || member.user_email}</div>
+                    {member.user_display_name && <div className="text-xs text-slate-500">{member.user_email}</div>}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setRemoveSuperAdminTarget(member)}
+                    disabled={superAdmins.length <= 1}
+                    title={superAdmins.length <= 1 ? 'At least one active Super Admin must remain' : 'Remove Super Admin'}
+                    className="rounded px-3 py-2 text-sm font-medium text-danger hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="mt-8 overflow-hidden rounded-[var(--radius-3)] border border-slate-200 bg-white">
           <div className="border-b border-slate-100 px-6 py-5">
             <h3 className="text-2xl font-light text-slate-900">
               Organisation Admins {!orgAdminsLoading && `(${orgAdmins.length})`}
@@ -284,6 +375,18 @@ const SuperAdminAccessPage: React.FC = () => {
         onClose={closeModal}
         onApprove={handleApprove}
         onReject={handleReject}
+      />
+
+      <AddSuperAdminModal
+        open={showAddSuperAdmin}
+        onCancel={() => setShowAddSuperAdmin(false)}
+        onConfirm={handleAddSuperAdmin}
+      />
+
+      <RemoveSuperAdminModal
+        member={removeSuperAdminTarget}
+        onCancel={() => setRemoveSuperAdminTarget(null)}
+        onConfirm={handleRemoveSuperAdmin}
       />
 
       <AddOrgAdminModal
@@ -454,7 +557,7 @@ function SuperAdminReviewModal({
     >
       <div className="w-149 max-w-[95vw] rounded-md bg-white p-6 shadow-xl">
         <h3 id="sa-review-title" className="text-2xl font-light text-slate-900 mb-6">
-          Review request for administrative access
+          {request.requestType === 'SUPER_ADMIN' ? 'Review Super Admin request' : 'Review request for administrative access'}
         </h3>
 
         <div className="space-y-3 mb-4 text-sm">
@@ -470,6 +573,12 @@ function SuperAdminReviewModal({
             <label className="mb-1 block text-xs font-medium text-text-faint pt-2">ORGANISATION</label>
             <div className="text-slate-900 mb-2">{request.organisation}</div>
           </div>
+          {request.requestType === 'SUPER_ADMIN' && (
+            <div>
+              <label className="mb-1 block text-xs font-medium text-text-faint pt-2">REASON</label>
+              <div className="whitespace-pre-wrap text-slate-900">{request.reason || 'No reason provided.'}</div>
+            </div>
+          )}
         </div>
 
         {mode === "rejecting" && (
@@ -775,6 +884,140 @@ function AddOrgAdminModal({
             className="rounded bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
           >
             {adding ? 'Assigning…' : 'Assign as Org Admin'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddSuperAdminModal({
+  open,
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  onCancel: () => void;
+  onConfirm: (userId: string) => Promise<void>;
+}) {
+  const [candidates, setCandidates] = useState<SuperAdminCandidate[]>([]);
+  const [search, setSearch] = useState('');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [assigning, setAssigning] = useState(false);
+  const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      setLoading(true);
+      setLoadError('');
+      userRolesService.searchSuperAdminCandidates(search)
+        .then((users) => { if (!cancelled) setCandidates(users); })
+        .catch(() => { if (!cancelled) setLoadError('Failed to load eligible users.'); })
+        .finally(() => { if (!cancelled) setLoading(false); });
+    }, 200);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [open, search]);
+
+  useEffect(() => {
+    if (open) {
+      setSearch('');
+      setSelectedId(null);
+      setLoadError('');
+    }
+  }, [open]);
+
+  if (!open) return null;
+  const selected = candidates.find((candidate) => candidate.user_id === selectedId);
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/30" role="dialog" aria-modal="true">
+      <div className="w-[480px] max-w-[95vw] rounded-md bg-white p-6 shadow-xl">
+        <h3 className="mb-2 text-lg font-medium">Add Super Admin</h3>
+        <p className="mb-4 text-sm text-slate-500">Choose an active registered user to grant global Super Admin access.</p>
+        <input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Search by name or email"
+          className="mb-3 w-full rounded-[var(--radius-3)] border px-3 py-2 text-sm outline-none"
+        />
+        <div className="mb-4 max-h-56 overflow-y-auto rounded border">
+          {loading ? (
+            <div className="px-4 py-6 text-center text-sm text-slate-500">Searching…</div>
+          ) : loadError ? (
+            <div role="alert" className="px-4 py-6 text-center text-sm text-red-700">{loadError}</div>
+          ) : candidates.length === 0 ? (
+            <div className="px-4 py-6 text-center text-sm text-slate-500">No eligible users found.</div>
+          ) : candidates.map((candidate) => (
+            <button
+              key={candidate.user_id}
+              type="button"
+              onClick={() => setSelectedId(candidate.user_id)}
+              className={`w-full border-b px-4 py-3 text-left text-sm last:border-b-0 hover:bg-slate-50 ${selectedId === candidate.user_id ? 'bg-orange-50' : ''}`}
+            >
+              <div className="font-medium">{candidate.display_name || candidate.email}</div>
+              {candidate.display_name && <div className="text-xs text-slate-500">{candidate.email}</div>}
+            </button>
+          ))}
+        </div>
+        {selected && <p className="mb-4 text-sm text-slate-600">Assign global Super Admin access to <strong>{selected.email}</strong>?</p>}
+        <div className="flex justify-end gap-3">
+          <button type="button" onClick={onCancel} disabled={assigning} className="px-3 py-2 text-sm text-slate-600">Cancel</button>
+          <button
+            type="button"
+            disabled={!selectedId || assigning || loading}
+            onClick={async () => {
+              if (!selectedId) return;
+              setAssigning(true);
+              await onConfirm(selectedId);
+              setAssigning(false);
+            }}
+            className="rounded bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          >
+            {assigning ? 'Assigning…' : 'Assign Super Admin'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RemoveSuperAdminModal({
+  member,
+  onCancel,
+  onConfirm,
+}: {
+  member: UserRoleEnriched | null;
+  onCancel: () => void;
+  onConfirm: (member: UserRoleEnriched) => Promise<void>;
+}) {
+  const [removing, setRemoving] = useState(false);
+  if (!member) return null;
+  const name = member.user_display_name || member.user_email;
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/30" role="dialog" aria-modal="true">
+      <div className="w-96 max-w-[95vw] rounded-md bg-white p-6 shadow-xl">
+        <h3 className="mb-4 text-lg font-medium">Remove Super Admin</h3>
+        <p className="mb-6 text-sm text-slate-600">
+          Remove global Super Admin access from <strong>{name}</strong>? Their role assignment will be deactivated. At least one active Super Admin must remain.
+        </p>
+        <div className="flex justify-end gap-3">
+          <button type="button" onClick={onCancel} disabled={removing} className="px-3 py-2 text-sm text-slate-600">Cancel</button>
+          <button
+            type="button"
+            disabled={removing}
+            onClick={async () => {
+              setRemoving(true);
+              await onConfirm(member);
+              setRemoving(false);
+            }}
+            className="rounded bg-danger px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+          >
+            {removing ? 'Removing…' : 'Confirm removal'}
           </button>
         </div>
       </div>

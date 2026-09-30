@@ -36,6 +36,7 @@ from crud.user_roles import create_user_role
 from models.roles import Role
 from models.project import Project as ProjectModel
 from models.user_roles import UserRole
+from models.access_requests import AccessRequest
 from schemas.access_requests import AccessRequestCreate, AccessRequestDecision, AccessRequestOut, AccessRequestEnrichedOut
 
 router = APIRouter(prefix="/api/access-requests", tags=["access-requests"])
@@ -47,6 +48,45 @@ async def create_request(
     principal: Principal = Depends(get_current_principal),
     db: AsyncSession = Depends(get_session),
 ):
+    if payload.request_type.upper() == SUPER_ADMIN:
+        if payload.target_user_id not in (None, principal.user_id):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only request Super Admin access for yourself")
+        if payload.scope_type.upper() != GLOBAL or payload.scope_id is not None:
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Super Admin requests must use GLOBAL scope with no scope ID")
+        if not payload.reason or not payload.reason.strip():
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="A reason is required for a Super Admin request")
+        payload.request_type = SUPER_ADMIN
+        payload.target_user_id = principal.user_id
+        payload.scope_type = GLOBAL
+        payload.scope_id = None
+        payload.organisation_id = None
+        payload.project_id = None
+
+        super_admin_role = await db.execute(select(Role).where(Role.name == SUPER_ADMIN))
+        role = super_admin_role.scalars().first()
+        if role is None:
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="SUPER_ADMIN role is not configured")
+        active_role = await db.execute(select(UserRole.id).where(
+            UserRole.user_id == principal.user_id,
+            UserRole.role_id == role.id,
+            UserRole.scope_type == GLOBAL,
+            UserRole.scope_id.is_(None),
+            UserRole.is_active == True,
+        ).limit(1))
+        if active_role.scalar_one_or_none():
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="You already have Super Admin access")
+        pending = await db.execute(select(AccessRequest.id).where(
+            AccessRequest.requester_user_id == principal.user_id,
+            AccessRequest.target_user_id == principal.user_id,
+            AccessRequest.request_type == SUPER_ADMIN,
+            AccessRequest.scope_type == GLOBAL,
+            AccessRequest.scope_id.is_(None),
+            AccessRequest.status == "PENDING",
+        ).limit(1))
+        if pending.scalar_one_or_none():
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="You already have a pending Super Admin request")
+        payload.requested_role_id = role.id
+
     if payload.target_user_id is None:
         payload.target_user_id = principal.user_id
     obj = await create_access_request(db, payload, requester_user_id=principal.user_id)
@@ -71,6 +111,26 @@ async def create_request(
     )
     await db.commit()
     return obj
+
+
+@router.get("/mine/super-admin", response_model=Optional[AccessRequestOut])
+async def get_my_super_admin_request(
+    principal: Principal = Depends(get_current_principal),
+    db: AsyncSession = Depends(get_session),
+):
+    result = await db.execute(
+        select(AccessRequest)
+        .where(
+            AccessRequest.requester_user_id == principal.user_id,
+            AccessRequest.target_user_id == principal.user_id,
+            AccessRequest.request_type == SUPER_ADMIN,
+            AccessRequest.scope_type == GLOBAL,
+            AccessRequest.scope_id.is_(None),
+        )
+        .order_by(AccessRequest.created_on.desc())
+        .limit(1)
+    )
+    return result.scalars().first()
 
 
 @router.get("", response_model=List[AccessRequestEnrichedOut])
@@ -162,6 +222,12 @@ async def approve_request(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Only SUPER_ADMIN can approve platform operator access requests",
             )
+        if (
+            obj.requester_user_id != obj.target_user_id
+            or obj.scope_type != GLOBAL
+            or obj.scope_id is not None
+        ):
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid Super Admin request scope or target")
 
     elif obj.request_type == "ORG_ADMIN":
         if SUPER_ADMIN not in effective_roles:
@@ -200,7 +266,10 @@ async def approve_request(
     )
 
     if obj.requested_role_id and obj.target_user_id:
-        role_res = await db.execute(select(Role).where(Role.id == obj.requested_role_id))
+        role_query = select(Role).where(
+            Role.name == SUPER_ADMIN if obj.request_type == SUPER_ADMIN else Role.id == obj.requested_role_id
+        )
+        role_res = await db.execute(role_query)
         role = role_res.scalars().first()
         if role:
             await assert_can_grant_role(
@@ -221,14 +290,28 @@ async def approve_request(
                 if not existing_ur.is_active:
                     existing_ur.is_active = True
                     await db.flush()
+                    await write_audit_event(
+                        db, entity_type="user_role", entity_id=existing_ur.id,
+                        action="REACTIVATE_SUPER_ADMIN" if role.name == SUPER_ADMIN else "REACTIVATE",
+                        performed_by=principal.user_id,
+                        performed_by_org=principal.organization_id,
+                        metadata={"target_user_id": str(obj.target_user_id), "role": role.name, "scope_type": obj.scope_type},
+                    )
             else:
-                await create_user_role(
+                granted_role = await create_user_role(
                     db,
                     user_id=obj.target_user_id,
-                    role_id=obj.requested_role_id,
+                    role_id=role.id,
                     scope_type=obj.scope_type,
                     scope_id=obj.scope_id,
                     is_active=True,
+                )
+                await write_audit_event(
+                    db, entity_type="user_role", entity_id=granted_role.id,
+                    action="GRANT_SUPER_ADMIN" if role.name == SUPER_ADMIN else "GRANT",
+                    performed_by=principal.user_id,
+                    performed_by_org=principal.organization_id,
+                    metadata={"target_user_id": str(obj.target_user_id), "role": role.name, "scope_type": obj.scope_type},
                 )
 
     await write_audit_event(

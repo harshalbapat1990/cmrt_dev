@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import { useUser } from '../../context/UserContext';
+import accessRequestsService, { type AccessRequestEnriched } from '../../services/accessRequests.service';
 
 const ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN: 'Super Admin',
@@ -27,6 +29,17 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 export default function UserProfile() {
   const { user, roles } = useUser();
+  const [adminRequest, setAdminRequest] = useState<AccessRequestEnriched | null>(null);
+  const [requestReason, setRequestReason] = useState('');
+  const [requestLoading, setRequestLoading] = useState(false);
+  const [requestError, setRequestError] = useState('');
+
+  useEffect(() => {
+    if (!user || roles.includes('SUPER_ADMIN')) return;
+    accessRequestsService.fetchMySuperAdminRequest()
+      .then(setAdminRequest)
+      .catch(() => setRequestError('Could not load your Super Admin request status.'));
+  }, [user, roles]);
 
   if (!user) {
     return (
@@ -38,6 +51,20 @@ export default function UserProfile() {
 
   const displayName =
     [user.first_name, user.last_name].filter(Boolean).join(' ') || null;
+
+  const submitSuperAdminRequest = async () => {
+    if (!requestReason.trim() || requestLoading) return;
+    setRequestLoading(true);
+    setRequestError('');
+    try {
+      setAdminRequest(await accessRequestsService.requestSuperAdmin(requestReason.trim()));
+      setRequestReason('');
+    } catch (error: any) {
+      setRequestError(error?.response?.data?.detail ?? 'Could not submit your request. Please try again.');
+    } finally {
+      setRequestLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -93,6 +120,43 @@ export default function UserProfile() {
             )}
           </div>
         </div>
+
+        {!roles.includes('SUPER_ADMIN') && (
+          <section className="mt-6 rounded-[var(--radius-3)] border border-slate-200 bg-white px-8 py-6 shadow-sm">
+            <h3 className="text-lg font-medium text-slate-800">Super Admin access</h3>
+            {adminRequest?.status === 'PENDING' ? (
+              <p className="mt-2 text-sm text-amber-700">Your request is pending review by a Super Admin.</p>
+            ) : (
+              <>
+                {adminRequest?.status === 'REJECTED' && (
+                  <p className="mt-2 text-sm text-slate-600">Your previous request was declined. You may submit a new request with additional context.</p>
+                )}
+                {adminRequest?.status === 'APPROVED' && (
+                  <p className="mt-2 text-sm text-slate-600">A previous request was approved, but this account does not currently have the role. You may submit another request if you still need access.</p>
+                )}
+                <label htmlFor="super-admin-request-reason" className="mt-4 block text-sm text-slate-600">Reason for requesting global administrator access</label>
+                <textarea
+                  id="super-admin-request-reason"
+                  value={requestReason}
+                  onChange={(event) => setRequestReason(event.target.value)}
+                  maxLength={2000}
+                  rows={3}
+                  className="mt-2 w-full rounded border border-slate-300 p-3 text-sm outline-none focus:border-primary"
+                  placeholder="Explain why you need Super Admin access"
+                />
+                {requestError && <p role="alert" className="mt-2 text-sm text-red-700">{requestError}</p>}
+                <button
+                  type="button"
+                  onClick={submitSuperAdminRequest}
+                  disabled={!requestReason.trim() || requestLoading}
+                  className="mt-3 rounded bg-primary px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {requestLoading ? 'Submitting…' : adminRequest?.status === 'APPROVED' ? 'Request Super Admin access again' : 'Request Super Admin access'}
+                </button>
+              </>
+            )}
+          </section>
+        )}
       </div>
     </div>
   );
