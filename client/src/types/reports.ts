@@ -113,4 +113,6 @@ export type ReportDataProps = {
   submissionPeriodId: string;
   onSubmit: () => void;
   onApprove: (carbonValue: number) => void;
+  canEditStage: boolean;
+  canAdminStage: boolean;
 };

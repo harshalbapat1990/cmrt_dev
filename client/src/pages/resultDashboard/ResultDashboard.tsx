@@ -320,7 +320,7 @@ const projectCategory = useMemo(() => {
 
   const submissionOptions: SubmissionOption[] = useMemo(() => {
     return (
-      accessibleStageInstances.flatMap((stageInstance: any) => {
+      accessibleStageInstances.flatMap((stageInstance: any): SubmissionOption[] => {
         const stageLabel =
           STAGE_ENUM_TO_LABEL[
           stageInstance.stage as keyof typeof STAGE_ENUM_TO_LABEL

@@ -784,7 +784,7 @@ function roleToAssignments(roleName: string): MemberAssignment[] {
   ];
 }
 
-function ManageProjectsPanel() {
+export function ManageProjectsPanel() {
   const { success } = useToast();
   const [q, setQ] = useState("");
   const debouncedQ = useDebounce(q, 300);
