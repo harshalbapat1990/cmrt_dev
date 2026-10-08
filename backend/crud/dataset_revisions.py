@@ -214,6 +214,10 @@ async def branch_dataset_revision(
         "project_dataset_revisions",
         "dataset_revision_changes",
         "activity_data",
+        # Emissions results are calculated facts for project activity rows, not
+        # dataset reference data. Copying them would duplicate the unique
+        # (activity_data_id, value_key) pair and preserve stale calculations.
+        "emissions_results",
         "user_emissions_nz_large_road",
         # Removed by 9a8b7c6d5e4f: the active revision architecture stores
         # dataset deltas directly and no longer has factor-set rows to clone.
