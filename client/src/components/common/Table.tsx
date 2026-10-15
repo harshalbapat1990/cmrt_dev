@@ -429,7 +429,9 @@ const Table = <T extends { id: string | number }>({
     if (newRowDraft) return;
     try {
       if (onNewRowInit) await onNewRowInit();
-    } catch { }
+    } catch {
+      // Row initialization failure should not block creating a default row.
+    }
     const base = (newRowInitial ? newRowInitial() : {}) as any;
     setNewRowDraft({ id: NEW_ROW_ID, ...base });
   };

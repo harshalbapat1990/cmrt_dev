@@ -1,6 +1,9 @@
 import { useCallback, useRef } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import type { DataEntryRow } from "./dataEntryTypes";
 import type { UploadKey } from "./stageConstants";
-import { isElectricityTable, resolveTableConfig } from "./stageConstants";
+import { isElectricityTable } from "./stageConstants";
+import { resolveTableConfig } from "./tableConfigRegistry";
 import { hasAllRequired, isValidEmission, getApiErrorMessage } from "./dataEntryValidation";
 import ActivityDataService from "@/services/ActivityData.service";
 import http from "@/http";
@@ -22,10 +25,27 @@ export type CalcConfig = {
     grade: 1 | 2 | 3;
     requiredKeys: string[];
     triggerKeys: string[];
-    buildPayload: (row: any, ctx: CalcCtx) => any | null;
-    calculate: (payload: any, ctx: CalcCtx, tableKey: UploadKey) => Promise<any>;
-    mapResultToRow: (apiRes: any, row?: any) => Partial<any>;
+    buildPayload: (row: DataEntryRow, ctx: CalcCtx) => Record<string, unknown> | null;
+    calculate: (payload: Record<string, unknown>, ctx: CalcCtx, tableKey: UploadKey) => Promise<unknown>;
+    mapResultToRow: (apiRes: unknown, row?: DataEntryRow) => Partial<DataEntryRow>;
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export function isCalcConfig(value: unknown): value is CalcConfig {
+    if (!isRecord(value)) return false;
+    const grade = value.grade;
+    return (grade === 1 || grade === 2 || grade === 3)
+        && Array.isArray(value.requiredKeys)
+        && value.requiredKeys.every((key) => typeof key === "string")
+        && Array.isArray(value.triggerKeys)
+        && value.triggerKeys.every((key) => typeof key === "string")
+        && typeof value.buildPayload === "function"
+        && typeof value.calculate === "function"
+        && typeof value.mapResultToRow === "function";
+}
 
 async function runWithConcurrency<T>(
     items: T[],
@@ -94,11 +114,11 @@ export function useEmissionsCalc({
 
     const getCalcConfig = (tableKey: UploadKey): CalcConfig | null => {
         const cfg = resolveTableConfig(tableKey, projectId);
-        return cfg?.calculation ?? null;
+        return isCalcConfig(cfg?.calculation) ? cfg.calculation : null;
     };
 
     const computeEmissionsForRow = useCallback(
-        async (tableKey: UploadKey, row: any): Promise<Partial<any> | null> => {
+        async (tableKey: UploadKey, row: DataEntryRow): Promise<Partial<DataEntryRow> | null> => {
             if ((tableKey === "asset" || tableKey === "component") && !projectId) {
                 return null;
             }
@@ -198,14 +218,14 @@ export function useEmissionsCalc({
     const recalcAndPersistRows = useCallback(
         async (
             tableKey: UploadKey,
-            rows: any[],
-            setRows: React.Dispatch<React.SetStateAction<any[]>>
+            rows: DataEntryRow[],
+            setRows: Dispatch<SetStateAction<DataEntryRow[]>>
         ) => {
             const calcCfg = getCalcConfig(tableKey);
             if (!calcCfg) return;
             if (!rows?.length) return;
 
-            const targets = rows.filter((r) => r?._fromApi);
+            const targets = rows.filter((r) => r?._fromApi && r.id != null);
 
             await runWithConcurrency(targets, 6, async (r) => {
                 const patch = await computeEmissionsForRow(tableKey, r);
@@ -235,13 +255,13 @@ export function useEmissionsCalc({
                         };
                         delete extraFields._fromApi;
 
-                        await ActivityDataService.updateRow(r.id, {
+                        await ActivityDataService.updateRow(String(r.id), {
                             quantity: Number(updatedRow.quantity_mwh ?? r.quantity ?? 0),
                             emissions_tco2e: emissionsNum,
                             extra_fields: extraFields,
                         });
                     } else {
-                        await ActivityDataService.updateRow(r.id, {
+                        await ActivityDataService.updateRow(String(r.id), {
                             emissions_tco2e: emissionsNum,
                         });
                     }
@@ -256,18 +276,18 @@ export function useEmissionsCalc({
 
     const recalcElectricitySiblings = useCallback(
         async (
-            tableKey: UploadKey | string,
+            tableKey: UploadKey,
             excludeId: string | null,
-            rows: any[],
-            setRows: (updater: (prev: any[]) => any[]) => void,
+            rows: DataEntryRow[],
+            setRows: Dispatch<SetStateAction<DataEntryRow[]>>,
         ) => {
             const targets = rows.filter(
-                (r) => r?._fromApi && (excludeId == null || r.id !== excludeId),
+                (r) => r?._fromApi && r.id != null && (excludeId == null || r.id !== excludeId),
             );
             if (!targets.length) return;
 
             await runWithConcurrency(targets, 6, async (r) => {
-                const patch = await computeEmissionsForRow(tableKey as UploadKey, r);
+                const patch = await computeEmissionsForRow(tableKey, r);
                 if (!patch) return;
 
                 setRows((prev) => prev.map((x) => (x.id === r.id ? { ...x, ...patch } : x)));
@@ -283,7 +303,7 @@ export function useEmissionsCalc({
                         market_based_tco2e: patch.market_based_tco2e ?? null,
                     };
                     delete extraFields._fromApi;
-                    await ActivityDataService.updateRow(r.id, {
+                    await ActivityDataService.updateRow(String(r.id), {
                         quantity: Number(updatedRow.quantity_mwh ?? r.quantity ?? 0),
                         emissions_tco2e: emissionsNum,
                         extra_fields: extraFields,

@@ -1,8 +1,7 @@
 import React from "react";
 import Table from "@/components/common/Table";
 import InfoTooltip from "@/components/common/InfoTooltip";
-
-type UploadKey = "asset" | "component" | "componentRepl" | "refurbishment" | "replDetailed" | "opEnergy" | "opEnergyDetailed" | "opEnergyElectricity" | "users" | "constructionG2" | "constructionG3" | "bcDetailedLevel" | "electricity" | "useB1G2" | "useB1G3" | "concreteRegSimplified" | "concreteRegDetailed" | "recurringG3";
+import type { UploadKey } from "@/pages/smallProject/dataEntry/stageConstants";
 
 type TableWrapperProps = {
   title: string;
@@ -15,7 +14,7 @@ type TableWrapperProps = {
   renderEditor?: (col: any, props: any) => React.ReactNode;
   onRequestUpload: (key: UploadKey) => void;
   onNewRowSave: (draft: any, key: UploadKey) => Promise<boolean>;
-  accordionKey: UploadKey;
+  accordionKey: string;
   accordionState: Record<string, boolean>;
   setAccordionState: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
   error?: string | null;

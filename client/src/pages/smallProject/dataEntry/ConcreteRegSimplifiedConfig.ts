@@ -1,4 +1,7 @@
 import EmissionCalculationsService from "../../../services/EmissionCalculations.service";
+import type { DataEntryRow } from "./dataEntryTypes";
+import { asTableConfigRecord } from "./tableConfigUtils";
+import { extractConcreteEmissions, normalizeConcreteMixType, parseConcreteStrengthMpa } from "./concreteConfigUtils";
 
 const MIXTYPE_OPTIONS = [
     { label: "Ready-mix", value: "Ready-mix" },
@@ -20,39 +23,6 @@ const STRENGTH_OPTIONS = [
 
 
 
-const pickLabel = (v: any) => {
-    if (v == null) return "";
-    if (typeof v === "string" || typeof v === "number") return String(v);
-    return v.label ?? v.name ?? v.value ?? "";
-};
-
-const normalizeMixType = (v: any) => {
-    const raw = pickLabel(v);
-    if (raw === "READY_MIX") return "Ready-mix";
-    if (raw === "PRECAST") return "Precast";
-    return raw;
-};
-
-const parseStrengthMpa = (v: any): number | null => {
-    const raw = pickLabel(v);
-    const n = Number(raw.replace(/[^0-9.]/g, ""));
-    return Number.isFinite(n) ? n : null;
-};
-
-const extractConcreteEmissions = (apiRes: any): number | null => {
-    const raw =
-        apiRes?.total_emissions_tco2e ??
-        apiRes?.emissions_tco2e ??
-        apiRes?.data?.total_emissions_tco2e ??
-        apiRes?.data?.emissions_tco2e ??
-        null;
-    if (raw === "-" || raw === "" || raw == null || Number.isNaN(Number(raw))) {
-        return null;
-    }
-    return Number(raw);
-};
-
-
 export const concreteRegSimplifiedConfig = () => ({
     tableName: "Concrete register (grade 3) - simplified",
     calculation: {
@@ -69,9 +39,9 @@ export const concreteRegSimplifiedConfig = () => ({
             "targetSCMContent",
             "volume",
         ],
-        buildPayload: (row: any, ctx: any) => {
-            const mix_type = normalizeMixType(row.mixType ?? row.mix_type);
-            const strength_mpa = parseStrengthMpa(row.strength ?? row.strength_mpa);
+        buildPayload: (row: DataEntryRow, ctx: { project_id?: string }) => {
+            const mix_type = normalizeConcreteMixType(row.mixType ?? row.mix_type);
+            const strength_mpa = parseConcreteStrengthMpa(row.strength ?? row.strength_mpa);
             const scm_pct = Number(row.targetSCMContent ?? row.scm_pct);
             const volume_m3 = Number(row.volume ?? row.volume_m3);
 
@@ -92,16 +62,17 @@ export const concreteRegSimplifiedConfig = () => ({
                 volume_m3
             };
         },
-        calculate: async (payload: any) => {
+        calculate: async (payload: Record<string, unknown>) => {
             return EmissionCalculationsService.concreteRegSimplifiedCalculations(payload);
         },
 
-        mapResultToRow: (apiRes: any) => {
+        mapResultToRow: (apiRes: unknown) => {
+            const result = asTableConfigRecord(apiRes);
             const emissions = extractConcreteEmissions(apiRes);
             return {
                 emissions_tco2e: emissions,
-                gwp_a1a3_tco2e_m3: apiRes?.gwp_a1a3_tco2e_m3 ?? null,
-                transport_a4_ef_tco2e_m3: apiRes?.transport_a4_ef_tco2e_m3 ?? null,
+                gwp_a1a3_tco2e_m3: result.gwp_a1a3_tco2e_m3 ?? null,
+                transport_a4_ef_tco2e_m3: result.transport_a4_ef_tco2e_m3 ?? null,
             };
         },
     },

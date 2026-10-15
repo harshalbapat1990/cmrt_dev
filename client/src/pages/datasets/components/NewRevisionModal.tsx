@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { DatasetRevision } from '../types';
-"use no memo";
 
 type ScopeType = 'DEFAULT' | 'ORG' | 'PROJECT';
 

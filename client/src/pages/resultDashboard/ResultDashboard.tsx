@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useProjectHeader } from "@/context/ProjectHeaderContext";
 
 import EmissionsBreakdownTab from "./EmissionsBreakdownTab";
@@ -19,6 +19,15 @@ import ProjectOptionsService from "@/services/ProjectOptions.service";
 import { ConstructionPeriodsService } from "@/services/ConstructionPeriods.service";
 import { useProjectStageAccess } from "@/customHooks/useProjectStageAccess";
 import { filterAccessibleStageInstances } from "../smallProject/dataEntry/stageAccessUi";
+import { normalizeProjectClass as normalizeDataEntryProjectClass } from "../smallProject/dataEntry/dataEntryTypes";
+import {
+  buildDataEntryStageUrl,
+  buildStageNavigationOptions,
+  RESULTS_DASHBOARD_VALUE,
+} from "../smallProject/dataEntry/stageNavigationOptions";
+import type { StageNavigationItem } from "../smallProject/dataEntry/stageNavigationOptions";
+import { ProjectStageSwitcher } from "./ProjectStageSwitcher";
+import { useProjectDashboardProject, type DashboardProject } from "./useProjectDashboardProject";
 
 /* =======================
    Types
@@ -124,7 +133,7 @@ const SECTION_SUBMISSION_RULES: Record<Section, SubmissionLabel[]> = {
 };
 
 
-const normalizeProjectClass = (value?: string): ProjectCategory | "" => {
+const normalizeProjectClass = (value?: string | null): ProjectCategory | "" => {
   const normalized = value?.toLowerCase().trim().replace(/[_-]/g, " ") ?? "";
 
   if (normalized.includes("small")) return "Small";
@@ -162,6 +171,8 @@ interface SidebarTabsProps {
   collapsed: boolean;
   onToggle(): void;
   onChange(section: Section): void;
+  projectStageOptions: StageNavigationItem[];
+  onProjectNavigation(value: string): void;
 }
 
 const SidebarTabs = ({
@@ -170,6 +181,8 @@ const SidebarTabs = ({
   collapsed,
   onToggle,
   onChange,
+  projectStageOptions,
+  onProjectNavigation,
 }: SidebarTabsProps) => (
   <aside
     className={`h-screen bg-white border-r border-[#E8E8E8] transition-all duration-300 ${collapsed ? "w-[72px]" : "w-[300px]"
@@ -193,6 +206,12 @@ const SidebarTabs = ({
           </span>
         </button>
       </div>
+
+      <ProjectStageSwitcher
+        options={projectStageOptions}
+        collapsed={collapsed}
+        onChange={onProjectNavigation}
+      />
 
       <nav className="flex flex-col flex-1">
         <ul className="space-y-1">
@@ -248,13 +267,12 @@ const SidebarTabs = ({
 const ResultDashboard = () => {
   const { state } = useLocation();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { setProjectHeader, clearProjectHeader } = useProjectHeader();
-  const {
-    projectData,
-  } = state || {};
-  const project = projectData;
-
-  const projectId = searchParams.get("projectId") ?? project?.id ?? "";
+  const routeProject = (state as { projectData?: DashboardProject } | null)?.projectData ?? null;
+  const projectId = searchParams.get("projectId") ?? routeProject?.id ?? "";
+  const { project, loading: projectLoading, error: projectLoadError } =
+    useProjectDashboardProject(projectId, routeProject);
   const projectName = project?.name ?? project?.project_name ?? "";
   const {
     stageAccess,
@@ -272,7 +290,7 @@ const ResultDashboard = () => {
       setProjectHeader(projectName, true, projectId);
     }
     return () => { clearProjectHeader(); };
-  }, [projectName, projectId]);
+  }, [projectName, projectId, setProjectHeader, clearProjectHeader]);
   
 const projectCategory = useMemo(() => {
   return normalizeProjectClass(project?.project_class ?? project?.projectClass);
@@ -317,6 +335,21 @@ const projectCategory = useMemo(() => {
       stageAccess,
     );
   }, [project?.stage_instances, stageAccess, stageAccessLoading]);
+
+  const projectStageOptions = useMemo(
+    () => buildStageNavigationOptions(
+      accessibleStageInstances,
+      normalizeDataEntryProjectClass(project?.project_class ?? project?.projectClass),
+    ),
+    [accessibleStageInstances, project?.project_class, project?.projectClass],
+  );
+
+  const onProjectNavigation = useCallback((value: string) => {
+    const selected = projectStageOptions.find((option) => option.value === value);
+    if (!selected || selected.stageLabel === RESULTS_DASHBOARD_VALUE) return;
+    const target = buildDataEntryStageUrl(projectId, selected);
+    if (target) navigate(target);
+  }, [projectStageOptions, projectId, navigate]);
 
   const submissionOptions: SubmissionOption[] = useMemo(() => {
     return (
@@ -576,6 +609,22 @@ const showProjectOptionDropdown =
     </div>
   );
   
+if (projectLoading) {
+  return (
+    <div className="flex h-screen items-center justify-center text-gray-500">
+      Loading project dashboard…
+    </div>
+  );
+}
+
+if (projectLoadError) {
+  return (
+    <div className="flex h-screen items-center justify-center text-gray-500">
+      {projectLoadError}
+    </div>
+  );
+}
+
 if (!project) {
   return (
     <div className="flex h-screen items-center justify-center text-gray-500">
@@ -785,6 +834,8 @@ if (accessibleStageInstances.length === 0) {
         collapsed={collapsed}
         onToggle={() => setCollapsed((p) => !p)}
         onChange={setActiveSection}
+        projectStageOptions={projectStageOptions}
+        onProjectNavigation={onProjectNavigation}
       />
 
       <main className="flex flex-col flex-1 h-screen overflow-hidden">

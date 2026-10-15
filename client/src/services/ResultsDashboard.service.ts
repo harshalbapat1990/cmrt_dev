@@ -101,7 +101,7 @@ export class ResultsDashboardService extends BaseService {
         accountingMethod: string,
     ): Promise<any> {
         try {
-            let url = `/dashboard/comparison/by-submission?project_id=${projectId}&elec_method=${accountingMethod}`;
+            const url = `/dashboard/comparison/by-submission?project_id=${projectId}&elec_method=${accountingMethod}`;
             const response = await this.get(url);
             return response.data;
         } catch (error: any) {
@@ -115,7 +115,7 @@ export class ResultsDashboardService extends BaseService {
         accountingMethod: string,
     ): Promise<any> {
         try {
-            let url = `/dashboard/comparison/by-construction-period?project_id=${projectId}&elec_method=${accountingMethod}`;
+            const url = `/dashboard/comparison/by-construction-period?project_id=${projectId}&elec_method=${accountingMethod}`;
             const response = await this.get(url);
             return response.data;
         } catch (error: any) {
@@ -160,7 +160,7 @@ export class ResultsDashboardService extends BaseService {
         accountingMethod: string,
     ): Promise<any> {
         try {
-            let url = `/dashboard/options-comparison/summary?project_id=${projectId}&elec_method=${accountingMethod}`;
+            const url = `/dashboard/options-comparison/summary?project_id=${projectId}&elec_method=${accountingMethod}`;
             const response = await this.get(url);
             return response.data;
         } catch (error: any) {

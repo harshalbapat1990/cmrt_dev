@@ -1,5 +1,7 @@
 ﻿/** Shared mitigation / activity_data ui_table_key helpers (avoid circular imports). */
 
+import type { UploadKey } from "./stageConstants";
+
 export type MitigationSubmissionStage = "Design" | "Construction";
 
 export type MitigationLifecyclePhaseKey =
@@ -30,7 +32,10 @@ export const USERS_MITIGATION_PANEL_BASE_KEYS = [
 
 const _usersMitigationKeySet = new Set<string>(USERS_MITIGATION_PANEL_BASE_KEYS);
 
-export function isUsersMitigationBaseKey(baseKey: string): boolean {
+export type UsersMitigationBaseKey = (typeof USERS_MITIGATION_PANEL_BASE_KEYS)[number];
+export type MitigationPanelBaseKey = UploadKey | UsersMitigationBaseKey;
+
+export function isUsersMitigationBaseKey(baseKey: string): baseKey is UsersMitigationBaseKey {
   return _usersMitigationKeySet.has(baseKey);
 }
 
@@ -47,7 +52,7 @@ export function mitigationUiKey(
 export function getMitigationPanelBaseKeys(
   submissionStage: MitigationSubmissionStage,
   lifecyclePhase: MitigationLifecyclePhaseKey,
-): string[] {
+): MitigationPanelBaseKey[] {
   if (lifecyclePhase === "users") {
     if (submissionStage !== "Design") return [];
     return [...USERS_MITIGATION_PANEL_BASE_KEYS];

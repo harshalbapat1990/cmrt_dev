@@ -1,24 +1,41 @@
 import http from "@/http";
 import  EmissionCalculationsService from "@/services/EmissionCalculations.service";
 import LookupsService from "@/services/Lookups.service";
+import type { DataEntryRow } from "./dataEntryTypes";
 
-const mapToOptions = (list: any[], labelField = "name", valueField = "id") =>
-  (list ?? []).map((x) => ({ label: x[labelField], value: x[valueField] }));
+type LookupOption = { label: string; value: string };
+type FugitiveRecord = {
+  id: string;
+  equipment_type: string;
+  default_annual_leakage_rate?: string | number | null;
+  jurisdiction?: { name?: string | null } | null;
+};
 
-const pickLabel = (v: any) => {
+const asRecord = (value: unknown): Record<string, unknown> =>
+  typeof value === "object" && value !== null ? value as Record<string, unknown> : {};
+
+const mapToOptions = (list: unknown[], labelField = "name", valueField = "id"): LookupOption[] =>
+  list.map((value) => {
+    const record = asRecord(value);
+    return { label: String(record[labelField] ?? ""), value: String(record[valueField] ?? "") };
+  });
+
+const pickLabel = (v: unknown): string => {
   if (v == null) return "";
   if (typeof v === "string" || typeof v === "number") return String(v);
-  return v.label ?? v.name ?? v.value ?? "";
+  const record = asRecord(v);
+  return pickLabel(record.label ?? record.name ?? record.value);
 };
 
 
 export const requireGasesCategoryId = async (): Promise<string> => {
-  const categories = await LookupsService.fetchCategories(true);
-  const gasesCategory = categories.find(
-    (category: any) =>
-      category?.is_active !== false &&
-      category?.name?.trim().toLowerCase() === "gases" &&
-      category?.parent_category_id == null,
+  const response: unknown = await LookupsService.fetchCategories(true);
+  const categories = Array.isArray(response) ? response.map(asRecord) : [];
+  const gasesCategory = categories.find((category) =>
+    category.is_active !== false &&
+    typeof category.name === "string" &&
+    category.name.trim().toLowerCase() === "gases" &&
+    category.parent_category_id == null,
   );
   if (!gasesCategory?.id) {
     throw new Error('The active "Gases" emissions category could not be found.');
@@ -26,7 +43,7 @@ export const requireGasesCategoryId = async (): Promise<string> => {
   return String(gasesCategory.id);
 };
 
-const fetchProjectFugitives = async (projectId?: string) => {
+const fetchProjectFugitives = async (projectId?: string): Promise<FugitiveRecord[]> => {
   if (!projectId) return [];
   const datasetRevisionId = await LookupsService.resolveProjectDatasetRevisionId(projectId);
   if (!datasetRevisionId) return [];
@@ -34,10 +51,22 @@ const fetchProjectFugitives = async (projectId?: string) => {
   const res = await http.get("/api/fugitives", {
     params: { limit: 500, dataset_revision_id: datasetRevisionId, global_only: false },
   });
-  return Array.isArray(res.data) ? res.data : [];
+  if (!Array.isArray(res.data)) return [];
+  return res.data.map(asRecord).flatMap((record) => {
+    if (typeof record.id !== "string" && typeof record.id !== "number") return [];
+    if (typeof record.equipment_type !== "string") return [];
+    const jurisdiction = asRecord(record.jurisdiction);
+    const rate = record.default_annual_leakage_rate;
+    return [{
+      id: String(record.id),
+      equipment_type: record.equipment_type,
+      default_annual_leakage_rate: typeof rate === "string" || typeof rate === "number" ? rate : null,
+      jurisdiction: typeof jurisdiction.name === "string" ? { name: jurisdiction.name } : null,
+    }];
+  });
 };
 
-export const useB1G2Config = (jurisdictionName: string | null, projectId?: string, ) => ({
+export const createB1G2Config = (jurisdictionName: string | null, projectId?: string, ) => ({
   tableName: "Component Level (Grade 2)",
   calculation: {
       grade: 2,
@@ -58,7 +87,7 @@ export const useB1G2Config = (jurisdictionName: string | null, projectId?: strin
         "gas_type",
         "emissions_subcategory_id",
       ],
-      buildPayload: (row: any, ctx: { jurisdiction: string , ops_start_year: number, reference_period: number}) => {
+      buildPayload: (row: DataEntryRow, ctx: { jurisdiction: string; ops_start_year: number; reference_period: number }) => {
         const application_type = pickLabel(row.application_type);
         const charge_kg = pickLabel(row.charge_kg);
         const gas = pickLabel(row.gas);
@@ -84,18 +113,21 @@ export const useB1G2Config = (jurisdictionName: string | null, projectId?: strin
       },
       
   // table-specific API call
-      calculate: async (payload: any) => {
+      calculate: async (payload: Record<string, unknown>) => {
         // For component table, use grade2 endpoint OR your table endpoint
-        return EmissionCalculationsService.useB1G2Calculations(payload);
+        return EmissionCalculationsService.calculateB1G2Calculations(payload);
       },
   
       // map API response -> row changes
-      mapResultToRow: (apiRes: any) => ({
-        emissions_tco2e: apiRes?.total_emissions_tco2e ?? "-",
-        annual_leakage_rate_percent: apiRes?.annual_leakage_rate_percent ?? "-",
-        _ops_start: apiRes?.ops_start ?? null,
-        _ops_end: apiRes?.ops_end ?? null,
-      }),
+      mapResultToRow: (apiRes: unknown) => {
+        const result = asRecord(apiRes);
+        return {
+          emissions_tco2e: result.total_emissions_tco2e ?? "-",
+          annual_leakage_rate_percent: result.annual_leakage_rate_percent ?? "-",
+          _ops_start: result.ops_start ?? null,
+          _ops_end: result.ops_end ?? null,
+        };
+      },
   
     },
 
@@ -117,9 +149,9 @@ export const useB1G2Config = (jurisdictionName: string | null, projectId?: strin
         fetch: async () => {
           const list = await fetchProjectFugitives(projectId);
           const filtered = jurisdictionName
-            ? list.filter((item: any) => item.jurisdiction?.name === jurisdictionName)
+            ? list.filter((item) => item.jurisdiction?.name === jurisdictionName)
             : list;
-          return filtered.map((x: any) => ({ label: x.equipment_type, value: x.id }));
+          return filtered.map((item) => ({ label: item.equipment_type, value: item.id }));
         },
       },
     },
@@ -142,7 +174,7 @@ export const useB1G2Config = (jurisdictionName: string | null, projectId?: strin
       key: "emissions_source",
       required: true,
       lookup: {
-        fetch: async (ctx?: { row?: any }) => {
+        fetch: async (ctx?: { row?: DataEntryRow }) => {
           const subcategoryId = ctx?.row?.emissions_subcategory_id;
           if (!subcategoryId) return [];
           const list = await LookupsService.fetchBgmSources([3, 4], subcategoryId, projectId);
@@ -165,17 +197,17 @@ export const useB1G2Config = (jurisdictionName: string | null, projectId?: strin
       getOptions: async () => {
         const list = await fetchProjectFugitives(projectId);
         const filtered = jurisdictionName
-          ? list.filter((item: any) => item.jurisdiction?.name === jurisdictionName)
+          ? list.filter((item) => item.jurisdiction?.name === jurisdictionName)
           : list;
-        return filtered.map((x: any) => ({
-          label: x.equipment_type,
-          value: x.id,
-          leakageRate: x.default_annual_leakage_rate != null
-            ? parseFloat(x.default_annual_leakage_rate)
+        return filtered.map((item) => ({
+          label: item.equipment_type,
+          value: item.id,
+          leakageRate: item.default_annual_leakage_rate != null
+            ? Number.parseFloat(String(item.default_annual_leakage_rate))
             : null,
         }));
       },
-      onSelect: (selected: any) => ({
+      onSelect: (selected?: Record<string, unknown>) => ({
         annual_leakage_rate_percent: selected?.leakageRate ?? null,
       }),
       clearsOnChange: [],
@@ -202,7 +234,7 @@ export const useB1G2Config = (jurisdictionName: string | null, projectId?: strin
       editorType: "select",
       idKey: "emissions_source",
       dependsOnKeys: ["emissions_subcategory_id"],
-      getOptions: async (ctx?: { row?: any }) => {
+      getOptions: async (ctx?: { row?: DataEntryRow }) => {
         const subcategoryId = ctx?.row?.emissions_subcategory_id;
         if (!subcategoryId) return [];
         const list = await LookupsService.fetchBgmSources([3, 4], subcategoryId, projectId);

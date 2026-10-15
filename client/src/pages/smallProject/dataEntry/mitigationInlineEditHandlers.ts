@@ -2,6 +2,8 @@ import type React from "react";
 import { fetchAllActiveMrFactors } from "./refurbishmentTableConfig";
 import { type UploadKey, isElectricityTable } from "./stageConstants";
 import { hasAllRequired, isValidEmission } from "./dataEntryValidation";
+import type { MeProfile } from "@/context/UserContext";
+import type { DataEntryCellChange, DataEntryRow, DataEntryRowPatch, FugitiveOption } from "./dataEntryTypes";
 
 type CalcConfig = {
     triggerKeys: string[];
@@ -9,32 +11,33 @@ type CalcConfig = {
 };
 
 export type MitigationInlineCellChangeFactory = (
-    tableKey: string,
-    setRows: React.Dispatch<React.SetStateAction<any[]>>,
+    tableKey: UploadKey,
+    setRows: React.Dispatch<React.SetStateAction<DataEntryRow[]>>,
     setTableError?: (msg: string | null) => void,
-) => (args: { id: any; key: any; value: any; item: any }) => Promise<void>;
+) => (args: DataEntryCellChange) => Promise<void>;
 
 export type MitigationInlineRowPatchFactory = (
-    tableKey: string,
-    setRows: React.Dispatch<React.SetStateAction<any[]>>,
+    tableKey: UploadKey,
+    setRows: React.Dispatch<React.SetStateAction<DataEntryRow[]>>,
     setTableError?: (msg: string | null) => void,
-) => (args: { id: any; patch: any; item: any }) => Promise<void>;
+) => (args: DataEntryRowPatch) => Promise<void>;
 
 export type MitigationInlineEditDeps = {
-    computeEmissionsForRow: (tableKey: UploadKey, row: any) => Promise<Partial<any> | null>;
+    computeEmissionsForRow: (tableKey: UploadKey, row: DataEntryRow) => Promise<Partial<DataEntryRow> | null>;
     getCalcConfig: (tableKey: UploadKey) => CalcConfig | null;
-    user: any;
-    fugitiveList: any[];
+    user: MeProfile | null;
+    fugitiveList: FugitiveOption[];
     operationalLifeYears: number | null;
     constructionStartDate: string | null;
     constructionEndDate: string | null;
     opsStartYear: number | null;
 };
 
-const getYearFromValue = (value: any): number | null => {
+const getYearFromValue = (value: unknown): number | null => {
     if (value == null || value === "") return null;
     if (typeof value === "number") return Number.isFinite(value) ? value : null;
-    const str = String(value).trim();
+    if (typeof value !== "string") return null;
+    const str = value.trim();
     if (/^\d{4}$/.test(str)) return Number(str);
     const parsed = new Date(str);
     if (!Number.isNaN(parsed.getTime())) return parsed.getFullYear();
@@ -70,7 +73,7 @@ export type MitigationElectricityYearDeps = Pick<
 
 export function validateMitigationElectricityYear(
     tableKey: UploadKey,
-    row: any,
+    row: DataEntryRow,
     deps: MitigationElectricityYearDeps,
 ): string | null {
     if (!isElectricityTable(tableKey)) return null;
@@ -90,13 +93,13 @@ export function validateMitigationElectricityYear(
 
 const validateElectricityYear = (
     tableKey: UploadKey,
-    row: any,
+    row: DataEntryRow,
     deps: MitigationInlineEditDeps,
 ): string | null => validateMitigationElectricityYear(tableKey, row, deps);
 
 const validateComponentReplLife = (
     tableKey: UploadKey,
-    row: any,
+    row: DataEntryRow,
     deps: MitigationInlineEditDeps,
 ): string | null => {
     if (tableKey !== "componentRepl") return null;
@@ -113,7 +116,7 @@ const validateComponentReplLife = (
     return null;
 };
 
-const applyNotesMetadata = (finalRow: any, value: any, user: any) => {
+const applyNotesMetadata = (finalRow: DataEntryRow, value: unknown, user: MeProfile | null): DataEntryRow => {
     if (value) {
         const authorName =
             [user?.first_name, user?.last_name].filter(Boolean).join(" ") ||
@@ -134,13 +137,13 @@ export function createMitigationOnCellChange(
     const { computeEmissionsForRow, getCalcConfig, user, fugitiveList } = deps;
 
     return (
-        tableKey: string,
-        setRows: React.Dispatch<React.SetStateAction<any[]>>,
+        tableKey: UploadKey,
+        setRows: React.Dispatch<React.SetStateAction<DataEntryRow[]>>,
         setTableError?: (msg: string | null) => void,
     ) =>
-        async ({ id, key, value, item }: any) => {
+        async ({ id, key, value, item }: DataEntryCellChange) => {
             try {
-            const tk = tableKey as UploadKey;
+            const tk = tableKey;
             let finalRow = { ...item, [key]: value };
             const cfg = getCalcConfig(tk);
 
@@ -190,7 +193,7 @@ export function createMitigationOnCellChange(
             }
 
             if (tk === "useB1G2" && String(key) === "application_type_id") {
-                const eq = fugitiveList.find((e: any) => e.id === value);
+                const eq = fugitiveList.find((entry) => entry.id === value);
                 setRows((prev) =>
                     prev.map((row) =>
                         row.id === id
@@ -199,7 +202,7 @@ export function createMitigationOnCellChange(
                                   application_type_id: value,
                                   application_type: eq?.equipment_type ?? "",
                                   annual_leakage_rate_percent: eq
-                                      ? parseFloat(eq.default_annual_leakage_rate)
+                                      ? Number.parseFloat(String(eq.default_annual_leakage_rate))
                                       : null,
                               }
                             : row,
@@ -262,13 +265,13 @@ export function createMitigationOnRowPatch(
     const { computeEmissionsForRow, getCalcConfig } = deps;
 
     return (
-        tableKey: string,
-        setRows: React.Dispatch<React.SetStateAction<any[]>>,
+        tableKey: UploadKey,
+        setRows: React.Dispatch<React.SetStateAction<DataEntryRow[]>>,
         setTableError?: (msg: string | null) => void,
     ) =>
-        async ({ id, patch, item }: any) => {
+        async ({ id, patch, item }: DataEntryRowPatch) => {
             try {
-            const tk = tableKey as UploadKey;
+            const tk = tableKey;
             if (
                 tk === "concreteRegSimplified" ||
                 tk === "concreteRegDetailed"
@@ -297,7 +300,7 @@ export function createMitigationOnRowPatch(
             }
 
             const cfg = getCalcConfig(tk);
-            const touchedTrigger = cfg?.triggerKeys?.some((k: string) =>
+            const touchedTrigger = cfg?.triggerKeys?.some((k) =>
                 Object.prototype.hasOwnProperty.call(patch, k),
             );
 

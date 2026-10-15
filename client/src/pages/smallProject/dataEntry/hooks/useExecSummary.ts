@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import ProjectOptionsService, { type ProjectOption } from "@/services/ProjectOptions.service";
 import { ConstructionPeriodsService, type ConstructionPeriod } from "@/services/ConstructionPeriods.service";
+import type { MeProfile } from "@/context/UserContext";
 
 interface UseExecSummaryParams {
     activeStage: string;
     activeOption: ProjectOption | null;
     activePeriod: ConstructionPeriod | null;
     activeOptionId: string | null;
-    user: any;
+    user: MeProfile | null;
     success: (msg: string) => void;
     setConstructionPeriods: React.Dispatch<React.SetStateAction<ConstructionPeriod[]>>;
     setProjectOptions: React.Dispatch<React.SetStateAction<ProjectOption[]>>;

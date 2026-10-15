@@ -135,6 +135,14 @@ const ViewCalculations: React.FC = () => {
 
   /* ================= GUARD ================= */
 
+  const dataset = locationState?.dataset ?? {};
+  const visibleSections = locationState?.visibleSections ?? [];
+  const availableSections = useMemo(
+    () => dataset ? visibleSections.filter((section) => dataset[SECTION_DATA_KEY[section]] != null) : [],
+    [visibleSections, dataset],
+  );
+  const [selectedSection, setSelectedSection] = useState<Section | "">("");
+
   if (!locationState?.dataset) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-gray-500">
@@ -154,24 +162,6 @@ const ViewCalculations: React.FC = () => {
       </div>
     );
   }
-
-  const {
-    dataset,
-    visibleSections,
-  } = locationState;
-
-  /* ================= AVAILABLE SECTIONS ================= */
-
-  const availableSections = useMemo(
-    () =>
-      visibleSections.filter(
-        (s) => dataset[SECTION_DATA_KEY[s]] != null
-      ),
-    [visibleSections, dataset]
-  );
-
-  const [selectedSection, setSelectedSection] =
-    useState<Section | "">("");
 
   const rows = selectedSection
     ? getTableRows(selectedSection, dataset)

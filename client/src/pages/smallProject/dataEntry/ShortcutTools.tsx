@@ -1,18 +1,27 @@
 import { useState, useEffect } from "react";
 import Table from "@/components/common/Table";
 import ActivityDataService from "@/services/ActivityData.service";
+import type { DataEntryRow } from "./dataEntryTypes";
 
 
 type ShortcutKey = "IS_MATERIALS" | "SAT_4P";
 
-// type ShortcutToolsModalProps = {
-//     open: boolean;
-//     onClose: () => void;
-//     columns: any[];
-//     onCellChange?: any;
-//     onRowPatch?: any;
-//     readOnly?: boolean;
-// };
+type ShortcutRow = DataEntryRow & {
+    id: string | number;
+    component_type: string;
+    sub_component_type: string;
+    base_case: string | number;
+    actual_case: string | number;
+};
+
+type ShortcutColumn = {
+    header: string;
+    width?: string;
+    key: string;
+    editable?: boolean;
+    editorType?: "select" | "number";
+    getOptions?: () => Array<{ label: string; value: string }>;
+};
 
 const COMPONENT_TYPE_OPTIONS = [
     { label: "Road", value: "road" },
@@ -41,7 +50,7 @@ const SHORTCUT_TABLE_CONFIGS: Record<
     {
         title: string;
         tableKey: string;
-        columns: () => any[];
+        columns: () => ShortcutColumn[];
     }
 > = {
     IS_MATERIALS: {
@@ -127,9 +136,10 @@ const ShortcutToolsModal = ({
     readOnly?: boolean;
     onSaved?: () => void;
 }) => {
-    const [rows, setRows] = useState<any[]>([]);
+    const [rows, setRows] = useState<ShortcutRow[]>([]);
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const [sat4pData, setSat4pData] = useState<
         Record<
@@ -167,6 +177,7 @@ const ShortcutToolsModal = ({
     useEffect(() => {
         if (!open || shortcutKey !== "IS_MATERIALS" || !stageInstanceId) return;
         setLoading(true);
+        setError(null);
         setRows([]);
         setMaintenanceUse({ base_case: "", actual_case: "" });
         ActivityDataService.fetchRows(stageInstanceId, "shortcutIsMaterials", projectOptionId)
@@ -181,7 +192,7 @@ const ShortcutToolsModal = ({
                 const tableRows = data
                     .filter((r) => r.extra_fields?.row_type !== "maintenance")
                     .map((r) => ({
-                        id: r.id,
+                        id: r.id ?? crypto.randomUUID(),
                         component_type: r.extra_fields?.component_type ?? "",
                         sub_component_type: r.extra_fields?.sub_component_type ?? "",
                         base_case: r.extra_fields?.base_case ?? "",
@@ -189,13 +200,14 @@ const ShortcutToolsModal = ({
                     }));
                 setRows(tableRows);
             })
-            .catch((e) => console.error("Failed to load IS Materials data", e))
+            .catch(() => setError("Could not load IS Materials data. Close and reopen this tool to try again."))
             .finally(() => setLoading(false));
     }, [open, shortcutKey, stageInstanceId, projectOptionId]);
 
     useEffect(() => {
         if (!open || shortcutKey !== "SAT_4P" || !stageInstanceId) return;
         setLoading(true);
+        setError(null);
         setSat4pData(
             Object.fromEntries(
                 SAT4P_ROWS.map((src) => [src, { base_scope1: "", base_scope2: "", actual_scope3: "", actual_scope4: "" }])
@@ -219,7 +231,7 @@ const ShortcutToolsModal = ({
                     return updated;
                 });
             })
-            .catch((e) => console.error("Failed to load SAT 4P data", e))
+            .catch(() => setError("Could not load SAT 4P data. Close and reopen this tool to try again."))
             .finally(() => setLoading(false));
     }, [open, shortcutKey, stageInstanceId, projectOptionId]);
 
@@ -238,6 +250,8 @@ const ShortcutToolsModal = ({
                         <div className="text-text-base mt-6 mb-4">Enter results from the GHG Emissions report section</div>)}
                 </div>
 
+                {error && <p role="alert" className="mx-6 mt-4 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+
                 <div className="px-6 pb-6 overflow-auto">
                     {shortcutKey === "IS_MATERIALS" ? (
                         <><Table
@@ -247,7 +261,13 @@ const ShortcutToolsModal = ({
                             readOnly={!!readOnly}
                             hideToolbarActions
                             onNewRowSave={async (draft) => {
-                                setRows((prev) => [{ id: crypto.randomUUID(), ...draft }, ...prev]);
+                                setRows((prev) => [{
+                                    id: crypto.randomUUID(),
+                                    component_type: draft.component_type ?? "",
+                                    sub_component_type: draft.sub_component_type ?? "",
+                                    base_case: draft.base_case ?? "",
+                                    actual_case: draft.actual_case ?? "",
+                                }, ...prev]);
                                 return true;
                             }}
                             onCellChange={({ id, key, value }) => {
@@ -463,8 +483,8 @@ const ShortcutToolsModal = ({
                                 }
                                 await onSaved?.();
                                 onClose();
-                            } catch (e) {
-                                console.error("Failed to save shortcut data", e);
+                            } catch {
+                                setError("Could not save shortcut data. Check your connection and try again.");
                             } finally {
                                 setSaving(false);
                             }

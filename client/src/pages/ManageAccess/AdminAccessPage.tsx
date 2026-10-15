@@ -684,11 +684,9 @@ function EditMemberAccessModal({
   onClose: () => void;
   onSave: (memberId: string, nextAssignments: MemberAssignment[]) => void;
 }) {
-  if (!open || !member || !project) return null;
-
   const ORDER: StageName[] = ["Business case", "Design", "Construction",];
   const foundStages = Array.from(
-    new Set(project.members.flatMap((m) => m.assignments.map((a) => a.stage)))
+    new Set((project?.members ?? []).flatMap((m) => m.assignments.map((a) => a.stage)))
   ) as StageName[];
   const stages = [
     ...ORDER.filter((s) => foundStages.includes(s)),
@@ -700,6 +698,7 @@ function EditMemberAccessModal({
   const [showDiscard, setShowDiscard] = useState(false);
 
   useEffect(() => {
+    if (!member) return;
     const init: Record<string, AccessLevel | "" > = {};
     stages.forEach((s) => {
       const match = member.assignments.find((a) => a.stage === s);
@@ -716,6 +715,8 @@ function EditMemberAccessModal({
   const isDirty = useMemo(() => {
     return Object.keys(initial).some((k) => initial[k] !== form[k]);
   }, [initial, form]);
+
+  if (!open || !member || !project) return null;
 
   const handleCancel = () => {
     if (isDirty) {

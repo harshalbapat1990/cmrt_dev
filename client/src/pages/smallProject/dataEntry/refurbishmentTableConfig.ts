@@ -1,18 +1,20 @@
 import http from '@/http';
+import type { DataEntryRow } from './dataEntryTypes';
+import { asTableConfigRecord } from './tableConfigUtils';
 
-interface MrFactor {
+export interface MrFactor {
   id: string;
   activity_type: string;
   item: string;
-  unit: any;
+  unit: { code?: string | null } | null;
   emissions_intensity_tco2e: number | null;
   default_frequency_years: number | null;
   jurisdiction_name: string | null;
 }
 
 type BoundaryContext = {
-  boundary: any;
-  existingRow?: any;
+  boundary: { id: string; category: string; sub_category: string };
+  existingRow?: DataEntryRow;
 };
 
 
@@ -53,7 +55,7 @@ export const refurbishmentTableConfig = (jurisdictionName?: string | null) => ({
     grade: 1 as const,
     requiredKeys: ["mr_factor_id", "quantity", "frequency"],
     triggerKeys: ["mr_factor_id", "quantity", "frequency"],
-    buildPayload: (row: any, ctx: any) => {
+    buildPayload: (row: DataEntryRow, ctx: { reference_period?: number }) => {
       const cacheKey = jurisdictionName ?? "__all__";
       const factor = (_mrFactorsCache[cacheKey] ?? []).find((f) => f.id === row.mr_factor_id);
       if (!factor) return null;
@@ -67,18 +69,19 @@ export const refurbishmentTableConfig = (jurisdictionName?: string | null) => ({
         jurisdiction: factor.jurisdiction_name ?? "Australia",
         activity_type: factor.activity_type,
         item: factor.item,
-        unit: factor.unit.code,
+        unit: factor.unit?.code ?? "m2",
         quantity,
         reference_period,
         frequency_years,
       };
     },
-    calculate: async (payload: any) => {
+    calculate: async (payload: Record<string, unknown>) => {
       const res = await http.post('/api/maintenance-calculations/calculate', payload);
       return res.data;
     },
-    mapResultToRow: (apiRes: any) => {
-      const v = apiRes.total_emissions_tco2e ?? null;
+    mapResultToRow: (apiRes: unknown) => {
+      const result = asTableConfigRecord(apiRes);
+      const v = result.total_emissions_tco2e ?? null;
       return {
         emissions_tco2e: v,
         total_emissions_tco2e: v,
@@ -115,7 +118,7 @@ export const refurbishmentTableConfig = (jurisdictionName?: string | null) => ({
       key: "mr_factor_id",
       required: true,
       lookup: {
-        fetch: async (ctx?: { row?: any }) => {
+        fetch: async (ctx?: { row?: DataEntryRow }) => {
           const activityType = ctx?.row?.activityType;
           if (!activityType) return [];
           const factors = await fetchAllActiveMrFactors(jurisdictionName);
@@ -126,7 +129,7 @@ export const refurbishmentTableConfig = (jurisdictionName?: string | null) => ({
               value: f.id,
               _data: {
                 default_frequency_years: f.default_frequency_years,
-                unit_code: f.unit.code,
+                unit_code: f.unit?.code ?? "m2",
               },
             }));
         },
@@ -144,7 +147,6 @@ export const refurbishmentTableConfig = (jurisdictionName?: string | null) => ({
       width: "18%",
       key: "activityType",
       editable: true,
-      // editableWhen: (row: any) => row?.id === "__NEW__",
       editorType: "select",
       idKey: "activityType",
       getOptions: async () => {
@@ -159,11 +161,10 @@ export const refurbishmentTableConfig = (jurisdictionName?: string | null) => ({
       width: "22%",
       key: "item",
       editable: true,
-      // editableWhen: (row: any) => row?.id === "__NEW__",
       editorType: "select",
       idKey: "mr_factor_id",
       dependsOnKeys: ["activityType"],
-      getOptions: async (ctx?: { row?: any }) => {
+      getOptions: async (ctx?: { row?: DataEntryRow }) => {
         const activityType = ctx?.row?.activityType;
         if (!activityType) return [];
         const factors = await fetchAllActiveMrFactors(jurisdictionName);
@@ -174,16 +175,18 @@ export const refurbishmentTableConfig = (jurisdictionName?: string | null) => ({
             value: f.id,
             _data: {
               default_frequency_years: f.default_frequency_years,
-              unit_code: f.unit.code,
+              unit_code: f.unit?.code ?? "m2",
             },
           }));
       },
-      onSelect: (selected: any) => selected
-        ? {
-          frequency: selected._data?.default_frequency_years ?? '',
-          unit_code: selected._data?.unit_code ?? 'm2',
-        }
-        : { frequency: '', unit_code: 'm2' },
+      onSelect: (selected?: Record<string, unknown>) => {
+        if (!selected) return { frequency: '', unit_code: 'm2' };
+        const data = asTableConfigRecord(selected._data);
+        return {
+          frequency: data.default_frequency_years ?? '',
+          unit_code: data.unit_code ?? 'm2',
+        };
+      },
       noCache: true,
       refreshOnDepsChange: true,
     },
@@ -199,7 +202,7 @@ export const refurbishmentTableConfig = (jurisdictionName?: string | null) => ({
       width: "8%",
       key: "unit_code",
       editable: true,
-      render: (row: any) => row.unit_code ?? "",
+      render: (row: DataEntryRow) => row.unit_code ?? "",
     },
     { 
       header: "Quantity", 

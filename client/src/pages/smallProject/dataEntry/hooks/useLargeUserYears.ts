@@ -1,14 +1,14 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import ActivityDataService from "@/services/ActivityData.service";
-import { useOutsideClick } from "../useOutsideClick";
+import { useState, useEffect, useCallback } from "react";
+import ActivityDataService, { type ActivityDataCreate, type ActivityDataOut } from "@/services/ActivityData.service";
 import {
     mitigationUiKey,
     type MitigationSubstitutionLeg,
 } from "../mitigationConstants";
+import type { StageInstance } from "../dataEntryTypes";
 
 interface UseLargeUserYearsParams {
     isUsersSubStage: boolean;
-    activeStageInstance: any | null;
+    activeStageInstance: Pick<StageInstance, "id"> | null;
     activeOptionId: string | null;
     projectClass: string | null;
     isLargeUsersNZ: boolean;
@@ -19,6 +19,25 @@ interface UseLargeUserYearsParams {
 }
 
 const LARGE_USER_YEAR_TABLES = ["largeRoadParams", "largeRoadUsers", "largeRailUsers"] as const;
+
+function getModelledYear(row: ActivityDataOut): number | null {
+    const year = row.extra_fields?.modelled_year;
+    return typeof year === "number" ? year : null;
+}
+
+function toYearUpsert(row: ActivityDataOut, tableKey: string, projectMitigationId: string | null): ActivityDataCreate {
+    return {
+        project_id: row.project_id,
+        project_stage_instance_id: row.project_stage_instance_id,
+        project_option_id: row.project_option_id ?? null,
+        metric_id: null,
+        quantity: row.quantity ?? 0,
+        unit_id: null,
+        ui_table_key: tableKey,
+        extra_fields: row.extra_fields ?? {},
+        ...(projectMitigationId ? { project_mitigation_id: projectMitigationId } : {}),
+    };
+}
 
 export function useLargeUserYears({
     isUsersSubStage,
@@ -33,7 +52,6 @@ export function useLargeUserYears({
 }: UseLargeUserYearsParams) {
     const [largeUsersYears, setLargeUsersYears] = useState<number[]>([]);
     const [activeLargeUsersYear, setActiveLargeUsersYear] = useState<number | null>(null);
-    const [yearMenuOpen, setYearMenuOpen] = useState(false);
     const [addLargeYearOpen, setAddLargeYearOpen] = useState(false);
     const [addLargeYearInput, setAddLargeYearInput] = useState("");
     const [addLargeYearError, setAddLargeYearError] = useState<string | null>(null);
@@ -41,9 +59,6 @@ export function useLargeUserYears({
     const [copyLargeYearConfirmOpen, setCopyLargeYearConfirmOpen] = useState(false);
     const [deleteLargeYearConfirmOpen, setDeleteLargeYearConfirmOpen] = useState(false);
     const [usersRefreshKey, setUsersRefreshKey] = useState(0);
-
-    const yearMenuRef = useRef<HTMLDivElement>(null);
-    useOutsideClick(yearMenuRef, () => setYearMenuOpen(false), yearMenuOpen);
 
     const scopeKey = useCallback(
         (base: string) =>
@@ -63,13 +78,13 @@ export function useLargeUserYears({
                 activeOptionId ?? null,
                 undefined,
                 projectMitigationId ?? undefined,
-            ) as any[];
+            );
             if (cancelled) return;
             const years = [
                 ...new Set(
                     rows
-                        .map((r: any) => r.extra_fields?.modelled_year)
-                        .filter((y: any) => typeof y === "number") as number[]
+                        .map(getModelledYear)
+                        .filter((year): year is number => year !== null)
                 ),
             ].sort((a: number, b: number) => a - b);
             setLargeUsersYears(years);
@@ -92,7 +107,7 @@ export function useLargeUserYears({
             setAddLargeYearError("That year already exists.");
             return;
         }
-        if (!activeStageInstance) return;
+        if (!activeStageInstance || !projectId) return;
         const sk = scopeKey("largeRoadParams");
         const existing = await ActivityDataService.fetchRows(
             activeStageInstance.id,
@@ -100,9 +115,9 @@ export function useLargeUserYears({
             activeOptionId ?? null,
             undefined,
             projectMitigationId ?? undefined,
-        ) as any[];
+        );
         const skeleton = {
-            project_id: projectId!,
+            project_id: projectId,
             project_stage_instance_id: activeStageInstance.id,
             project_option_id: activeOptionId ?? null,
             metric_id: null,
@@ -113,17 +128,7 @@ export function useLargeUserYears({
             ...(projectMitigationId ? { project_mitigation_id: projectMitigationId } : {}),
         };
         const all = [
-            ...existing.map((r: any) => ({
-                project_id: r.project_id,
-                project_stage_instance_id: r.project_stage_instance_id,
-                project_option_id: r.project_option_id,
-                metric_id: null,
-                quantity: r.quantity ?? 0,
-                unit_id: null,
-                ui_table_key: sk,
-                extra_fields: r.extra_fields,
-                ...(projectMitigationId ? { project_mitigation_id: projectMitigationId } : {}),
-            })),
+            ...existing.map((row) => toYearUpsert(row, sk, projectMitigationId)),
             skeleton,
         ];
         await ActivityDataService.bulkUpsert(
@@ -151,32 +156,22 @@ export function useLargeUserYears({
                 activeOptionId ?? null,
                 undefined,
                 projectMitigationId ?? undefined,
-            ) as any[];
-            const srcRows = all.filter((r: any) => r.extra_fields?.modelled_year === copyLargeYearSource);
-            const otherRows = all.filter((r: any) => r.extra_fields?.modelled_year !== activeLargeUsersYear);
-            const cloned = srcRows.map((r: any) => ({
-                project_id: r.project_id,
-                project_stage_instance_id: r.project_stage_instance_id,
-                project_option_id: r.project_option_id,
+            );
+            const srcRows = all.filter((row) => getModelledYear(row) === copyLargeYearSource);
+            const otherRows = all.filter((row) => getModelledYear(row) !== activeLargeUsersYear);
+            const cloned = srcRows.map((row) => ({
+                project_id: row.project_id,
+                project_stage_instance_id: row.project_stage_instance_id,
+                project_option_id: row.project_option_id ?? null,
                 metric_id: null,
-                quantity: r.quantity ?? 0,
+                quantity: row.quantity ?? 0,
                 unit_id: null,
                 ui_table_key: sk,
-                extra_fields: { ...r.extra_fields, modelled_year: activeLargeUsersYear },
+                extra_fields: { ...row.extra_fields, modelled_year: activeLargeUsersYear },
                 ...(projectMitigationId ? { project_mitigation_id: projectMitigationId } : {}),
             }));
             const payload = [
-                ...otherRows.map((r: any) => ({
-                    project_id: r.project_id,
-                    project_stage_instance_id: r.project_stage_instance_id,
-                    project_option_id: r.project_option_id,
-                    metric_id: null,
-                    quantity: r.quantity ?? 0,
-                    unit_id: null,
-                    ui_table_key: sk,
-                    extra_fields: r.extra_fields,
-                    ...(projectMitigationId ? { project_mitigation_id: projectMitigationId } : {}),
-                })),
+                ...otherRows.map((row) => toYearUpsert(row, sk, projectMitigationId)),
                 ...cloned,
             ];
             if (payload.length > 0) {
@@ -203,28 +198,18 @@ export function useLargeUserYears({
                 activeOptionId ?? null,
                 undefined,
                 projectMitigationId ?? undefined,
-            ) as any[];
-            const remaining = all.filter((r: any) => r.extra_fields?.modelled_year !== activeLargeUsersYear);
-            const toDelete = all.filter((r: any) => r.extra_fields?.modelled_year === activeLargeUsersYear);
+            );
+            const remaining = all.filter((row) => getModelledYear(row) !== activeLargeUsersYear);
+            const toDelete = all.filter((row) => getModelledYear(row) === activeLargeUsersYear);
             if (remaining.length > 0) {
                 await ActivityDataService.bulkUpsert(
                     activeStageInstance.id,
                     sk,
-                    remaining.map((r: any) => ({
-                        project_id: r.project_id,
-                        project_stage_instance_id: r.project_stage_instance_id,
-                        project_option_id: r.project_option_id,
-                        metric_id: null,
-                        quantity: r.quantity ?? 0,
-                        unit_id: null,
-                        ui_table_key: sk,
-                        extra_fields: r.extra_fields,
-                        ...(projectMitigationId ? { project_mitigation_id: projectMitigationId } : {}),
-                    })),
+                    remaining.map((row) => toYearUpsert(row, sk, projectMitigationId)),
                     projectMitigationId ?? undefined,
                 );
             } else {
-                for (const r of toDelete) await ActivityDataService.deleteRow(r.id);
+                for (const row of toDelete) await ActivityDataService.deleteRow(row.id);
             }
         }
         const newYears = largeUsersYears.filter((y) => y !== activeLargeUsersYear).sort((a, b) => a - b);
@@ -239,9 +224,6 @@ export function useLargeUserYears({
         setLargeUsersYears,
         activeLargeUsersYear,
         setActiveLargeUsersYear,
-        yearMenuOpen,
-        setYearMenuOpen,
-        yearMenuRef,
         addLargeYearOpen,
         setAddLargeYearOpen,
         addLargeYearInput,

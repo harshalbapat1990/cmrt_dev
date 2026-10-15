@@ -24,6 +24,7 @@ export default function CopyDataModal({
     const [selectedSourceId, setSelectedSourceId] = useState<string>("");
     const [step, setStep] = useState<"select" | "confirm">("select");
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     if (!open) return null;
 
@@ -34,11 +35,13 @@ export default function CopyDataModal({
     const handleClose = () => {
         setStep("select");
         setSelectedSourceId("");
+        setError(null);
         onClose();
     };
 
     const handleCopy = async () => {
         if (!selectedSourceId) return;
+        setError(null);
         setLoading(true);
         try {
             await ProjectOptionsService.copyOption(selectedSourceId, currentOptionId);
@@ -46,6 +49,7 @@ export default function CopyDataModal({
             handleClose();
         } catch (e) {
             console.error("Failed to copy option data:", e);
+            setError(e instanceof Error ? e.message : "Could not copy option data. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -87,6 +91,7 @@ export default function CopyDataModal({
                                 </select>
                             )}
                         </div>
+                        {error && <p className="mb-4 text-sm text-danger" role="alert">{error}</p>}
 
                         <div className="flex justify-end gap-3">
                             <button
@@ -118,6 +123,7 @@ export default function CopyDataModal({
                                 <span className="text-text-faint font-normal">(current)</span>
                             </div>
                         </div>
+                        {error && <p className="mb-4 text-sm text-danger" role="alert">{error}</p>}
 
                         <div className="flex items-start gap-2 bg-[#FFF3DB] border border-[#53400159] rounded-[var(--radius-3)] px-4 py-3 mb-6">
                             <span className="material-symbols-rounded text-[#534001] text-base mt-0.5">warning</span>

@@ -183,3 +183,4 @@ const StackedBarChart = ({
 };
 
 export default StackedBarChart;
+import "../../chartSetup";

@@ -122,3 +122,4 @@ const RangeBarChart = ({
 };
 
 export default RangeBarChart;
+import "../../chartSetup";

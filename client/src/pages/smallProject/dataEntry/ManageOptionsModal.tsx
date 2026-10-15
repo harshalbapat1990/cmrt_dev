@@ -29,12 +29,14 @@ export default function ManageOptionsModal({
     const [deleteTarget, setDeleteTarget] = useState<ProjectOption | null>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     if (!open) return null;
 
     const nextOptionNumber = options.length + 1;
 
     const handleAddOption = async () => {
+        setError(null);
         setLoading(true);
         try {
             await ProjectOptionsService.createSubOption(
@@ -46,6 +48,7 @@ export default function ManageOptionsModal({
             await onOptionsChange();
         } catch (e) {
             console.error("Failed to add option:", e);
+            setError(e instanceof Error ? e.message : "Could not add the option. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -53,26 +56,30 @@ export default function ManageOptionsModal({
 
     const handleEditConfirm = async (id: string) => {
         if (!editLabel.trim()) return;
+        setError(null);
         setLoading(true);
         try {
             await ProjectOptionsService.renameOption(id, editLabel.trim());
             await onOptionsChange();
-        } catch (e) {
-            console.error("Failed to rename option:", e);
-        } finally {
             setEditingId(null);
             setEditLabel("");
+        } catch (e) {
+            console.error("Failed to rename option:", e);
+            setError(e instanceof Error ? e.message : "Could not rename the option. Please try again.");
+        } finally {
             setLoading(false);
         }
     };
 
     const handleSetDefault = async (id: string) => {
+        setError(null);
         setLoading(true);
         try {
             await ProjectOptionsService.setDefaultOption(id);
             await onOptionsChange();
         } catch (e) {
             console.error("Failed to set default:", e);
+            setError(e instanceof Error ? e.message : "Could not set the base case. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -88,6 +95,7 @@ export default function ManageOptionsModal({
                     <p className="text-base text-text-base mb-6">
                         Define your options below. You can only set one option as your base case.
                     </p>
+                    {error && <p className="mb-4 text-sm text-danger" role="alert">{error}</p>}
 
                     <div className="flex justify-end mb-2">
                         <button
@@ -231,8 +239,13 @@ export default function ManageOptionsModal({
                     onClose={() => setDeleteTarget(null)}
                     option={deleteTarget}
                     onDeleted={async () => {
-                        setDeleteTarget(null);
-                        await onOptionsChange();
+                        try {
+                            await onOptionsChange();
+                        } catch {
+                            setError("The option was deleted, but the list could not refresh. Close and reopen Manage options to reload it.");
+                        } finally {
+                            setDeleteTarget(null);
+                        }
                     }}
                 />
             )}

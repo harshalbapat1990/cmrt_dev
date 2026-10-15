@@ -27,7 +27,7 @@ const getSmartAxisScale = (maxValue: number) => {
   const niceSteps = [1, 2, 5, 10];
   const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
 
-  let stepSize = niceSteps.find(
+  const stepSize = niceSteps.find(
     step => rawStep <= step * magnitude
   )! * magnitude;
 
@@ -283,3 +283,4 @@ const BarChart = ({
 };
 
 export default BarChart;
+import "../../chartSetup";

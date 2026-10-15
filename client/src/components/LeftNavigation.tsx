@@ -15,7 +15,6 @@ const LeftNavigation = ({
   groups = [],
   reportFrequency = "Monthly",
   // firstSubmissionMonth,
-  // constructionReportStates = [],
   constructionPeriods,
   projectName,
   activeStageInstance,
@@ -31,7 +30,7 @@ completenessTabEnabled = false,
   hasResubmissionAudit = false,
   onViewResubmissionAudit,
 }: LeftNavigationProps) => {
-  const [isCollapsed, setIsCollapsed] = useState<Boolean>(false);
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
   const [submissionDetailsExpanded, setSubmissionDetailsExpanded] = useState<boolean>(true);
   const [reviewerDetailsExpanded, setReviewerDetailsExpanded] = useState<boolean>(true);

@@ -5,6 +5,8 @@
 import EmissionCalculationsService from "../../../services/EmissionCalculations.service";
 import LookupsService, { type UnitOption } from "../../../services/Lookups.service";
 import { formatEmissionsOrQuantity } from "../../../utils/utils";
+import type { DataEntryRow } from "./dataEntryTypes";
+import { asTableConfigRecord } from "./tableConfigUtils";
 
 export const ELECTRICITY_EMISSION_SOURCES = [
   "Grid Electricity",
@@ -14,7 +16,7 @@ export const ELECTRICITY_EMISSION_SOURCES = [
 
 export type ElectricityEmissionSource = (typeof ELECTRICITY_EMISSION_SOURCES)[number];
 
-const getYear = (value: any): number | null => {
+const getYear = (value: unknown): number | null => {
   if (value == null || value === "") return null;
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : null;
@@ -39,7 +41,7 @@ export const electricityConfig = (projectId: string) => ({
     grade: 1,
     requiredKeys: ["emission_source", "year", "quantity_mwh"],
     triggerKeys: ["emission_source", "year", "quantity_mwh", "unit_display", "unit_id"],
-    buildPayload: (row: any, ctx: {
+    buildPayload: (row: DataEntryRow, ctx: {
       jurisdiction: string,
       ops_start_year: number, 
       reference_period: number,
@@ -94,13 +96,14 @@ export const electricityConfig = (projectId: string) => ({
       return null;
     },
 
-    calculate: async (payload: any) => {
+    calculate: async (payload: Record<string, unknown>) => {
       const res = await EmissionCalculationsService.electricityCalculations(payload);
       return res?.data ?? res;
     },
 
-    mapResultToRow: (apiRes: any, row?: any) => {
-      const data = apiRes?.data ?? apiRes;
+    mapResultToRow: (apiRes: unknown, row?: DataEntryRow) => {
+      const response = asTableConfigRecord(apiRes);
+      const data = asTableConfigRecord(response.data ?? response);
 
       const location = data?.location_based_total_tco2e ?? null;
       const market = data?.market_based_total_tco2e ?? null;
@@ -156,7 +159,7 @@ export const electricityConfig = (projectId: string) => ({
       key: "year",
       editable: true,
       editorType: "year", // Use a custom editor type
-      render: (row: any) => (row.year ? String(row.year) : ""),
+      render: (row: DataEntryRow) => (row.year ? String(row.year) : ""),
     },
     {
       header: "Quantity",
@@ -185,14 +188,14 @@ export const electricityConfig = (projectId: string) => ({
           to_canonical_factor: u.to_canonical_factor ?? null,
         }));
       },
-      onSelect: (selected: any) => ({
+      onSelect: (selected?: Record<string, unknown>) => ({
         unit_display: selected?.label ?? selected?.name ?? "MWh",
         canonical_unit_id: selected?.canonical_unit_id ?? null,
         unit_conversion_factor: selected?.to_canonical_factor ?? null,
         canonical_unit_code: selected?.canonical_unit_code ?? selected?.label ?? null,
       }),
       noCache: false,
-      render: (row: any) => row?.unit_display ?? "MWh",
+      render: (row: DataEntryRow) => row.unit_display ?? "MWh",
     },
     {
       header: "Location-based (tCO₂e)",
@@ -200,7 +203,7 @@ export const electricityConfig = (projectId: string) => ({
       key: "location_based_tco2e",
       editable: false,
       editorType: "number",
-      render: (row: any) => formatEmissionsOrQuantity(row.location_based_tco2e),
+      render: (row: DataEntryRow) => formatEmissionsOrQuantity(row.location_based_tco2e),
     },
     {
       header: "Market-based (tCO₂e)",
@@ -208,7 +211,7 @@ export const electricityConfig = (projectId: string) => ({
       key: "market_based_tco2e",
       editable: false,
       editorType: "number",
-      render: (row: any) => formatEmissionsOrQuantity(row.market_based_tco2e),
+      render: (row: DataEntryRow) => formatEmissionsOrQuantity(row.market_based_tco2e),
     },
     {
       header: "Notes / Comments (optional)",

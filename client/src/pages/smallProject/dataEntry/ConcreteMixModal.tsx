@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { formatDisplayNumber } from "@/utils/utils";
 import { SelectListbox } from "@/components/common/Select";
 import { NumericInput } from "@/components/common/NumericInput";
-import ActivityDataService from "@/services/ActivityData.service";
+import ActivityDataService, { type ActivityDataOut } from "@/services/ActivityData.service";
 import EmissionCalculationsService from "@/services/EmissionCalculations.service";
 import { apiRowToUiRow } from "./rowTransforms";
+import type { DataEntryRow } from "./dataEntryTypes";
 
 const MIX_TYPE_OPTIONS = [
     { label: "Ready-mix", value: "Ready-mix" },
@@ -46,16 +47,27 @@ interface MaterialDraft {
     carbonFactor: number | null;
 }
 
+type ConcreteMixRow = DataEntryRow & {
+    mixId?: string;
+    mixType?: string;
+    strength?: string | number;
+    gwpA1A3?: number | null;
+    volume?: number | string | null;
+    materials?: MaterialDraft[];
+    notes?: string | null;
+    method?: string;
+};
+
 interface Props {
     projectId: string;
     stageInstanceId: string;
     optionId: string | null;
     modalType: "mix_design" | "epd_pcf";
     onClose: () => void;
-    onCreated: (row: any) => void;
+    onCreated: (row: DataEntryRow) => void;
     /** When provided, the modal opens in edit mode with prefilled values */
-    editMix?: any;
-    calculateConcreteDetailed?: (row: any) => Promise<Partial<any> | null>;
+    editMix?: ConcreteMixRow;
+    calculateConcreteDetailed?: (row: DataEntryRow) => Promise<Partial<DataEntryRow> | null>;
 }
 
 const LABEL_CLS = "block text-xs text-text-faint mb-1 font-medium";
@@ -135,11 +147,11 @@ export default function ConcreteMixModal({ projectId, stageInstanceId, optionId,
         };
     }, [materials, mixType, strength, projectId, isEpd]);
 
-    const updateMaterial = (idx: number, key: keyof MaterialDraft, value: any) => {
+    const updateMaterial = <K extends keyof MaterialDraft>(idx: number, key: K, value: MaterialDraft[K]) => {
         setMaterials((prev) => prev.map((m, i) => (i === idx ? { ...m, [key]: value } : m)));
     };
 
-    const getNumericEmission = (patch: Partial<any> | null): number | null => {
+    const getNumericEmission = (patch: Partial<DataEntryRow> | null): number | null => {
         const raw = patch?.total_emissions_tco2e ?? patch?.emissions_tco2e;
         if (
             raw === "-" ||
@@ -198,8 +210,8 @@ export default function ConcreteMixModal({ projectId, stageInstanceId, optionId,
                 materials: materialsForCalculation,
             };
             const calcPatch = await calculateConcreteDetailed(calculationRow);
-            if ((calcPatch as any)?._calculation_error) {
-                setError((calcPatch as any)._calculation_error);
+            if (typeof calcPatch?._calculation_error === "string") {
+                setError(calcPatch._calculation_error);
                 return;
             }
             const calculatedEmissions = getNumericEmission(calcPatch);
@@ -208,7 +220,7 @@ export default function ConcreteMixModal({ projectId, stageInstanceId, optionId,
                 return;
             }
 
-            const extra_fields: any = {
+            const extra_fields: Record<string, unknown> = {
                 method: modalType,
                 mixId: mixIdLabel.trim(),
                 mixType,
@@ -229,9 +241,9 @@ export default function ConcreteMixModal({ projectId, stageInstanceId, optionId,
                     }));
             }
 
-            let saved: any;
+            let saved: ActivityDataOut;
             if (isEditing && editMix) {
-                saved = await ActivityDataService.updateRow(editMix.id, {
+                saved = await ActivityDataService.updateRow(String(editMix.id), {
                     quantity: volumeM3,
                     emissions_tco2e: calculatedEmissions,
                     extra_fields,

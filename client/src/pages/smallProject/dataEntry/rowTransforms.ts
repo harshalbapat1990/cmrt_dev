@@ -1,11 +1,13 @@
 import LookupsService from "@/services/Lookups.service";
+import type { ActivityDataOut } from "@/services/ActivityData.service";
 import { isElectricityTable } from "./stageConstants";
 import type { UploadKey } from "./stageConstants";
+import type { DataEntryRow, LookupChoice } from "./dataEntryTypes";
 
 export const GRADE2_IDS = [2];
 export const GRADE34_IDS = [3, 4];
 
-export const apiRowToUiRow = (apiRow: any): any => {
+export const apiRowToUiRow = (apiRow: ActivityDataOut): DataEntryRow => {
     const extra = apiRow.extra_fields ?? {};
     // ActivityData API responses enrich this field from emissions_results.
     // Do not revive a potentially stale emissions value from extra_fields.
@@ -30,12 +32,12 @@ export const apiRowToUiRow = (apiRow: any): any => {
 };
 
 export const buildExtraFields = (
-    row: any,
+    row: DataEntryRow,
     opts?: { keepEmissions?: boolean; tableKey?: UploadKey }
-): any => {
+): Record<string, unknown> => {
     const keepEmissions = !!opts?.keepEmissions;
     const tableKey = opts?.tableKey;
-    const ef = { ...row };
+    const ef: Record<string, unknown> = { ...row };
     delete ef._fromApi;
     delete ef.id;
     delete ef.metric_id;
@@ -61,7 +63,7 @@ export const resolveBoundaryComponentIds = async (
     emissions_source: string | null;
 }> => {
     const normalize = (s: string) => s?.trim().toLowerCase() ?? "";
-    const matchByName = (raw: string, list: any[]) =>
+    const matchByName = (raw: string, list: LookupChoice[]) =>
         list.find((x) => normalize(x.name ?? x.label ?? "") === normalize(raw));
 
     try {

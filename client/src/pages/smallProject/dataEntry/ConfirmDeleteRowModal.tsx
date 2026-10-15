@@ -8,12 +8,16 @@ interface Props {
 
 export default function ConfirmDeleteRowModal({ open, onClose, onConfirm }: Props) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   if (!open) return null;
 
   const handleConfirm = async () => {
+    setError(null);
     setLoading(true);
     try {
       await onConfirm();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Failed to delete the row. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -29,6 +33,7 @@ export default function ConfirmDeleteRowModal({ open, onClose, onConfirm }: Prop
         <p className="text-text-base mb-8">
           Are you sure you want to delete this row? This action cannot be undone.
         </p>
+        {error && <p className="mb-5 text-sm text-danger" role="alert">{error}</p>}
         <div className="flex justify-end gap-3">
           <button
             type="button"

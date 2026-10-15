@@ -1,15 +1,21 @@
-import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { NumericInput } from "@/components/common/NumericInput";
 import { SelectListbox } from "@/components/common/Select";
-import ActivityDataService from "@/services/ActivityData.service";
-import type { ActivityDataCreate } from "@/services/ActivityData.service";
 import { emptySummary, UserEmissionsSummary } from "./UserEmissionSummary";
-import EmissionCalculationsService from "@/services/EmissionCalculations.service";
 import {
     mitigationUiKey,
     type MitigationSubstitutionLeg,
 } from "./mitigationConstants";
 import InfoTooltip from "@/components/common/InfoTooltip";
+import { isNewZealandJurisdiction, type UserCalculationSummary } from "./roadUserCalculations";
+import type { RoadParams, RoadUserYearData } from "./roadUserTypes";
+import { emptyRoadUserYear } from "./largeRoadUsersData";
+import { useLargeRoadUsersLoader } from "./hooks/useLargeRoadUsersLoader";
+import { useLargeRoadUserPersistence } from "./hooks/useLargeRoadUserPersistence";
+import { useLargeRoadUserCalculations } from "./hooks/useLargeRoadUserCalculations";
+import { useLargeRoadUserEditing } from "./hooks/useLargeRoadUserEditing";
+import { useLargeRoadUserSave } from "./hooks/useLargeRoadUserSave";
+import { LargeRoadUsersYearSelector } from "./components/LargeRoadUsersYearSelector";
 
 const AU_VEHICLE_TYPES = [
     "Small Car",
@@ -71,27 +77,7 @@ const EV_UPTAKE_OPTIONS = [
 ];
 
 
-interface LargeRoadRow {
-    id: string;
-    vehicleType: string;
-    vkt: string;
-    vht: string;
-    avgSpeed: string;
-    lastEdited: "vht" | "avgSpeed" | null;
-    notes: string;
-}
-
-interface RoadParams {
-    ev_uptake_scenario: string;
-    roughness: string;
-    gradient: string;
-    curvature: string;
-}
-
-interface YearData {
-    params: RoadParams;
-    rows: LargeRoadRow[];
-}
+type YearData = RoadUserYearData;
 
 const DEFAULT_ROAD_PARAMS: RoadParams = {
     ev_uptake_scenario: "Step Change",
@@ -101,38 +87,6 @@ const DEFAULT_ROAD_PARAMS: RoadParams = {
 };
 
 
-
-const normalizeCalculationSummary = (summary: any) => ({
-    absoluteEmissions:
-        summary?.interim_total_tco2e ??
-        summary?.absoluteEmissions ??
-        summary?.absolute_emissions ??
-        summary?.absolute_emissions_tco2e ??
-        0,
-
-    baseCaseAbsoluteEmissions:
-        summary?.base_case_emissions_tco2e ??
-        summary?.baseCaseAbsoluteEmissions ??
-        summary?.base_case_absolute_emissions ??
-        summary?.base_case_absolute_emissions_tco2e ??
-        null,
-
-    relativeUserEmissions:
-        summary?.final_user_emissions_tco2e ??
-        summary?.relativeUserEmissions ??
-        summary?.relative_user_emissions ??
-        summary?.relative_user_emissions_tco2e ??
-        null,
-});
-
-const isNewZealandJurisdiction = (jurisdiction?: string | null): boolean => {
-    const value = (jurisdiction ?? "").trim().toLowerCase();
-    return (
-        value === "nz" ||
-        value === "nzl" ||
-        value.includes("new zealand")
-    );
-};
 
 interface Props {
     stageInstanceId: string;
@@ -154,55 +108,9 @@ interface Props {
     onTotalsUpdated?: () => void | Promise<void>;
 }
 
-function computeDerived(row: LargeRoadRow): LargeRoadRow {
-    const vktNum = parseFloat(row.vkt);
-    if (isNaN(vktNum) || vktNum <= 0) return row;
-    if (row.lastEdited === "vht") {
-        const vhtNum = parseFloat(row.vht);
-        return { ...row, avgSpeed: (!isNaN(vhtNum) && vhtNum > 0) ? (vktNum / vhtNum).toFixed(2) : "" };
-    }
-    if (row.lastEdited === "avgSpeed") {
-        const speedNum = parseFloat(row.avgSpeed);
-        return { ...row, vht: (!isNaN(speedNum) && speedNum > 0) ? (vktNum / speedNum).toFixed(2) : "" };
-    }
-    return row;
-}
-
 function emptyYearData(vehicleTypes: string[]): YearData {
-    return {
-        params: { ...DEFAULT_ROAD_PARAMS },
-        rows: vehicleTypes.map((vt, i) => ({
-            id: `road-new-${i}`,
-            vehicleType: vt,
-            vkt: "",
-            vht: "",
-            avgSpeed: "",
-            lastEdited: null,
-            notes: "",
-        })),
-    };
+    return emptyRoadUserYear(vehicleTypes, DEFAULT_ROAD_PARAMS);
 }
-
-const toNumberOrNull = (value: any): number | null => {
-    if (value === "" || value == null) return null;
-    const n = Number(value);
-    return Number.isFinite(n) ? n : null;
-};
-
-const getSpeed = (row: LargeRoadRow): number | null => {
-    const speed = toNumberOrNull(row.avgSpeed);
-    if (speed != null) return speed;
-    const vkt = toNumberOrNull(row.vkt);
-    const vht = toNumberOrNull(row.vht);
-    if (vkt != null && vht != null && vht > 0) return vkt / vht;
-    return null;
-};
-
-const isLargeRoadRowComplete = (row: LargeRoadRow) => {
-    return toNumberOrNull(row.vkt) != null && getSpeed(row) != null;
-};
-
-
 
 const LargeRoadUsersSubStage = ({
     stageInstanceId,
@@ -237,15 +145,11 @@ const LargeRoadUsersSubStage = ({
     }, [isNZ]);
 
     const [yearData, setYearData] = useState<Record<number, YearData>>({});
-    const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
     const [expanded, setExpanded] = useState(true);
 
-    const [emissionSummary, setEmissionSummary] = useState<any>(emptySummary);
-    const [emissionLoading, setEmissionLoading] = useState(false);
+    const [emissionSummary, setEmissionSummary] = useState<UserCalculationSummary>(emptySummary);
     const [globalParams, setGlobalParams] = useState<RoadParams>(DEFAULT_ROAD_PARAMS);
 
-    const [yearMenuOpen, setYearMenuOpen] = useState(false);
-    const yearMenuRef = useRef<HTMLDivElement>(null);
 
     const getAllModelledYears = useCallback(
         (allYearData: Record<number, YearData>) => {
@@ -260,6 +164,20 @@ const LargeRoadUsersSubStage = ({
         [largeUsersYears, activeYear]
     );
 
+    const { saveState, persistAll } = useLargeRoadUserPersistence({
+        readOnly,
+        stageInstanceId,
+        projectId,
+        projectOptionId: optionId,
+        projectMitigationId,
+        paramsTableKey: scopeUiTableKey("largeRoadParams"),
+        usersTableKey: scopeUiTableKey("largeRoadUsers"),
+        getModelledYears: getAllModelledYears,
+        defaultParams: globalParams,
+        defaultSummary: emissionSummary,
+        onTotalsUpdated,
+    });
+
 
     const availableModelledYears = useMemo(() => {
         return Array.from(
@@ -269,12 +187,22 @@ const LargeRoadUsersSubStage = ({
                 ...(activeYear != null ? [activeYear] : []),
             ])
         ).sort((a, b) => a - b);
-    }, [largeUsersYears, yearData]);
+    }, [largeUsersYears, yearData, activeYear]);
 
     const displayedActiveYear =
         activeYear ??
         availableModelledYears[0] ??
         null;
+
+    const { updateRow, updateParams } = useLargeRoadUserEditing({
+        readOnly,
+        displayedActiveYear,
+        largeUsersYears,
+        vehicleTypes,
+        globalParams,
+        setGlobalParams,
+        setYearData,
+    });
 
 
     const activeYearData = useMemo(() => {
@@ -297,513 +225,43 @@ const LargeRoadUsersSubStage = ({
     }, [activeYear, availableModelledYears, onActiveYearChange]);
 
 
-    useEffect(() => {
-        if (!stageInstanceId) return;
-
-        let cancelled = false;
-
-        (async () => {
-            try {
-                const [paramsRows, userRows] = await Promise.all([
-                    ActivityDataService.fetchRows(
-                        stageInstanceId,
-                        scopeUiTableKey("largeRoadParams"),
-                        optionId ?? null,
-                        undefined,
-                        projectMitigationId ?? undefined,
-                    ),
-                    ActivityDataService.fetchRows(
-                        stageInstanceId,
-                        scopeUiTableKey("largeRoadUsers"),
-                        optionId ?? null,
-                        undefined,
-                        projectMitigationId ?? undefined,
-                    ),
-                ]);
-
-                if (cancelled) return;
-
-                const firstParamsExtra = paramsRows.find((r: any) => r.extra_fields)?.extra_fields;
-
-                const loadedGlobalParams: RoadParams = {
-                    ev_uptake_scenario:
-                        firstParamsExtra?.ev_uptake_scenario ??
-                        DEFAULT_ROAD_PARAMS.ev_uptake_scenario,
-                    roughness:
-                        firstParamsExtra?.roughness ??
-                        DEFAULT_ROAD_PARAMS.roughness,
-                    gradient:
-                        firstParamsExtra?.gradient ??
-                        DEFAULT_ROAD_PARAMS.gradient,
-                    curvature:
-                        firstParamsExtra?.curvature ??
-                        DEFAULT_ROAD_PARAMS.curvature,
-                };
-
-                setGlobalParams(loadedGlobalParams);
-                setEmissionSummary(normalizeCalculationSummary(firstParamsExtra));
-
-                const built: Record<number, YearData> = {};
-
-                for (const row of paramsRows) {
-                    const year = row.extra_fields?.modelled_year;
-                    if (typeof year !== "number") continue;
-
-                    built[year] = {
-                        params: loadedGlobalParams,
-                        rows: vehicleTypes.map((vt, i) => ({
-                            id: `road-empty-${year}-${i}`,
-                            vehicleType: vt,
-                            vkt: "",
-                            vht: "",
-                            avgSpeed: "",
-                            lastEdited: null,
-                            notes: "",
-                        })),
-                    };
-                }
-
-                for (const row of userRows) {
-                    const year = row.extra_fields?.modelled_year;
-                    if (typeof year !== "number") continue;
-
-                    if (!built[year]) {
-                        built[year] = {
-                            ...emptyYearData(vehicleTypes),
-                            params: loadedGlobalParams,
-                        };
-                    }
-
-                    const vt = row.extra_fields?.vehicle_type;
-                    const idx = built[year].rows.findIndex((r) => r.vehicleType === vt);
-
-                    if (idx >= 0) {
-                        built[year].rows[idx] = {
-                            id: row.id,
-                            vehicleType: vt,
-                            vkt: row.extra_fields?.vkt != null ? String(row.extra_fields.vkt) : "",
-                            vht: row.extra_fields?.vht != null ? String(row.extra_fields.vht) : "",
-                            avgSpeed: row.extra_fields?.avg_speed != null ? String(row.extra_fields.avg_speed) : "",
-                            lastEdited: row.extra_fields?.last_edited ?? null,
-                            notes: row.extra_fields?.notes ?? "",
-                        };
-                    }
-                }
-                for (const year of largeUsersYears) {
-                    if (!built[year]) {
-                        built[year] = {
-                            ...emptyYearData(vehicleTypes),
-                            params: loadedGlobalParams,
-                        };
-                    }
-                }
-
-                setYearData(built);
-            } catch (e) {
-                console.error("Failed to load large road users data:", e);
-            }
-        })();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [
+    useLargeRoadUsersLoader({
         stageInstanceId,
         optionId,
         refreshKey,
+        projectMitigationId,
+        scopeUiTableKey,
         vehicleTypes,
         largeUsersYears,
-        scopeUiTableKey,
-        projectMitigationId,
-    ]);
+        defaultParams: DEFAULT_ROAD_PARAMS,
+        setGlobalParams,
+        setYearData,
+        setEmissionSummary,
+    });
 
-    const buildLargeNzRoadPayload = useCallback(
-        (allYearData: Record<number, YearData>) => {
-            const years = getAllModelledYears(allYearData);
+    const { loading: emissionLoading, calculateSummary } = useLargeRoadUserCalculations({
+        projectId,
+        stageInstanceId,
+        projectOptionId: optionId,
+        getModelledYears: getAllModelledYears,
+        setSummary: setEmissionSummary,
+    });
 
-            const anchor_years = years
-                .map((year) => {
-                    const rows =
-                        allYearData[year]?.rows ??
-                        emptyYearData(vehicleTypes).rows;
-
-                    const vehicles = rows
-                        .filter(isLargeRoadRowComplete)
-                        .map((row) => ({
-                            vehicle_type: row.vehicleType
-                                .toLowerCase()
-                                .replace(/\s+/g, "_"),
-                            vkt: Number(row.vkt),
-                            speed_kmh: Number(getSpeed(row)),
-                        }));
-
-                    return {
-                        year,
-                        vehicles,
-                    };
-                })
-                .filter((anchorYear) => anchorYear.vehicles.length > 0);
-
-            if (!anchor_years.length) return null;
-
-            return {
-                project_id: projectId,
-                project_option_id: optionId,
-                project_stage_instance_id: stageInstanceId,
-                anchor_years,
-            };
-        },
-        [
-            projectId,
-            optionId,
-            stageInstanceId,
-            vehicleTypes,
-            getAllModelledYears,
-        ]
-    );
-
-    const buildLargeAusRoadPayload = useCallback(
-        (
-            allYearData: Record<number, YearData>,
-            params: RoadParams
-        ) => {
-            const years = getAllModelledYears(allYearData);
-
-            const anchor_years = years
-                .map((year) => {
-                    const rows =
-                        allYearData[year]?.rows ??
-                        emptyYearData(vehicleTypes).rows;
-
-                    const vehicles = rows
-                        .filter(isLargeRoadRowComplete)
-                        .map((row) => ({
-                            vehicle_type: row.vehicleType,
-                            vkt: Number(row.vkt),
-                            average_speed_kph: Number(getSpeed(row)),
-                        }));
-
-                    return {
-                        year,
-                        vehicles,
-                    };
-                })
-                .filter((anchorYear) => anchorYear.vehicles.length > 0);
-
-            if (!anchor_years.length) return null;
-
-            return {
-                project_id: projectId,
-                project_option_id: optionId,
-                project_stage_instance_id: stageInstanceId,
-                roughness: params.roughness,
-                gradient: params.gradient,
-                curvature: params.curvature,
-                ev_uptake_scenario: params.ev_uptake_scenario,
-                anchor_years,
-            };
-        },
-        [
-            projectId,
-            optionId,
-            stageInstanceId,
-            vehicleTypes,
-            getAllModelledYears,
-        ]
-    );
-
-    const calculateLargeNzRoadSummary = useCallback(
-        async (yearData: Record<number, YearData>): Promise<any | null> => {
-            const payload = buildLargeNzRoadPayload(yearData);
-
-            if (!payload) return null;
-
-            try {
-                setEmissionLoading(true);
-
-                const summary =
-                    await EmissionCalculationsService.calculateLargeNzRoads(payload);
-
-                const normalized = normalizeCalculationSummary(summary);
-
-                setEmissionSummary(normalized);
-
-                return normalized;
-            } catch (e) {
-                console.error("NZ road calculation failed:", e);
-                return null;
-            } finally {
-                setEmissionLoading(false);
-            }
-        },
-        [buildLargeNzRoadPayload]
-    );
-
-    const persistAll = useCallback(
-        async (
-            allYearData: Record<number, YearData>,
-            params: RoadParams = globalParams,
-            summary: any = emissionSummary
-        ) => {
-            if (readOnly) return;
-
-            setSaveState("saving");
-
-            try {
-                const years = getAllModelledYears(allYearData);
-                const paramsSk = scopeUiTableKey("largeRoadParams");
-                const usersSk = scopeUiTableKey("largeRoadUsers");
-
-                const allParamsPayload: ActivityDataCreate[] = years.map((year) => ({
-                    project_id: projectId,
-                    project_stage_instance_id: stageInstanceId,
-                    project_option_id: optionId ?? null,
-                    metric_id: null,
-                    quantity: 0,
-                    unit_id: null,
-                    ui_table_key: paramsSk,
-                    extra_fields: {
-                        modelled_year: year,
-
-                        ev_uptake_scenario: params.ev_uptake_scenario,
-                        roughness: params.roughness,
-                        gradient: params.gradient,
-                        curvature: params.curvature,
-
-                        interim_total_tco2e: summary?.absoluteEmissions ?? null,
-                        base_case_emissions_tco2e:
-                            summary?.baseCaseAbsoluteEmissions ?? null,
-                        final_user_emissions_tco2e:
-                            summary?.relativeUserEmissions ?? null,
-                    },
-                    ...(projectMitigationId ? { project_mitigation_id: projectMitigationId } : {}),
-                }));
-
-                const allUsersPayload: ActivityDataCreate[] = years.flatMap((year) => {
-                    const rows = allYearData[year]?.rows ?? [];
-
-                    return rows
-                        .filter((r) => toNumberOrNull(r.vkt) != null)
-                        .map((r) => ({
-                            project_id: projectId,
-                            project_stage_instance_id: stageInstanceId,
-                            project_option_id: optionId ?? null,
-                            metric_id: null,
-                            quantity: toNumberOrNull(r.vkt) ?? 0,
-                            unit_id: null,
-                            ui_table_key: usersSk,
-                            extra_fields: {
-                                modelled_year: year,
-                                vehicle_type: r.vehicleType,
-                                vkt: r.vkt,
-                                vht: r.vht || null,
-                                avg_speed: r.avgSpeed || null,
-                                last_edited: r.lastEdited,
-                                notes: r.notes || null,
-                            },
-                            ...(projectMitigationId ? { project_mitigation_id: projectMitigationId } : {}),
-                        }));
-                });
-
-                if (allParamsPayload.length > 0) {
-                    await ActivityDataService.bulkUpsert(
-                        stageInstanceId,
-                        paramsSk,
-                        allParamsPayload,
-                        projectMitigationId ?? undefined,
-                    );
-                }
-
-                if (allUsersPayload.length > 0) {
-                    await ActivityDataService.bulkUpsert(
-                        stageInstanceId,
-                        usersSk,
-                        allUsersPayload,
-                        projectMitigationId ?? undefined,
-                    );
-                }
-                await onTotalsUpdated?.();
-
-                setSaveState("saved");
-                setTimeout(() => setSaveState("idle"), 2000);
-            } catch (e) {
-                console.error("Failed to save large road users data:", e);
-                setSaveState("idle");
-            }
-        },
-        [
-            stageInstanceId,
-            projectId,
-            optionId,
-            readOnly,
-            globalParams,
-            emissionSummary,
-            getAllModelledYears,
-            scopeUiTableKey,
-            projectMitigationId,
-            onTotalsUpdated,
-        ]
-    );
-
-    const calculateLargeAusRoadSummary = useCallback(
-        async (
-            allYearData: Record<number, YearData>,
-            params: RoadParams
-        ): Promise<any | null> => {
-            const payload = buildLargeAusRoadPayload(allYearData, params);
-
-            if (!payload) return null;
-
-            try {
-                setEmissionLoading(true);
-
-                const summary =
-                    await EmissionCalculationsService.calculateLargeAusRoads(payload);
-
-                const normalizedSummary = normalizeCalculationSummary(summary);
-
-                setEmissionSummary(normalizedSummary);
-
-                return normalizedSummary;
-            } catch (e) {
-                console.error("Failed to calculate large road user emissions:", e);
-                return null;
-            } finally {
-                setEmissionLoading(false);
-            }
-        },
-        [buildLargeAusRoadPayload]
-    );
-
-    const handleSaveLargeRoadUsers = useCallback(async () => {
-        if (readOnly) return;
-
-        try {
-            const calculatedSummary = isNZ
-                ? await calculateLargeNzRoadSummary(yearData)
-                : await calculateLargeAusRoadSummary(yearData, globalParams);
-
-            await persistAll(
-                yearData,
-                globalParams,
-                calculatedSummary ?? emissionSummary
-            );
-        } catch (e) {
-            console.error("Failed to save large road users data:", e);
-        }
-    }, [
+    const handleSaveLargeRoadUsers = useLargeRoadUserSave({
         readOnly,
-        isNZ,
+        region: isNZ ? "NZ" : "AU",
         yearData,
-        globalParams,
-        emissionSummary,
-        calculateLargeNzRoadSummary,
-        calculateLargeAusRoadSummary,
+        roadParams: globalParams,
+        currentSummary: emissionSummary,
+        calculateSummary,
         persistAll,
-    ]);
-
-    const updateRow = (rowId: string, changes: Partial<LargeRoadRow>) => {
-        if (readOnly || displayedActiveYear === null) return;
-
-        setYearData((prev) => {
-            const yd =
-                prev[displayedActiveYear] ?? {
-                    ...emptyYearData(vehicleTypes),
-                    params: globalParams,
-                };
-
-            return {
-                ...prev,
-                [displayedActiveYear]: {
-                    ...yd,
-                    rows: yd.rows.map((row) =>
-                        row.id !== rowId
-                            ? row
-                            : computeDerived({
-                                ...row,
-                                ...changes,
-                            })
-                    ),
-                },
-            };
-        });
-    };
-
-    const updateParams = (changes: Partial<RoadParams>) => {
-        if (readOnly) return;
-
-        setGlobalParams((prevParams) => {
-            const nextParams: RoadParams = {
-                ...prevParams,
-                ...changes,
-            };
-
-            setYearData((prevYearData) => {
-                const nextYearData: Record<number, YearData> = {};
-
-                for (const [year, data] of Object.entries(prevYearData)) {
-                    nextYearData[Number(year)] = {
-                        ...data,
-                        params: nextParams,
-                    };
-                }
-
-                return nextYearData;
-            });
-
-            return nextParams;
-        });
-    };
-
-    useEffect(() => {
-        if (!yearMenuOpen) return;
-
-        const handler = (e: MouseEvent) => {
-            if (
-                yearMenuRef.current &&
-                !yearMenuRef.current.contains(e.target as Node)
-            ) {
-                setYearMenuOpen(false);
-            }
-        };
-
-        document.addEventListener("mousedown", handler);
-
-        return () => {
-            document.removeEventListener("mousedown", handler);
-        };
-    }, [yearMenuOpen]);
-
-    useEffect(() => {
-        if (!largeUsersYears.length) return;
-
-        setYearData((prev) => {
-            let changed = false;
-            const next = { ...prev };
-
-            for (const year of largeUsersYears) {
-                if (!next[year]) {
-                    next[year] = {
-                        ...emptyYearData(vehicleTypes),
-                        params: globalParams,
-                    };
-                    changed = true;
-                }
-            }
-
-            return changed ? next : prev;
-        });
-    }, [largeUsersYears, vehicleTypes, globalParams]);
+    });
 
     return (
         <div className="mx-12 mb-8 bg-white p-6 border border-neutral-90 rounded-[var(--radius-3)]">
             <div className="flex items-center justify-between mb-4">
                 <div className="text-2xl font-light text-text-dark flex items-center gap-1">
                     Road users
-                    {/* <span
-                        className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-700 text-white text-xs ml-1 cursor-help"
-                        title="Large project road user traffic data — enter VKT for each vehicle type per modelled year. Enter either VHT or Avg Speed; the other is computed automatically."
-                    >?</span> */}
                     <InfoTooltip
                         text="The user emissions attributable to each option for B8 are only the change in emissions relative to the Base Case. The Base Case is assigned 0 emissions for B8."
                         iconSize={20}
@@ -841,87 +299,15 @@ const LargeRoadUsersSubStage = ({
             {expanded && (
                 <>
                     <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                        {/* Left side: Modelled year dropdown + vertical menu */}
-                        <div className="flex flex-wrap items-center gap-3">
-                            <span className="text-sm text-text-base font-medium mr-12">
-                                Modelled year: 
-                            </span>
-
-                            {availableModelledYears.length > 0 ? (
-                                <SelectListbox
-                                    value={String(displayedActiveYear ?? "")}
-                                    options={availableModelledYears.map((year) => ({
-                                        label: String(year),
-                                        value: String(year),
-                                    }))}
-                                    onChange={(val: string) =>
-                                        onActiveYearChange?.(Number(val))
-                                    }
-                                    disabled={readOnly}
-                                    className="h-9 w-48"
-                                />
-                            ) : (
-                                <span className="text-sm text-text-faint italic">
-                                    No years
-                                </span>
-                            )}
-
-                            {!readOnly && (
-                                <div className="relative" ref={yearMenuRef}>
-                                    <button
-                                        type="button"
-                                        className="p-2 rounded hover:bg-neutral-200 cursor-pointer transition-colors"
-                                        onClick={() => setYearMenuOpen((open) => !open)}
-                                        aria-label="More modelled year options"
-                                    >
-                                        <span className="material-symbols-rounded">
-                                            more_vert
-                                        </span>
-                                    </button>
-
-                                    {yearMenuOpen && (
-                                        <div className="absolute left-0 mt-1 w-48 rounded-lg border border-neutral-200 bg-white shadow-lg z-30 py-1">
-                                            <button
-                                                type="button"
-                                                className="w-full text-left px-4 cursor-pointer py-2 text-sm hover:bg-neutral-50"
-                                                onClick={() => {
-                                                    setYearMenuOpen(false);
-                                                    onOpenAddYear?.();
-                                                }}
-                                            >
-                                                Add year
-                                            </button>
-
-                                            {availableModelledYears.length > 1 && (
-                                                <button
-                                                    type="button"
-                                                    className="w-full text-left px-4 py-2 cursor-pointer text-sm hover:bg-neutral-50"
-                                                    onClick={() => {
-                                                        setYearMenuOpen(false);
-                                                        onOpenCopyYear?.();
-                                                    }}
-                                                >
-                                                    Copy from…
-                                                </button>
-                                            )}
-
-                                            {displayedActiveYear !== null && (
-                                                <button
-                                                    type="button"
-                                                    className="w-full text-left px-4 py-2 text-sm cursor-pointer text-danger hover:bg-red-50"
-                                                    onClick={() => {
-                                                        setYearMenuOpen(false);
-                                                        onOpenDeleteYear?.();
-                                                    }}
-                                                >
-                                                    Delete year {displayedActiveYear}
-                                                </button>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
+                        <LargeRoadUsersYearSelector
+                            years={availableModelledYears}
+                            activeYear={displayedActiveYear}
+                            readOnly={readOnly}
+                            onYearChange={onActiveYearChange}
+                            onAddYear={onOpenAddYear}
+                            onCopyYear={onOpenCopyYear}
+                            onDeleteYear={onOpenDeleteYear}
+                        />
 
                         {/* Right side: Save button */}
                         {!readOnly && (
@@ -1052,7 +438,7 @@ const LargeRoadUsersSubStage = ({
                                                 <td className="px-4 py-2">
                                                     <NumericInput
                                                         value={row.vkt}
-                                                        onChange={(v: any) =>
+                                                        onChange={(v) =>
                                                             updateRow(row.id, {
                                                                 vkt:
                                                                     v != null
@@ -1070,7 +456,7 @@ const LargeRoadUsersSubStage = ({
                                                     <div className="relative">
                                                         <NumericInput
                                                             value={row.vht}
-                                                            onChange={(v: any) =>
+                                                            onChange={(v) =>
                                                                 updateRow(row.id, {
                                                                     vht:
                                                                         v != null
@@ -1105,7 +491,7 @@ const LargeRoadUsersSubStage = ({
                                                     <div className="relative">
                                                         <NumericInput
                                                             value={row.avgSpeed}
-                                                            onChange={(v: any) =>
+                                                            onChange={(v) =>
                                                                 updateRow(row.id, {
                                                                     avgSpeed:
                                                                         v != null

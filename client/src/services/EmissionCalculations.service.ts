@@ -95,7 +95,7 @@ private normalizeUserEmissionSummary(response: any): any {
         }
     }
 
-    async useB1G2Calculations(payload: any): Promise<any> {
+    async calculateB1G2Calculations(payload: any): Promise<any> {
         try {
             const response = await this.post(`/inuse-gases-calculations/calculate`, payload);
             return response.data;

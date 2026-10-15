@@ -1,15 +1,6 @@
-import { assetTableConfig } from "./assetConfig";
-import { componentTableConfig } from "./componentConfig";
-import { refurbishmentTableConfig } from "./refurbishmentTableConfig";
-import { componentReplacementConfig } from "./componentReplacementConfig";
-import { opEnergyTableConfig } from "./opEnergyTableConfig";
-import { constructionG2Config } from "./constructionG2Config";
-import { constructionG3Config } from "./constructionG3Config";
-import { electricityConfig } from "./electricityConfig";
-import { useB1G2Config } from "./useB1G2Config";
-import { useB1G3Config } from "./useB1G3Config";
-import { concreteRegSimplifiedConfig } from "./ConcreteRegSimplifiedConfig";
-import { concreteRegDetailedConfig } from "./concreteRegDetailedConfig";
+import type { StageCode, StageLabel } from "./dataEntryTypes";
+
+export type { ProjectClass, StageCode, StageLabel } from "./dataEntryTypes";
 
 export type UploadKey =
     | "asset"
@@ -30,6 +21,16 @@ export type UploadKey =
     | "concreteRegDetailed"
     | "recurringG3";
 
+const UPLOAD_KEYS: ReadonlySet<string> = new Set([
+    "asset", "component", "componentRepl", "refurbishment", "replDetailed",
+    "opEnergy", "opEnergyDetailed", "opEnergyElectricity", "constructionG2",
+    "constructionG3", "bcDetailedLevel", "electricity", "useB1G2", "useB1G3",
+    "concreteRegSimplified", "concreteRegDetailed", "recurringG3",
+]);
+
+export const isUploadKey = (value: string): value is UploadKey =>
+    UPLOAD_KEYS.has(value);
+
 export const ELECTRICITY_TABLE_KEYS: UploadKey[] = ["electricity", "opEnergyElectricity"];
 
 const MITIGATION_SUBST_SUFFIXES = [
@@ -42,19 +43,18 @@ export const electricityBaseTableKey = (tableKey: string): UploadKey | null => {
     for (const suffix of MITIGATION_SUBST_SUFFIXES) {
         if (tableKey.endsWith(suffix)) {
             const base = tableKey.slice(0, -suffix.length);
-            if (ELECTRICITY_TABLE_KEYS.includes(base as UploadKey)) {
-                return base as UploadKey;
+            if (isUploadKey(base) && ELECTRICITY_TABLE_KEYS.includes(base)) {
+                return base;
             }
         }
     }
-    if (ELECTRICITY_TABLE_KEYS.includes(tableKey as UploadKey)) {
-        return tableKey as UploadKey;
+    if (isUploadKey(tableKey) && ELECTRICITY_TABLE_KEYS.includes(tableKey)) {
+        return tableKey;
     }
     return null;
 };
 
 export const isElectricityTable = (tableKey: string): boolean =>
-    //ELECTRICITY_TABLE_KEYS.includes(tableKey as UploadKey);
     electricityBaseTableKey(tableKey) !== null;
 
 export const MITIGATION_SUBMISSION_PERIOD_KEYS: UploadKey[] = [
@@ -71,50 +71,7 @@ export const MITIGATION_SUBMISSION_PERIOD_KEYS: UploadKey[] = [
     "opEnergyDetailed",
 ];
 
-export const TABLE_CONFIGS: Record<UploadKey, any> = {
-    asset: (projectId: string) => assetTableConfig(projectId),
-    component: (projectId: string) => componentTableConfig(projectId),
-    componentRepl: (projectId: string) => componentReplacementConfig(projectId),
-    refurbishment: () => refurbishmentTableConfig(null),
-    replDetailed: (projectId: string) => useB1G3Config(projectId),
-    opEnergy: opEnergyTableConfig,
-    opEnergyDetailed: (projectId: string) => useB1G3Config(projectId, ["Fuels", "Water"]),
-    opEnergyElectricity: electricityConfig,
-    constructionG2: (projectId: string) => constructionG2Config(projectId),
-    constructionG3: (projectId: string) => constructionG3Config(projectId),
-    bcDetailedLevel: (projectId: string) => constructionG3Config(projectId),
-    electricity: electricityConfig,
-    useB1G2: (projectId: string) => useB1G2Config(null, projectId),
-    useB1G3: (projectId: string) => useB1G3Config(projectId),
-    concreteRegSimplified: concreteRegSimplifiedConfig,
-    concreteRegDetailed: concreteRegDetailedConfig,
-    recurringG3: (projectId: string) => constructionG3Config(projectId),
-};
-
-export const resolveTableConfig = (tableKey: UploadKey, projectId: string): any => {
-    //const cfg = TABLE_CONFIGS[tableKey];
-    const baseKey = electricityBaseTableKey(tableKey) ?? tableKey;
-    const cfg = TABLE_CONFIGS[baseKey as UploadKey];
-    return typeof cfg === "function" ? cfg(projectId) : cfg;
-};
-
-export const normalizeRules = (rules: any[]) =>
-    rules.map((r: any) =>
-        r?.lookup?.fetch
-            ? {
-                  ...r,
-                  lookup: {
-                      ...r.lookup,
-                      fetch: async (ctx?: { row?: any }) => {
-                          const res = await r.lookup.fetch(ctx);
-                          return Array.isArray(res) ? res : [];
-                      },
-                  },
-              }
-            : r
-    );
-
-    export const COMPLETENESS_LABEL = "Completeness";
+export const COMPLETENESS_LABEL = "Completeness";
 
    
 const COMPLETENESS_STAGES = ["Business case", "Design", "Construction"] as const;
@@ -139,14 +96,14 @@ export const shouldShowMitigationsTab = (
 };
 
 
-export const STAGE_ENUM_TO_LABEL: Record<string, string> = {
+export const STAGE_ENUM_TO_LABEL: Record<StageCode, StageLabel> = {
     BUSINESS_CASE: "Business case",
     DESIGN: "Design",
     CONSTRUCTION: "Construction",
     RECURRING: "Recurring",
 };
 
-export const STAGE_LABEL_TO_ENUM: Record<string, string> = {
+export const STAGE_LABEL_TO_ENUM: Record<StageLabel, StageCode> = {
     "Business case": "BUSINESS_CASE",
     Design: "DESIGN",
     Construction: "CONSTRUCTION",

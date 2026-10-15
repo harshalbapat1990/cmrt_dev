@@ -1,10 +1,7 @@
-import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { useCallback, useState, useMemo } from "react";
 import { formatDisplayNumber } from "@/utils/utils";
 import { NumericInput } from "@/components/common/NumericInput";
-import ActivityDataService from "@/services/ActivityData.service";
-import type { ActivityDataCreate } from "@/services/ActivityData.service";
 import LargeRoadUsersSubStage from "./LargeRoadUsersSubStage";
-import EmissionCalculationsService from "@/services/EmissionCalculations.service";
 import { emptySummary, UserEmissionsSummary } from "./UserEmissionSummary";
 import {
     mitigationUiKey,
@@ -12,26 +9,16 @@ import {
 } from "./mitigationConstants";
 import InfoTooltip from "@/components/common/InfoTooltip";
 import {SelectListbox} from "@/components/common/Select";
-interface RoadUserRow {
-    id: string;
-    vehicleType: string;
-    vkt: string;
-    vht: string;
-    avgSpeed: string;
-    lastEdited: "vht" | "avgSpeed" | null;
-    notes: string;
-}
-
-interface RailUserRow {
-    id: string;
-    vehicleType: string;
-    terrain: string;
-    freight: string;
-    dieselEmissionsIntensity: string;
-    dieselEmissions: string;
-    dieselEmissionsTotalRefPeriod: string;
-    notes: string;
-}
+import { isNewZealandJurisdiction, type UserCalculationSummary } from "./roadUserCalculations";
+import type { RoadUserRow } from "./roadUserTypes";
+import { emptyRoadUserRows, type RailUserRow } from "./userDataMapping";
+import { buildRailActivityPayload, buildRoadActivityPayload } from "./userDataPayloads";
+import { useUsersStageLoader } from "./hooks/useUsersStageLoader";
+import { useUserRowsPersistence } from "./hooks/useUserRowsPersistence";
+import { useRailUserCalculations } from "./hooks/useRailUserCalculations";
+import { useSmallRoadUserCalculations } from "./hooks/useSmallRoadUserCalculations";
+import { useUsersRowEditing } from "./hooks/useUsersRowEditing";
+import { useSmallRoadUserSave } from "./hooks/useSmallRoadUserSave";
 
 const VEHICLE_TYPES = [
     "Light vehicle",
@@ -96,79 +83,6 @@ const INITIAL_RAIL_USERS: RailUserRow[] = [
     },
 ];
 
-function apiToRailRow(apiRow: any, defaultRow: RailUserRow): RailUserRow {
-    const ef = apiRow.extra_fields ?? {};
-    return {
-        id: apiRow.id,
-        vehicleType: defaultRow.vehicleType,
-        terrain: ef.terrain ?? defaultRow.terrain,
-        freight: ef.freight != null ? String(ef.freight) : "",
-        dieselEmissionsIntensity:
-            ef.dieselEmissionsIntensity ??
-            ef.diesel_emissions_intensity ??
-            ef.emissions_intensity_tco2e_kl ??
-            "",
-        dieselEmissions:
-            ef.dieselEmissions ??
-            ef.diesel_emissions ??
-            ef.emissions_annual_tco2e ??
-            "",
-        dieselEmissionsTotalRefPeriod:
-            ef.dieselEmissionsTotalRefPeriod ??
-            ef.diesel_emissions_total_ref_period ??
-            ef.emissions_total_ref_period_tco2e ??
-            "",
-        notes: ef.notes ?? "",
-    };
-}
-
-
-function computeDerived(row: RoadUserRow): RoadUserRow {
-    const vktNum = parseFloat(row.vkt);
-    if (isNaN(vktNum) || vktNum <= 0) return row;
-
-    if (row.lastEdited === "vht") {
-        const vhtNum = parseFloat(row.vht);
-        return {
-            ...row,
-            avgSpeed: (!isNaN(vhtNum) && vhtNum > 0) ? (vktNum / vhtNum).toFixed(2) : "",
-        };
-    }
-    if (row.lastEdited === "avgSpeed") {
-        const speedNum = parseFloat(row.avgSpeed);
-        return {
-            ...row,
-            vht: (!isNaN(speedNum) && speedNum > 0) ? (vktNum / speedNum).toFixed(2) : "",
-        };
-    }
-    return row;
-}
-
-function emptyRows(vehicleTypes: string[]): RoadUserRow[] {
-    return vehicleTypes.map((vt, i) => ({
-        id: `road-${i + 1}`,
-        vehicleType: vt,
-        vkt: "",
-        vht: "",
-        avgSpeed: "",
-        lastEdited: null,
-        notes: "",
-    }));
-}
-
-function apiToRow(apiRow: any, vehicleType: string): RoadUserRow {
-    const ef = apiRow.extra_fields ?? {};
-    return {
-        id: apiRow.id,
-        vehicleType,
-        vkt: ef.vkt != null ? String(ef.vkt) : "",
-        vht: ef.vht != null ? String(ef.vht) : "",
-        avgSpeed: ef.avg_speed != null ? String(ef.avg_speed) : "",
-        lastEdited: ef.last_edited ?? null,
-        notes: ef.notes ?? "",
-    };
-}
-
 interface Props {
     stageInstanceId: string;
     projectId: string;
@@ -190,112 +104,6 @@ interface Props {
     onTotalsUpdated?: () => void | Promise<void>;
 }
 
-const toNumberOrNull = (value: any): number | null => {
-    if (value === "" || value == null) return null;
-    const n = Number(value);
-    return Number.isFinite(n) ? n : null;
-};
-
-const getSpeed = (row: RoadUserRow): number | null => {
-    const speed = toNumberOrNull(row.avgSpeed);
-    if (speed != null) return speed;
-    const vkt = toNumberOrNull(row.vkt);
-    const vht = toNumberOrNull(row.vht);
-
-    if (vkt != null && vht != null && vht > 0) {
-        return vkt / vht;
-    }
-    return null;
-};
-
-const isRoadRowComplete = (row: RoadUserRow) => {
-    return toNumberOrNull(row.vkt) != null && getSpeed(row) != null;
-};
-
-const isRailRowComplete = (row: RailUserRow) => {
-    return (
-        row.vehicleType !== "" &&
-        row.terrain !== "" &&
-        toNumberOrNull(row.freight) != null
-    );
-};
-
-const normalizeCalculationSummary = (summary: any) => ({
-    absoluteEmissions:
-        summary?.interim_total_tco2e ??
-        summary?.absoluteEmissions ??
-        summary?.absolute_emissions ??
-        summary?.absolute_emissions_tco2e ??
-        0,
-
-    baseCaseAbsoluteEmissions:
-        summary?.base_case_emissions_tco2e ??
-        summary?.baseCaseAbsoluteEmissions ??
-        summary?.base_case_absolute_emissions ??
-        summary?.base_case_absolute_emissions_tco2e ??
-        null,
-
-    relativeUserEmissions:
-        summary?.final_user_emissions_tco2e ??
-        summary?.relativeUserEmissions ??
-        summary?.relative_user_emissions ??
-        summary?.relative_user_emissions_tco2e ??
-        null,
-});
-
-const isNewZealandJurisdiction = (jurisdiction?: string | null): boolean => {
-    const value = (jurisdiction ?? "").trim().toLowerCase();
-    return (
-        value === "nz" ||
-        value === "nzl" ||
-        value.includes("new zealand")
-    );
-};
-
-
-const normalizeVehicleType = (vehicleType: string) =>vehicleType.trim().toLowerCase();
-
-
-const roadKeyMap: Record<string, { vkt: string; speed: string }> = {
-    "light vehicle": {
-        vkt: "light_vehicle_vkt",
-        speed: "light_vehicle_speed_kmh",
-    },
-    "medium vehicle": {
-        vkt: "medium_vehicle_vkt",
-        speed: "medium_vehicle_speed_kmh",
-    },
-    "heavy vehicle": {
-        vkt: "heavy_vehicle_vkt",
-        speed: "heavy_vehicle_speed_kmh",
-    },
-    "super heavy vehicle": {
-        vkt: "super_heavy_vehicle_vkt",
-        speed: "super_heavy_vehicle_speed_kmh",
-    },
-    "general fleet": {
-        vkt: "general_fleet_vkt",
-        speed: "general_fleet_speed_kmh",
-    },
-    "bus": {
-        vkt: "bus_vkt",
-        speed: "bus_speed_kmh",
-    },
-};
-const RAIL_CALC_DEBOUNCE_MS = 800;
-
-// type RailPersistMode = "small" | "large";
-
-const mapRailCalcResponseToRow = (row: RailUserRow, res: any): RailUserRow => {
-        return {
-            ...row,
-            dieselEmissionsTotalRefPeriod:
-                res?.emissions_total_ref_period_tco2e != null
-                    ? String(res.emissions_total_ref_period_tco2e)
-                    : "",
-        };
-};
-
 const UsersSubStage = ({ stageInstanceId, projectId, optionId, refreshKey, readOnly = false, projectClass, projectTypeName, jurisdiction, opsStartYear, activeLargeUsersYear,
     largeUsersYears = [], onActiveLargeUsersYearChange, onOpenAddLargeYear, onOpenCopyLargeYear, onOpenDeleteLargeYear,
     projectMitigationId = null,
@@ -303,8 +111,6 @@ const UsersSubStage = ({ stageInstanceId, projectId, optionId, refreshKey, readO
      onTotalsUpdated,
 }: Props) => {
     const isNZ = isNewZealandJurisdiction(jurisdiction);
-    // const isLargeProject = projectClass === "LARGE";
-    // const isLargeAU = isLargeProject && !isNZ;
 
     const scopeUiTableKey = useCallback(
         (base: string) =>
@@ -324,8 +130,6 @@ const UsersSubStage = ({ stageInstanceId, projectId, optionId, refreshKey, readO
 
     const showRail = projectHasRail;
 
-    // const shouldUseLargeRailYears = isLargeAU && showRail && activeLargeUsersYear != null;
-    // const shouldUseLargeRailYears = false;
 
    const roadVehicleTypes = useMemo(() => {
     return isNZ ? NZ_ROAD_VEHICLE_TYPES : VEHICLE_TYPES;
@@ -335,22 +139,24 @@ const UsersSubStage = ({ stageInstanceId, projectId, optionId, refreshKey, readO
     const [roadExpanded, setRoadExpanded] = useState(true);
     const [railExpanded, setRailExpanded] = useState(true);
     const [railRows, setRailRows] = useState<RailUserRow[]>(INITIAL_RAIL_USERS);
-    const [roadRows, setRoadRows] = useState<RoadUserRow[]>(() => emptyRows(roadVehicleTypes));
-    const [saveState, setSaveState] = useState<"idle" | "saving" | "saved">("idle");
-    const [railSaveState, setRailSaveState] = useState<"idle" | "saving" | "saved">("idle");
-    const railSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const [roadRows, setRoadRows] = useState<RoadUserRow[]>(() => emptyRoadUserRows(roadVehicleTypes));
 
-    // const [largeRailYearData, setLargeRailYearData] = useState<Record<number, RailUserRow[]>>({});
-    // const [largeRailSaveState, setLargeRailSaveState] = useState<"idle" | "saving" | "saved">("idle");
-    // const largeRailSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const [roadEmissionSummary, setRoadEmissionSummary] = useState<any>(emptySummary);
-    const [roadEmissionLoading, setRoadEmissionLoading] = useState(false);
-    const railCalcTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-    const railCalcRequestIds = useRef<Record<string, number>>({});
+    const [roadEmissionSummary, setRoadEmissionSummary] = useState<UserCalculationSummary>(emptySummary);
+    const {
+        loading: roadEmissionLoading,
+        buildPayload: buildSmallRoadPayload,
+        calculateSummary: calculateRoadSummary,
+    } = useSmallRoadUserCalculations({
+        projectId,
+        stageInstanceId,
+        projectOptionId: optionId,
+        region: isNZ ? "NZ" : "AU",
+        showRoad,
+        isLargeProject: projectClass === "LARGE",
+        setSummary: setRoadEmissionSummary,
+    });
 
     const displayRailRows = railRows;
-
-    const displayRailSaveState = railSaveState;
 
     const nzGeneralFleetHasData = isNZ && !!(roadRows.find(r => r.vehicleType === "General Fleet")?.vkt);
     const nzOthersHaveData = isNZ && roadRows.some(r => r.vehicleType !== "General Fleet" && !!r.vkt);
@@ -361,497 +167,87 @@ const buildRailPayload = useCallback(
         rows: RailUserRow[],
         tableKey: "railUsers",
         modelledYear?: number
-    ): ActivityDataCreate[] => {
-        const sk = scopeUiTableKey(tableKey);
-        return rows.map((r) => ({
-            project_id: projectId,
-            project_stage_instance_id: stageInstanceId,
-            project_option_id: optionId ?? null,
-            metric_id: null,
-            quantity:
-                r.freight !== "" && !isNaN(parseFloat(r.freight))
-                    ? parseFloat(r.freight)
-                    : 0,
-            unit_id: null,
-            ui_table_key: sk,
-            extra_fields: {
-                ...(modelledYear != null ? { modelled_year: modelledYear } : {}),
-                vehicle_type: r.vehicleType,
-                terrain: r.terrain,
-                freight: r.freight || null,
-                notes: r.notes || null,
-                emissions_intensity_tco2e_kl: r.dieselEmissionsIntensity || null,
-                emissions_annual_tco2e: r.dieselEmissions || null,
-                emissions_total_ref_period_tco2e:
-                    r.dieselEmissionsTotalRefPeriod || null,
-            },
-            ...(projectMitigationId ? { project_mitigation_id: projectMitigationId } : {}),
-        }));
+    ) => {
+        return buildRailActivityPayload(rows, {
+            projectId,
+            stageInstanceId,
+            projectOptionId: optionId,
+            projectMitigationId,
+        }, scopeUiTableKey(tableKey), modelledYear);
     },
     [projectId, stageInstanceId, optionId, scopeUiTableKey, projectMitigationId]
 );
 
-
-const persistRailUsers = useCallback(
-    async (rows: RailUserRow[]) => {
-        if (readOnly) return;
-
-        setRailSaveState("saving");
-
-        try {
-            const payload = buildRailPayload(rows, "railUsers");
-
-            if (payload.length > 0) {
-                const sk = scopeUiTableKey("railUsers");
-                const saved = await ActivityDataService.bulkUpsert(
-                    stageInstanceId,
-                    sk,
-                    payload,
-                    projectMitigationId ?? undefined,
-                );
-
-                setRailRows(prev =>
-                    prev.map(r => {
-                        const match = saved.find(
-                            (s: any) => s.extra_fields?.vehicle_type === r.vehicleType
-                        );
-                        return match ? { ...r, id: match.id } : r;
-                    })
-                );
-                await onTotalsUpdated?.();
-            }
-
-            setRailSaveState("saved");
-            setTimeout(() => setRailSaveState("idle"), 2000);
-        } catch (e) {
-            console.error("Failed to save rail users data:", e);
-            setRailSaveState("idle");
-        }
-    },
-    [readOnly, stageInstanceId, buildRailPayload, scopeUiTableKey, projectMitigationId, onTotalsUpdated]
-);
-
-    const calculateAndPersistRailRow = useCallback(
-        async (
-            row: RailUserRow,
-            allRows: RailUserRow[],
-            opts?: { largeYear?: number | null }
-        ) => {
-            if (!isRailRowComplete(row)) return;
-
-            const requestKey = opts?.largeYear != null
-                ? `${opts.largeYear}-${row.vehicleType}`
-                : row.vehicleType;
-
-            railCalcRequestIds.current[requestKey] =
-                (railCalcRequestIds.current[requestKey] ?? 0) + 1;
-            const requestId = railCalcRequestIds.current[requestKey];
-            try {
-                const response = await EmissionCalculationsService.calculateRail({
-                    project_id: projectId,
-                    rail_type: row.vehicleType,
-                    terrain: row.terrain,
-                    freight_quantity_gtk_per_year: Number(row.freight),
-                });
-
-                if (railCalcRequestIds.current[requestKey] !== requestId) return;
-                const calculatedRow = mapRailCalcResponseToRow(row, response);
-                const updatedRows = allRows.map((r) =>
-                    r.id === row.id ? calculatedRow : r
-                );
-
-                    setRailRows(updatedRows);
-                    // Activity-data save AFTER calculation response
-                    await persistRailUsers(updatedRows);
-            } catch (e) {
-                console.error("Failed to calculate rail emissions:", e);
-            }
-        },
-        [projectId, persistRailUsers]
-    );
-
-    const scheduleRailRowCalculation = useCallback(
-        (
-            row: RailUserRow,
-            allRows: RailUserRow[],
-            opts?: { largeYear?: number | null }
-        ) => {
-            const requestKey = opts?.largeYear != null
-                ? `${opts.largeYear}-${row.vehicleType}`
-                : row.vehicleType;
-
-            if (railCalcTimers.current[requestKey]) {
-                clearTimeout(railCalcTimers.current[requestKey]);
-            }
-            railCalcTimers.current[requestKey] = setTimeout(() => {
-                void calculateAndPersistRailRow(row, allRows);
-            }, RAIL_CALC_DEBOUNCE_MS);
-        },
-        [calculateAndPersistRailRow]
-    );
-
-
-    useEffect(() => {
-        if (!stageInstanceId) return;
-
-        let cancelled = false;
-
-        (async () => {
-            try {
-                const rows = await ActivityDataService.fetchRows(
-                    stageInstanceId,
-                    scopeUiTableKey("roadUsers"),
-                    optionId ?? null,
-                    undefined,
-                    projectMitigationId ?? undefined,
-                );
-
-                if (cancelled) return;
-
-                const firstExtra = rows.find((r: any) => r.extra_fields)?.extra_fields;
-                setRoadEmissionSummary(normalizeCalculationSummary(firstExtra));
-                const nextRows = roadVehicleTypes.map((vt, i) => {
-                    const found = rows.find(
-                        (r: any) => r.extra_fields?.vehicle_type === vt
-                    );
-
-                    return found
-                        ? apiToRow(found, vt)
-                        : {
-                            id: `road-${i + 1}`,
-                            vehicleType: vt,
-                            vkt: "",
-                            vht: "",
-                            avgSpeed: "",
-                            lastEdited: null,
-                            notes: "",
-                        };
-                });
-
-                setRoadRows(nextRows);
-
-                // Important:
-                // Do not calculate on page refresh.
-            } catch (e) {
-                console.error("Failed to load road users data:", e);
-            }
-        })();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [stageInstanceId, optionId, refreshKey, roadVehicleTypes, scopeUiTableKey, projectMitigationId]);
-
-    useEffect(() => {
-        if (!stageInstanceId) return;
-        let cancelled = false;
-        (async () => {
-            try {
-                const rows = await ActivityDataService.fetchRows(
-                    stageInstanceId,
-                    scopeUiTableKey("railUsers"),
-                    optionId ?? null,
-                    undefined,
-                    projectMitigationId ?? undefined,
-                );
-                if (cancelled) return;
-                const nextRows = INITIAL_RAIL_USERS.map((defaultRow) => {
-                    const found = rows.find(
-                        (r: any) =>
-                            r.extra_fields?.vehicle_type === defaultRow.vehicleType
-                    );
-                    return found ? apiToRailRow(found, defaultRow) : defaultRow;
-                });
-                setRailRows(nextRows);
-            } catch (e) {
-                console.error("Failed to load rail users data:", e);
-            }
-        })();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [stageInstanceId, optionId, refreshKey, scopeUiTableKey, projectMitigationId]);
-
-
-    useEffect(() => {
-        return () => {
-            Object.values(railCalcTimers.current).forEach(clearTimeout);
-
-            if (railSaveTimer.current) {
-                clearTimeout(railSaveTimer.current);
-            }
-        };
-    }, []);
-
-
-    const buildSmallRoadPayload = useCallback(
-        (rows: RoadUserRow[]) => {
-            const completedRows = rows.filter(isRoadRowComplete);
-
-            if (!completedRows.length) return null;
-
-            const payload: Record<string, any> = {
-                project_id: projectId,
-                project_option_id: optionId,
-                project_stage_instance_id: stageInstanceId,
-            };
-
-            for (const row of completedRows) {
-                const map = roadKeyMap[normalizeVehicleType(row.vehicleType)];
-                if (!map) continue;
-
-                const vkt = toNumberOrNull(row.vkt);
-                const speed = getSpeed(row);
-
-                if (vkt == null || speed == null) continue;
-
-                payload[map.vkt] = vkt;
-                payload[map.speed] = speed;
-            }
-
-            return payload;
-        },
-        [
-            projectId,
-            optionId,
-            stageInstanceId,
-        ]
-    );
-
-
-
-    const calculateRoadSummary = useCallback(
-        async (rows: RoadUserRow[]): Promise<any | null> => {
-            if (!showRoad || projectClass === "LARGE") return null;
-
-            const payload = buildSmallRoadPayload(rows);
-
-            if (!payload) {
-                return null;
-            }
-
-            try {
-                setRoadEmissionLoading(true);
-
-                const summary = isNZ
-                    ? await EmissionCalculationsService.calculateNzRoads(payload)
-                    : await EmissionCalculationsService.calculateAusRoads(payload);
-
-                const normalizedSummary = normalizeCalculationSummary(summary);
-
-                setRoadEmissionSummary(normalizedSummary);
-
-                return normalizedSummary;
-            } catch (e) {
-                console.error("Failed to calculate road user emissions:", e);
-                return null;
-            } finally {
-                setRoadEmissionLoading(false);
-            }
-        },
-        [
-            showRoad,
-            projectClass,
-            isNZ,
-            buildSmallRoadPayload,
-        ]
-    );
-
-    const persistRows = useCallback(
-        async (
-            rows: RoadUserRow[],
-            summary: any = roadEmissionSummary
-        ) => {
-            if (readOnly) return;
-
-            const savable = rows.filter(
-                (row) => row.vkt !== "" && !isNaN(parseFloat(row.vkt))
-            );
-
-            if (!savable.length) return;
-
-            setSaveState("saving");
-
-            try {
-                const sk = scopeUiTableKey("roadUsers");
-                const payload: ActivityDataCreate[] = savable.map((row) => ({
-                    project_id: projectId,
-                    project_stage_instance_id: stageInstanceId,
-                    project_option_id: optionId ?? null,
-                    metric_id: null,
-                    quantity: parseFloat(row.vkt),
-                    unit_id: null,
-                    ui_table_key: sk,
-                    extra_fields: {
-                        vehicle_type: row.vehicleType,
-                        vkt: row.vkt,
-                        vht: row.vht || null,
-                        avg_speed: row.avgSpeed || null,
-                        last_edited: row.lastEdited,
-                        notes: row.notes || null,
-
-                        absoluteEmissions: summary?.absoluteEmissions ?? null,
-                        baseCaseAbsoluteEmissions: summary?.baseCaseAbsoluteEmissions ?? null,
-                        relativeUserEmissions: summary?.relativeUserEmissions ?? null,
-
-                        absolute_emissions: summary?.absoluteEmissions ?? null,
-                        base_case_absolute_emissions: summary?.baseCaseAbsoluteEmissions ?? null,
-                        relative_user_emissions: summary?.relativeUserEmissions ?? null,
-                    },
-                    ...(projectMitigationId ? { project_mitigation_id: projectMitigationId } : {}),
-                }));
-
-                const saved = await ActivityDataService.bulkUpsert(
-                    stageInstanceId,
-                    sk,
-                    payload,
-                    projectMitigationId ?? undefined,
-                );
-
-                setRoadRows((prev) =>
-                    prev.map((row) => {
-                        const match = saved.find(
-                            (s: any) =>
-                                s.extra_fields?.vehicle_type === row.vehicleType
-                        );
-
-                        return match ? { ...row, id: match.id } : row;
-                    })
-                );
-                await onTotalsUpdated?.();
-
-                setSaveState("saved");
-                setTimeout(() => setSaveState("idle"), 2000);
-            } catch (e) {
-                console.error("Failed to save road users data:", e);
-                setSaveState("idle");
-            }
-        },
-        [
-            stageInstanceId,
-            projectId,
-            optionId,
-            readOnly,
-            roadEmissionSummary,
-            scopeUiTableKey,
-            projectMitigationId,
-            onTotalsUpdated,
-        ]
-    );
-
-    const updateRow = (id: string, changes: Partial<RoadUserRow>) => {
-        if (readOnly) return;
-
-        setRoadRows((prev) =>
-            prev.map((row) =>
-                row.id !== id
-                    ? row
-                    : computeDerived({
-                        ...row,
-                        ...changes,
-                    })
-            )
-        );
-    };
-
-    const handleSaveRoadUsers = useCallback(async () => {
-        if (readOnly) return;
-
-        try {
-            const payload = buildSmallRoadPayload(roadRows);
-
-            if (payload) {
-                const calculatedSummary = await calculateRoadSummary(roadRows);
-
-                if (!calculatedSummary) {
-                    return;
-                }
-
-                await persistRows(roadRows, calculatedSummary);
-                return;
-            }
-
-            await persistRows(roadRows, roadEmissionSummary);
-        } catch (e) {
-            console.error("Failed to save road users data:", e);
-        }
-    }, [
+const { saveState: railSaveState, persistRows: persistRailUsers } = useUserRowsPersistence<RailUserRow>({
+    readOnly,
+    stageInstanceId,
+    tableKey: scopeUiTableKey("railUsers"),
+    projectMitigationId,
+    setRows: setRailRows,
+    buildPayload: (rows) => buildRailPayload(rows, "railUsers"),
+    onTotalsUpdated,
+    errorLabel: "rail users data",
+});
+
+const displayRailSaveState = railSaveState;
+
+    const {
+        scheduleCalculation: scheduleRailRowCalculation,
+        scheduleSave: scheduleRailSave,
+    } = useRailUserCalculations({
+        projectId,
+        setRows: setRailRows,
+        persistRows: persistRailUsers,
+    });
+
+    useUsersStageLoader({
+        stageInstanceId,
+        optionId,
+        refreshKey,
+        projectMitigationId,
+        scopeUiTableKey,
+        roadVehicleTypes,
+        initialRailRows: INITIAL_RAIL_USERS,
+        setRoadRows,
+        setRailRows,
+        setRoadSummary: setRoadEmissionSummary,
+    });
+
+
+    const { saveState, persistRows } = useUserRowsPersistence<RoadUserRow>({
         readOnly,
-        roadRows,
-        roadEmissionSummary,
-        buildSmallRoadPayload,
-        calculateRoadSummary,
+        stageInstanceId,
+        tableKey: scopeUiTableKey("roadUsers"),
+        projectMitigationId,
+        setRows: setRoadRows,
+        buildPayload: (rows, summary) => buildRoadActivityPayload(rows, {
+            projectId,
+            stageInstanceId,
+            projectOptionId: optionId,
+            projectMitigationId,
+        }, scopeUiTableKey("roadUsers"), summary ?? roadEmissionSummary),
+        onTotalsUpdated,
+        errorLabel: "road users data",
+    });
+
+    const { updateRoadRow: updateRow, updateRailRow } = useUsersRowEditing({
+        readOnly,
+        setRoadRows,
+        setRailRows,
+        scheduleRailCalculation: scheduleRailRowCalculation,
+        scheduleRailSave,
+    });
+
+    const handleSaveRoadUsers = useSmallRoadUserSave({
+        readOnly,
+        rows: roadRows,
+        currentSummary: roadEmissionSummary,
+        buildPayload: buildSmallRoadPayload,
+        calculateSummary: calculateRoadSummary,
         persistRows,
-    ]);
+    });
 
     
-
-   const scheduleRailSave = useCallback(
-    (rows: RailUserRow[]) => {
-        if (readOnly) return;
-
-        if (railSaveTimer.current) {
-            clearTimeout(railSaveTimer.current);
-        }
-
-        railSaveTimer.current = setTimeout(
-            () => void persistRailUsers(rows),
-            800
-        );
-    },
-    [persistRailUsers, readOnly]
-);
-
-
-
-    const updateRailRow = (id: string, changes: Partial<RailUserRow>) => {
-        if (readOnly) return;
-
-        setRailRows((prev) => {
-            const isTerrainChange =
-                Object.prototype.hasOwnProperty.call(changes, "terrain");
-
-            const isFreightChange =
-                Object.prototype.hasOwnProperty.call(changes, "freight");
-
-            const isCalcFieldChange = isTerrainChange || isFreightChange;
-
-            const updated = prev.map((r) => {
-                if (r.id !== id) return r;
-
-                return {
-                    ...r,
-                    ...changes,
-                    ...(isCalcFieldChange
-                        ? {
-                            dieselEmissionsIntensity: "",
-                            dieselEmissions: "",
-                            dieselEmissionsTotalRefPeriod: "",
-                        }
-                        : {}),
-                };
-            });
-
-            const updatedRow = updated.find((r) => r.id === id);
-            if (!updatedRow) return updated;
-
-            /**
-             * Debounced calculation:
-             * - freight typing triggers calculation only after user stops typing
-             * - terrain change also recalculates
-             * - notes only saves activity data
-             */
-            if (isCalcFieldChange) {
-                scheduleRailRowCalculation(updatedRow, updated);
-            } else {
-                scheduleRailSave(updated);
-            }
-
-            return updated;
-        });
-    };
-
 
     return (
         <>
@@ -880,10 +276,6 @@ const persistRailUsers = useCallback(
                     <div className="flex items-center justify-between mb-4">
                         <div className="text-2xl font-light text-text-dark flex items-center gap-1">
                             Road users
-                            {/* <span
-                                className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-700 text-white text-xs ml-1 cursor-help"
-                                title="Road user traffic data — VKT is required. Enter either VHT or Avg Speed; the other is computed automatically (VKT = Speed × VHT)."
-                            >?</span> */}
                                 <InfoTooltip
                                     text="The user emissions attributable to each option for B8 are only the change in emissions relative to the Base Case. The Base Case is assigned 0 emissions for B8."
                                     iconSize={20}
@@ -961,7 +353,7 @@ const persistRailUsers = useCallback(
                                                     <td className="px-4 py-2">
                                                         <NumericInput
                                                             value={row.vkt}
-                                                            onChange={(v: any) => updateRow(row.id, { vkt: v != null ? String(v) : "" })}
+                                                            onChange={(v) => updateRow(row.id, { vkt: v != null ? String(v) : "" })}
                                                             onCommit={() => { }}
                                                             allowDecimal
                                                             disabled={isDisabled}
@@ -972,7 +364,7 @@ const persistRailUsers = useCallback(
                                                         <div className="relative">
                                                             <NumericInput
                                                                 value={row.vht}
-                                                                onChange={(v: any) =>
+                                                                onChange={(v) =>
                                                                     updateRow(row.id, { vht: v != null ? String(v) : "", lastEdited: "vht" })
                                                                 }
                                                                 onCommit={() => { }}
@@ -993,7 +385,7 @@ const persistRailUsers = useCallback(
                                                         <div className="relative">
                                                             <NumericInput
                                                                 value={row.avgSpeed}
-                                                                onChange={(v: any) =>
+                                                                onChange={(v) =>
                                                                     updateRow(row.id, { avgSpeed: v != null ? String(v) : "", lastEdited: "avgSpeed" })
                                                                 }
                                                                 onCommit={() => { }}
@@ -1053,10 +445,6 @@ const persistRailUsers = useCallback(
                 <div className="flex items-center justify-between mb-4">
                     <div className="text-2xl font-light text-text-dark flex items-center gap-1">
                         Rail users
-                        {/* <span
-                            className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-neutral-700 text-white text-xs ml-1 cursor-help"
-                            title="Rail freight data for this project"
-                        >?</span> */}
                         <InfoTooltip
                             text="The user emissions attributable to each option for B8 are only the change in emissions relative to the Base Case."
                             iconSize={20}
@@ -1120,7 +508,7 @@ const persistRailUsers = useCallback(
                                             <td className="px-4 py-2 text-right">
                                                 <NumericInput
                                                     value={row.freight}
-                                                    onChange={(v: any) =>
+                                                    onChange={(v) =>
                                                         updateRailRow(
                                                             row.id,
                                                             {

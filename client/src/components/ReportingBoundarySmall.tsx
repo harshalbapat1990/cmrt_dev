@@ -571,8 +571,8 @@ const RBOperationsPanel: React.FC<RBOperationsPanelProps> = ({
             id: crypto.randomUUID(),
             origin: "uploaded",
             stageOrActivity: "Operations",
-            category: r.group,          // Group → category
-            subCategory: r.item,        // Item → subCategory
+            category: String(r.group ?? ""), // Group → category
+            subCategory: String(r.item ?? ""), // Item → subCategory
             source: "",
           }));
 
@@ -758,8 +758,8 @@ const RBMaintenancePanel: React.FC<RBMaintenancePanelProps> = ({
             id: crypto.randomUUID(),
             origin: "uploaded",
             stageOrActivity: "Maintenance",
-            category: r.activityType,   // Activity type → category
-            subCategory: r.item,        // Item → subCategory
+            category: String(r.activityType ?? ""), // Activity type → category
+            subCategory: String(r.item ?? ""), // Item → subCategory
             source: "",
           }));
 

@@ -1,20 +1,23 @@
 import LookupsService, { type UnitOption } from "@/services/Lookups.service";
 import EmissionCalculationsService from "@/services/EmissionCalculations.service";
-import { type UploadKey } from "./DataEntry";
+import type { UploadKey } from "./stageConstants";
+import type { DataEntryRow } from "./dataEntryTypes";
+import type { CalcCtx } from "./useEmissionsCalc";
+import { asTableConfigRecord, mapTableLookupOptions, pickTableLabel } from "./tableConfigUtils";
 
 const GRADE34_IDS = [3, 4];
 
-const mapToOptions = (list: any[], labelField = "name", valueField = "id") =>
-  (list ?? []).map((x) => ({ label: x[labelField], value: x[valueField] }));
-
-const pickLabel = (v: any) => {
-  if (v == null) return "";
-  if (typeof v === "string" || typeof v === "number") return String(v);
-  return v.label ?? v.name ?? v.value ?? "";
+const filterAllowedCategories = (items: unknown[], allowedNames?: string[]) => {
+  if (!allowedNames?.length) return items;
+  const allowed = new Set(allowedNames);
+  return items.filter((item) => {
+    const name = asTableConfigRecord(item).name;
+    return typeof name === "string" && allowed.has(name);
+  });
 };
 
-const normalizePeriod = (v: any) => {
-  const raw = pickLabel(v).trim();
+const normalizePeriod = (value: unknown) => {
+  const raw = pickTableLabel(value).trim();
 
   const map: Record<string, "Annual" | "Total Operational Life"> = {
     "Annual": "Annual",
@@ -31,7 +34,7 @@ const normalizePeriod = (v: any) => {
   return map[raw] ?? map[raw.toLowerCase()] ?? "";
 };
 
-export const useB1G3Config = (projectId?: string, allowedCategoryNames?: string[]) => ({
+export const createB1G3Config = (projectId?: string, allowedCategoryNames?: string[]) => ({
   tableName: "Detailed level (Grade 3)",
   calculation: {
     grade: 3,
@@ -58,12 +61,12 @@ export const useB1G3Config = (projectId?: string, allowedCategoryNames?: string[
       "unit",
       "unit_id",
     ],
-    buildPayload: (row: any, ctx: { jurisdiction: string, ops_start_year: number, reference_period: number }) => {
-      const emissions_category = pickLabel(row.emissions_category);
-      const emissions_sub_category = pickLabel(row.emissions_subcategory);
-      const emissions_source = pickLabel(row.emissions_source_name);
+    buildPayload: (row: DataEntryRow, ctx: { jurisdiction: string; ops_start_year: number; reference_period: number }) => {
+      const emissions_category = pickTableLabel(row.emissions_category);
+      const emissions_sub_category = pickTableLabel(row.emissions_subcategory);
+      const emissions_source = pickTableLabel(row.emissions_source_name);
       const quantity = row.quantity != null ? Number(row.quantity) : NaN;
-      const unit = pickLabel(row.canonical_unit_code || row.unit_code);
+      const unit = pickTableLabel(row.canonical_unit_code || row.unit_code);
       const convFactor = row.unit_conversion_factor != null ? Number(row.unit_conversion_factor) : 1;
       const convertedQuantity = Number.isNaN(quantity) ? NaN : quantity * convFactor;
       const period = normalizePeriod(row.period);
@@ -96,8 +99,8 @@ export const useB1G3Config = (projectId?: string, allowedCategoryNames?: string[
     },
 
     calculate: async (
-      payload: any,
-      _ctx: any,
+      payload: Record<string, unknown>,
+      _ctx: CalcCtx,
       tableKey: UploadKey
     ) => {
 
@@ -124,8 +127,8 @@ export const useB1G3Config = (projectId?: string, allowedCategoryNames?: string[
     },
 
     // map API response -> row changes
-    mapResultToRow: (apiRes: any) => ({
-      emissions_tco2e: apiRes?.total_emissions_tco2e ?? null,
+    mapResultToRow: (apiRes: unknown) => ({
+      emissions_tco2e: asTableConfigRecord(apiRes).total_emissions_tco2e ?? null,
     }),
 
   },
@@ -149,8 +152,8 @@ export const useB1G3Config = (projectId?: string, allowedCategoryNames?: string[
       lookup: {
         fetch: async () => {
           const list = await LookupsService.fetchBgmCategories(GRADE34_IDS, projectId);
-          const filtered = allowedCategoryNames ? list.filter((c: any) => allowedCategoryNames.includes(c.name)) : list;
-          return mapToOptions(filtered);
+          const filtered = filterAllowedCategories(list, allowedCategoryNames);
+          return mapTableLookupOptions(filtered);
         },
         labelField: "label",
         idField: "value",
@@ -162,11 +165,11 @@ export const useB1G3Config = (projectId?: string, allowedCategoryNames?: string[
       key: "emissions_subcategory_id",
       required: true,
       lookup: {
-        fetch: async (ctx?: { row?: any }) => {
+        fetch: async (ctx?: { row?: DataEntryRow }) => {
           const categoryId = ctx?.row?.emissions_category_id;
           if (!categoryId) return [];
           const list = await LookupsService.fetchBgmSubcategories(GRADE34_IDS, categoryId, projectId);
-          return mapToOptions(list);
+          return mapTableLookupOptions(list);
         },
         labelField: "label",
         idField: "value",
@@ -178,11 +181,11 @@ export const useB1G3Config = (projectId?: string, allowedCategoryNames?: string[
       key: "emissions_source",
       required: true,
       lookup: {
-        fetch: async (ctx?: { row?: any }) => {
+        fetch: async (ctx?: { row?: DataEntryRow }) => {
           const subCategoryId = ctx?.row?.emissions_subcategory_id;
           if (!subCategoryId) return [];
           const list = await LookupsService.fetchBgmSources(GRADE34_IDS, subCategoryId, projectId);
-          return mapToOptions(list);
+          return mapTableLookupOptions(list);
         },
         labelField: "label",
         idField: "value",
@@ -200,13 +203,14 @@ export const useB1G3Config = (projectId?: string, allowedCategoryNames?: string[
       key: "unit_id",
       required: true,
       lookup: {
-        fetch: async (ctx?: { row?: any }) => {
-          const source = ctx?.row?.emissions_source;
+        fetch: async (ctx?: { row?: DataEntryRow }) => {
+          const sourceValue = ctx?.row?.emissions_source;
+          const source = typeof sourceValue === "string" ? sourceValue : null;
           const subCategoryId = ctx?.row?.emissions_subcategory_id;
           if (source && subCategoryId) {
             const datasetRevisionId = projectId ? await LookupsService.resolveProjectDatasetRevisionId(projectId) : null;
             const list = await LookupsService.fetchBgmSourceUnits(GRADE34_IDS, subCategoryId, source, datasetRevisionId);
-            return mapToOptions(list);
+            return mapTableLookupOptions(list);
           }
           return [];
         },
@@ -228,8 +232,8 @@ export const useB1G3Config = (projectId?: string, allowedCategoryNames?: string[
       idKey: "emissions_category_id",
       getOptions: async () => {
         const list = await LookupsService.fetchBgmCategories(GRADE34_IDS, projectId);
-        const filtered = allowedCategoryNames ? list.filter((c: any) => allowedCategoryNames.includes(c.name)) : list;
-        return mapToOptions(filtered);
+        const filtered = filterAllowedCategories(list, allowedCategoryNames);
+        return mapTableLookupOptions(filtered);
       },
       clearsOnChange: [
         "emissions_subcategory",
@@ -248,11 +252,11 @@ export const useB1G3Config = (projectId?: string, allowedCategoryNames?: string[
       editorType: "select",
       idKey: "emissions_subcategory_id",
       dependsOnKeys: ["emissions_category_id"],
-      getOptions: async (ctx?: { row?: any }) => {
+      getOptions: async (ctx?: { row?: DataEntryRow }) => {
         const categoryId = ctx?.row?.emissions_category_id;
         if (!categoryId) return [];
         const list = await LookupsService.fetchBgmSubcategories(GRADE34_IDS, categoryId, projectId);
-        return mapToOptions(list);
+        return mapTableLookupOptions(list);
       },
       clearsOnChange: ["emissions_source_name", "emissions_source", "unit_code", "unit_id"],
       noCache: true,
@@ -266,11 +270,11 @@ export const useB1G3Config = (projectId?: string, allowedCategoryNames?: string[
       editorType: "select",
       idKey: "emissions_source",
       dependsOnKeys: ["emissions_subcategory_id"],
-      getOptions: async (ctx?: { row?: any }) => {
+      getOptions: async (ctx?: { row?: DataEntryRow }) => {
         const subCategoryId = ctx?.row?.emissions_subcategory_id;
         if (!subCategoryId) return [];
         const list = await LookupsService.fetchBgmSources(GRADE34_IDS, subCategoryId, projectId);
-        return mapToOptions(list);
+        return mapTableLookupOptions(list);
       },
       clearsOnChange: ["unit_code", "unit_id"],
       noCache: true,
@@ -295,8 +299,9 @@ export const useB1G3Config = (projectId?: string, allowedCategoryNames?: string[
       editorType: "select",
       idKey: "unit_id",
       dependsOnKeys: ["emissions_source"],
-      getOptions: async (ctx?: { row?: any }) => {
-        const source = ctx?.row?.emissions_source;
+      getOptions: async (ctx?: { row?: DataEntryRow }) => {
+        const sourceValue = ctx?.row?.emissions_source;
+        const source = typeof sourceValue === "string" ? sourceValue : null;
         const subCategoryId = ctx?.row?.emissions_subcategory_id;
         const datasetRevisionId = (source && subCategoryId && projectId)
           ? await LookupsService.resolveProjectDatasetRevisionId(projectId) : null;
@@ -311,7 +316,7 @@ export const useB1G3Config = (projectId?: string, allowedCategoryNames?: string[
           to_canonical_factor: u.to_canonical_factor ?? null,
         }));
       },
-      onSelect: (selected: any) => ({
+      onSelect: (selected?: Record<string, unknown>) => ({
         canonical_unit_id: selected?.canonical_unit_id ?? null,
         unit_conversion_factor: selected?.to_canonical_factor ?? null,
         canonical_unit_code: selected?.canonical_unit_code ?? selected?.label ?? null,

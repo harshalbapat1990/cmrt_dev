@@ -27,6 +27,7 @@ from crud.project_reporting_submission import (
     get_emissions_by_period_ids,
     get_total_construction_emissions,
 )
+from crud.project_stage_instances import get_project_stage_instance
 from crud.stage_approval_events import record_event
 
 router = APIRouter(prefix="/api/construction-periods", tags=["construction-periods"])

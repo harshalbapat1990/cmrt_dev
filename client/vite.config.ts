@@ -1,5 +1,6 @@
 import path from 'node:path'
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig } from 'vitest/config'
+import { loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
@@ -40,6 +41,16 @@ export default defineConfig(({ mode }) => {
       }),
       tailwindcss(),
     ],
+
+    test: {
+      environment: 'jsdom',
+      setupFiles: ['./src/test/setup.ts'],
+      restoreMocks: true,
+      clearMocks: true,
+      pool: 'forks',
+      maxWorkers: 1,
+      fileParallelism: false,
+    },
 
     build: {
       rollupOptions: {

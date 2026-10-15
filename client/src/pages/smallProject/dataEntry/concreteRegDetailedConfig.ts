@@ -1,36 +1,7 @@
 import EmissionCalculationsService from "@/services/EmissionCalculations.service";
-
-const pickLabel = (v: any) => {
-    if (v == null) return "";
-    if (typeof v === "string" || typeof v === "number") return String(v);
-    return v.label ?? v.name ?? v.value ?? "";
-};
-
-const normalizeMixType = (v: any) => {
-    const raw = pickLabel(v);
-    if (raw === "READY_MIX") return "Ready-mix";
-    if (raw === "PRECAST") return "Precast";
-    return raw;
-};
-
-const parseStrengthMpa = (v: any): number | null => {
-    const raw = pickLabel(v);
-    const n = Number(raw.replace(/[^0-9.]/g, ""));
-    return Number.isFinite(n) ? n : null;
-};
-
-const extractConcreteEmissions = (apiRes: any): number | null => {
-    const raw =
-        apiRes?.total_emissions_tco2e ??
-        apiRes?.emissions_tco2e ??
-        apiRes?.data?.total_emissions_tco2e ??
-        apiRes?.data?.emissions_tco2e ??
-        null;
-    if (raw === "-" || raw === "" || raw == null || Number.isNaN(Number(raw))) {
-        return null;
-    }
-    return Number(raw);
-};
+import type { DataEntryRow } from "./dataEntryTypes";
+import { asTableConfigRecord } from "./tableConfigUtils";
+import { extractConcreteEmissions, normalizeConcreteMixType, parseConcreteStrengthMpa } from "./concreteConfigUtils";
 
 export const concreteRegDetailedConfig = () => ({
     tableName: "Concrete register (grade 3) - detailed",
@@ -50,12 +21,12 @@ export const concreteRegDetailedConfig = () => ({
             "materials",
             "mixType",
         ],
-        buildPayload: (row: any, ctx: any) => {
+        buildPayload: (row: DataEntryRow, ctx: { project_id?: string }) => {
             const method = row.method;
             const project_id = ctx.project_id;
             const mix_id_label = row.mixId;
-            const mix_type = normalizeMixType(row.mixType ?? row.mix_type);
-            const strength_mpa = parseStrengthMpa(row.strength ?? row.strength_mpa);
+            const mix_type = normalizeConcreteMixType(row.mixType ?? row.mix_type);
+            const strength_mpa = parseConcreteStrengthMpa(row.strength ?? row.strength_mpa);
             const volume_m3 = Number(row.volume ?? row.volume_m3);
 
             if (!project_id || !method || !mix_id_label || Number.isNaN(volume_m3)) {
@@ -63,11 +34,12 @@ export const concreteRegDetailedConfig = () => ({
             }
 
             if (method === "mix_design") {
-                const materials = (row.materials ?? [])
-                    .filter((m: any) => m.quantityKgM3 != null || m.quantity_kg_m3 != null)
-                    .map((m: any) => ({
-                        material_name: m.materialName ?? m.material_name,
-                        quantity_kg_m3: Number(m.quantityKgM3 ?? m.quantity_kg_m3),
+                const materials = (Array.isArray(row.materials) ? row.materials : [])
+                    .map(asTableConfigRecord)
+                    .filter((material) => material.quantityKgM3 != null || material.quantity_kg_m3 != null)
+                    .map((material) => ({
+                        material_name: material.materialName ?? material.material_name,
+                        quantity_kg_m3: Number(material.quantityKgM3 ?? material.quantity_kg_m3),
                     }));
                 if (!mix_type || strength_mpa == null || !materials.length) {
                     return null;
@@ -109,22 +81,24 @@ export const concreteRegDetailedConfig = () => ({
             }
             return null;
         },
-        calculate: async (payload: any) => {
+        calculate: async (payload: Record<string, unknown>) => {
+            const request = asTableConfigRecord(payload.request);
             if (payload.method === "mix_design") {
-                return EmissionCalculationsService.concreteRegNewMixCalculations(payload.request);
+                return EmissionCalculationsService.concreteRegNewMixCalculations(request);
             }
             if (payload.method === "epd_pcf") {
-                return EmissionCalculationsService.concreteRegNewMixEPDCalculations(payload.request);
+                return EmissionCalculationsService.concreteRegNewMixEPDCalculations(request);
             }
             return null;
         },
 
-        mapResultToRow: (apiRes: any) => {
+        mapResultToRow: (apiRes: unknown) => {
+            const result = asTableConfigRecord(apiRes);
             const emissions = extractConcreteEmissions(apiRes);
             return {
                 emissions_tco2e: emissions,
-                gwp_a1a3_tco2e_m3: apiRes?.gwp_a1a3_tco2e_m3 ?? null,
-                transport_a4_ef_tco2e_m3: apiRes?.transport_a4_ef_tco2e_m3 ?? null,
+                gwp_a1a3_tco2e_m3: result.gwp_a1a3_tco2e_m3 ?? null,
+                transport_a4_ef_tco2e_m3: result.transport_a4_ef_tco2e_m3 ?? null,
             };
         },
     },

@@ -591,6 +591,7 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
       setActiveGrade(selectedGrade);
       setPage(1);
     } catch {
+      // Keep the previous results visible if the filter request fails.
       setFetchError('Failed to load data. Please try again.');
     } finally {      setFetching(false);
     }
@@ -609,6 +610,7 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
       const res = await http.get<BgmRow[]>(`/api/background-grade-metrics?${p.toString()}`);
       setDisplayData(pivotRows(res.data, grade) as G1Row[]);
     } catch {
+      // Keep the previously displayed data when a filter request fails.
     } finally {
       setFilterFetching(false);
     }

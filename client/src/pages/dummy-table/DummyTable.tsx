@@ -364,7 +364,7 @@ const DummyTable: React.FC = () => {
       for (let j = 0; j < keys.length; j++) {
         const key = keys[j];
         if (!key) continue;
-        let val = (row[j] ?? "").toString().trim();
+        const val = (row[j] ?? "").toString().trim();
         if (key === "quantity") {
           const n = val === "" ? undefined : Number(val.replace(/,/g, ""));
           obj[key] = Number.isFinite(n) ? n : val; // keep raw if NaN; validator will flag it

@@ -1,24 +1,45 @@
 import { useState, useCallback } from "react";
 import type { UploadKey } from "./stageConstants";
+import type { DataEntryRow, TableRowMap } from "./dataEntryTypes";
 
-const ALL_UPLOAD_KEYS: UploadKey[] = [
-    "asset", "component", "componentRepl", "refurbishment", "replDetailed",
-    "opEnergy", "opEnergyDetailed", "opEnergyElectricity", "constructionG2",
-    "constructionG3", "bcDetailedLevel", "electricity", "useB1G2", "useB1G3",
-    "concreteRegSimplified", "concreteRegDetailed", "recurringG3",
-];
+export function emptyRowMap(): TableRowMap {
+    return {
+        asset: [],
+        component: [],
+        componentRepl: [],
+        refurbishment: [],
+        replDetailed: [],
+        opEnergy: [],
+        opEnergyDetailed: [],
+        opEnergyElectricity: [],
+        constructionG2: [],
+        constructionG3: [],
+        bcDetailedLevel: [],
+        electricity: [],
+        useB1G2: [],
+        useB1G3: [],
+        concreteRegSimplified: [],
+        concreteRegDetailed: [],
+        recurringG3: [],
+    };
+}
 
-function emptyRowMap(): Record<UploadKey, any[]> {
-    return Object.fromEntries(ALL_UPLOAD_KEYS.map((k) => [k, []])) as unknown as Record<UploadKey, any[]>;
+export function keepTableRows(
+    rows: TableRowMap,
+    keysToKeep: readonly UploadKey[],
+): TableRowMap {
+    const keptRows = emptyRowMap();
+    for (const key of keysToKeep) keptRows[key] = rows[key];
+    return keptRows;
 }
 
 export function useTableRows() {
-    const [tableRows, setTableRows] = useState<Record<UploadKey, any[]>>(emptyRowMap);
+    const [tableRows, setTableRows] = useState<TableRowMap>(emptyRowMap);
 
-    const getRows = (key: UploadKey): any[] => tableRows[key] ?? [];
+    const getRows = (key: UploadKey): DataEntryRow[] => tableRows[key];
 
     const updateRows = useCallback(
-        (key: UploadKey, updater: any[] | ((prev: any[]) => any[])) =>
+        (key: UploadKey, updater: DataEntryRow[] | ((prev: DataEntryRow[]) => DataEntryRow[])) =>
             setTableRows((prev) => ({
                 ...prev,
                 [key]: typeof updater === "function" ? updater(prev[key] ?? []) : updater,

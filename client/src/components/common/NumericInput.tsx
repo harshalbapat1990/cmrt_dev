@@ -92,7 +92,9 @@ export const NumericInput: React.FC<NumericInputProps> = ({
       try {
         if (ro && el) ro.unobserve(el);
         if (ro && ro.disconnect) ro.disconnect();
-      } catch { }
+      } catch {
+        // Resize cleanup is best-effort when the observer has already detached.
+      }
       if (g && g.removeEventListener) {
         g.removeEventListener("resize", measure);
       }

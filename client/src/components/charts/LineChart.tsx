@@ -178,3 +178,4 @@ const LineChart = ({
 };
 
 export default LineChart;
+import "../../chartSetup";

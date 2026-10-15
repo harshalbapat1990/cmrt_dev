@@ -1,13 +1,18 @@
 import * as XLSX from "xlsx";
+import type { ParsedRow } from "./uploadCsv";
 
 export type FileHeader = { key: string; label: string };
+
+export interface ParseFileOptions {
+  normalizeHeader?: (header: string) => string;
+}
 
 export async function parseFileToRows(
   file: File,
   headers: FileHeader[],
   numericKeys: string[] = [],
-  options: any={},
-): Promise<any[]> {
+  options: ParseFileOptions = {},
+): Promise<ParsedRow[]> {
   const name = file.name.toLowerCase();
 
   
@@ -76,20 +81,21 @@ const defaultNormalize = (str: string) =>
         return labelToKey.get(norm(label)) || "";
       },
     });
-    return rows as any[];
+    return rows;
   }
 
   // XLSX path
   const data = await file.arrayBuffer();
   const wb = XLSX.read(data, { type: "array" });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const aoa = XLSX.utils.sheet_to_json<string[]>({
+  const sheetName = wb.SheetNames[0];
+  const ws = sheetName ? wb.Sheets[sheetName] : undefined;
+  if (!ws) return [];
+  const aoa = XLSX.utils.sheet_to_json<string[]>(ws, {
     raw: false,
     header: 1,
     defval: "",
     range: 0,
-    sheet: ws,
-  } as any) as string[][];
+  });
 
   if (!aoa || !aoa.length) return [];
 
@@ -100,17 +106,17 @@ const defaultNormalize = (str: string) =>
   // const labelToKey = new Map(headers.map(h => [norm(h.label.trim()), h.key]));
   const keys = fileHeaderRow.map(label => labelToKey.get(norm(label)) || "");
 
-  const out: any[] = [];
+  const out: ParsedRow[] = [];
 
   for (let i = 1; i < aoa.length; i++) {
     const row = aoa[i] || [];
-    const obj: any = {};
+    const obj: ParsedRow = {};
 
     for (let j = 0; j < keys.length; j++) {
       const key = keys[j];
       if (!key) continue;
 
-      let val = (row[j] ?? "").toString().trim();
+      const val = (row[j] ?? "").toString().trim();
 
       // Numeric column?
       if (numericKeys.includes(key)) {

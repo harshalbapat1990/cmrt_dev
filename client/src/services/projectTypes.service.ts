@@ -66,7 +66,7 @@ const key = String(projectTypeId).trim();
       return (existing!.data as any[]) ?? ['No options'];
     }
 
-    let raw = await this.safeGet(`/typecasts?project_type_id=${projectTypeId}`);
+    const raw = await this.safeGet(`/typecasts?project_type_id=${projectTypeId}`);
     this.projectTypeCastCacheByKey.set(key, nowEntry(raw));
     return raw;
   }

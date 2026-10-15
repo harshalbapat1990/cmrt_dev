@@ -160,3 +160,4 @@ const DoughnutChart = ({
 };
 
 export default DoughnutChart;
+import "../../chartSetup";

@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from "react";
 import { UploadModal } from "@/pages/dummy-table/UploadModal";
 import ConfirmDeleteRowModal from "../ConfirmDeleteRowModal";
 import { DesignSeedConfirmModal } from "../DesignSeedConfirmModal";
@@ -7,25 +8,28 @@ import { SimpleModal } from "./SimpleModal";
 import ManageOptionsModal from "../ManageOptionsModal";
 import CopyDataModal from "../CopyDataModal";
 import PeriodWorkflowModal from "../PeriodWorkflowModal";
+import type { AdminDecisionAction, PeriodWorkflowAction } from "../hooks/useWorkflowActions";
+import type { ConstructionPeriod } from "@/services/ConstructionPeriods.service";
+import type { ProjectOption } from "@/services/ProjectOptions.service";
+import type { UploadKey } from "../stageConstants";
+import type { DataEntryRow, StageInstance, StageLabel, TableRowMap } from "../dataEntryTypes";
+
+type SelectOption = { label: string; value: string };
 
 interface DataEntryModalsProps {
-    uploadTarget: any;
-    setUploadTarget: (v: any) => void;
-    parseFile: (file: File, key: any) => any;
-    validateUpload: (rows: any[], key: any) => any;
-    onUploadSuccess: (rows: any[], key: any) => void;
-    deleteTarget: any;
-    setDeleteTarget: (v: any) => void;
-    doDeleteRow: () => void | Promise<void>;
+    uploadTarget: UploadKey | null;
+    setUploadTarget: (v: UploadKey | null) => void;
+    parseFile: (file: File, key: UploadKey) => Promise<DataEntryRow[]>;
+    validateUpload: (rows: DataEntryRow[], key: UploadKey) => Promise<{ validRows: DataEntryRow[]; errors: string[] }>;
+    onUploadSuccess: (rows: DataEntryRow[], key: UploadKey) => void | Promise<void>;
+    deleteTarget: { id: string; tableKey: UploadKey } | null;
+    setDeleteTarget: (v: { id: string; tableKey: UploadKey } | null) => void;
+    doDeleteRow: () => Promise<void>;
     designSeedConfirmOpen: boolean;
     pendingDesignReportNum: number | null;
     reDesignSeedLoading: boolean;
-    setDesignSeedConfirmOpen: (v: boolean) => void;
-    setPendingDesignReportNum: (v: number | null) => void;
-    setDesignReportNum: (v: number) => void;
-    setReDesignSeedLoading: (v: boolean) => void;
-    seedPeriodsFromDesign: (ids: string[]) => Promise<void>;
-    constructionPeriods: any[];
+    onCancelDesignSeed: () => void;
+    onConfirmDesignSeed: () => Promise<void>;
     addLargeYearOpen: boolean;
     addLargeYearInput: string;
     addLargeYearError: string | null;
@@ -45,21 +49,20 @@ interface DataEntryModalsProps {
     handleDeleteLargeYear: () => Promise<void>;
     concreteMixModalType: "mix_design" | "epd_pcf" | null;
     setConcreteMixModalType: (v: "mix_design" | "epd_pcf" | null) => void;
-    concreteMixEditTarget: any;
-    setConcreteMixEditTarget: (v: any) => void;
-    setConcreteMixFull?: never; // removed – concrete data now lives in activity_data
+    concreteMixEditTarget: DataEntryRow | null;
+    setConcreteMixEditTarget: (v: DataEntryRow | null) => void;
     projectId: string;
-    updateRows: (key: any, updater: any) => void;
-    computeEmissionsForRow: (key: any, row: any) => Promise<any>;
-    adminDecisionOpen: any;
-    setAdminDecisionOpen: (v: any) => void;
+    updateRows: (key: keyof TableRowMap, updater: DataEntryRow[] | ((previous: DataEntryRow[]) => DataEntryRow[])) => void;
+    computeEmissionsForRow: (key: UploadKey, row: DataEntryRow) => Promise<Partial<DataEntryRow> | null>;
+    adminDecisionOpen: AdminDecisionAction | null;
+    setAdminDecisionOpen: Dispatch<SetStateAction<AdminDecisionAction | null>>;
     decisionComments: string;
     setDecisionComments: (v: string) => void;
     triggerAdminDecision: () => void;
     reopenModalOpen: boolean;
     setReopenModalOpen: (v: boolean) => void;
-    activeStage: string;
-    _projectName: string;
+    activeStage: StageLabel;
+    _projectName: string | null;
     reopenJustification: string;
     setReopenJustification: (v: string) => void;
     submitReopenRequest: () => void;
@@ -67,20 +70,20 @@ interface DataEntryModalsProps {
     setSubmitModalOpen: (v: boolean) => void;
     handleReportSubmission: () => void;
     isBusinessCaseStage: boolean;
-    activeStageInstance: any;
+    activeStageInstance: StageInstance | null;
     manageOptionsOpen: boolean;
     setManageOptionsOpen: (v: boolean) => void;
-    activeReportNumber: any;
-    currentReportSubOptions: any[];
-    onOptionsChange: (opts: any[]) => any;
+    activeReportNumber: number;
+    currentReportSubOptions: ProjectOption[];
+    onOptionsChange: () => Promise<void>;
     copyDataOpen: boolean;
     setCopyDataOpen: (v: boolean) => void;
-    baseCaseOptions: any[];
+    baseCaseOptions: SelectOption[];
     activeOptionId: string | null;
     onCopied: () => Promise<void>;
-    periodWorkflowOpen: any;
-    setPeriodWorkflowOpen: (v: any) => void;
-    activePeriod: any;
+    periodWorkflowOpen: PeriodWorkflowAction | null;
+    setPeriodWorkflowOpen: Dispatch<SetStateAction<PeriodWorkflowAction | null>>;
+    activePeriod: ConstructionPeriod | null;
     handlePeriodWorkflowConfirm: (reason?: string) => Promise<void>;
 }
 
@@ -88,8 +91,7 @@ export function DataEntryModals({
     uploadTarget, setUploadTarget, parseFile, validateUpload, onUploadSuccess,
     deleteTarget, setDeleteTarget, doDeleteRow,
     designSeedConfirmOpen, pendingDesignReportNum, reDesignSeedLoading,
-    setDesignSeedConfirmOpen, setPendingDesignReportNum, setDesignReportNum,
-    setReDesignSeedLoading, seedPeriodsFromDesign, constructionPeriods,
+    onCancelDesignSeed, onConfirmDesignSeed,
     addLargeYearOpen, addLargeYearInput, addLargeYearError,
     setAddLargeYearOpen, setAddLargeYearInput, setAddLargeYearError, handleAddLargeYear,
     copyLargeYearConfirmOpen, copyLargeYearSource, activeLargeUsersYear, largeUsersYears,
@@ -121,7 +123,7 @@ export function DataEntryModals({
             <ConfirmDeleteRowModal
                 open={!!deleteTarget}
                 onClose={() => setDeleteTarget(null)}
-                onConfirm={async () => { doDeleteRow(); }}
+                onConfirm={doDeleteRow}
             />
 
             {designSeedConfirmOpen && pendingDesignReportNum !== null && (
@@ -129,19 +131,8 @@ export function DataEntryModals({
                     open={designSeedConfirmOpen}
                     pendingDesignReportNum={pendingDesignReportNum}
                     reDesignSeedLoading={reDesignSeedLoading}
-                    onCancel={() => { setDesignSeedConfirmOpen(false); setPendingDesignReportNum(null); }}
-                    onConfirm={async () => {
-                        setDesignSeedConfirmOpen(false);
-                        if (pendingDesignReportNum === null) return;
-                        setDesignReportNum(pendingDesignReportNum);
-                        setPendingDesignReportNum(null);
-                        setReDesignSeedLoading(true);
-                        try {
-                            await seedPeriodsFromDesign(constructionPeriods.map(p => p.id));
-                        } finally {
-                            setReDesignSeedLoading(false);
-                        }
-                    }}
+                    onCancel={onCancelDesignSeed}
+                    onConfirm={onConfirmDesignSeed}
                 />
             )}
 
@@ -239,11 +230,11 @@ export function DataEntryModals({
                     optionId={activeOptionId}
                     modalType={concreteMixModalType}
                     onClose={() => setConcreteMixModalType(null)}
-                    onCreated={(row: any) => {
-                        updateRows("concreteRegDetailed", (prev: any[]) => [...prev, row]);
+                    onCreated={(row) => {
+                        updateRows("concreteRegDetailed", (prev) => [...prev, row]);
                         setConcreteMixModalType(null);
                     }}
-                    calculateConcreteDetailed={(row: any) =>
+                    calculateConcreteDetailed={(row) =>
                         computeEmissionsForRow("concreteRegDetailed", row)
                     }
                 />
@@ -256,12 +247,12 @@ export function DataEntryModals({
                     optionId={activeOptionId}
                     modalType={concreteMixEditTarget.method as "mix_design" | "epd_pcf"}
                     editMix={concreteMixEditTarget}
-                    calculateConcreteDetailed={(row: any) =>
+                    calculateConcreteDetailed={(row) =>
                         computeEmissionsForRow("concreteRegDetailed", row)
                     }
                     onClose={() => setConcreteMixEditTarget(null)}
-                    onCreated={(row: any) => {
-                        updateRows("concreteRegDetailed", (prev: any[]) =>
+                    onCreated={(row) => {
+                        updateRows("concreteRegDetailed", (prev) =>
                             prev.map((r) => (r.id === row.id ? { ...r, ...row } : r))
                         );
                         setConcreteMixEditTarget(null);
@@ -340,7 +331,7 @@ export function DataEntryModals({
                         stageInstanceId={activeStageInstance.id}
                         reportNumber={activeReportNumber}
                         options={currentReportSubOptions}
-                        onOptionsChange={onOptionsChange as any}
+                        onOptionsChange={onOptionsChange}
                     />
                     <CopyDataModal
                         open={copyDataOpen}

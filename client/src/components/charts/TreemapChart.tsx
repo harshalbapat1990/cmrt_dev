@@ -214,3 +214,4 @@ const TreemapChart: React.FC<TreemapProps> = ({ data }) => {
 };
 
 export default TreemapChart;
+import "../../chartSetup";

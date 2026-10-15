@@ -153,3 +153,4 @@ const WaterfallChart = ({
 };
 
 export default WaterfallChart;
+import "../../chartSetup";

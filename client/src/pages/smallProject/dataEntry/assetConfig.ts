@@ -1,5 +1,7 @@
 import EmissionCalculationsService from "@/services/EmissionCalculations.service";
 import LookupsService, { type UnitOption } from "@/services/Lookups.service";
+import type { DataEntryRow } from "./dataEntryTypes";
+import type { CalcCtx } from "./useEmissionsCalc";
 
 const GRADE1_IDS = [1];
 
@@ -10,13 +12,20 @@ const SENSITIVITY_OPTIONS = [
 ];
 
 
-const mapToOptions = (list: any[], labelField = "name", valueField = "id") =>
-    (list ?? []).map((x) => ({ label: x[labelField], value: x[valueField] }));
+const asRecord = (value: unknown): Record<string, unknown> =>
+    typeof value === "object" && value !== null ? value as Record<string, unknown> : {};
 
-const pickLabel = (v: any) => {
+const mapToOptions = (list: unknown[], labelField = "name", valueField = "id") =>
+    list.map((value) => {
+        const record = asRecord(value);
+        return { label: record[labelField], value: record[valueField] };
+    });
+
+const pickLabel = (v: unknown): string => {
     if (v == null) return "";
     if (typeof v === "string" || typeof v === "number") return String(v);
-    return v.label ?? v.name ?? v.value ?? "";
+    const record = asRecord(v);
+    return pickLabel(record.label ?? record.name ?? record.value);
 };
 
 export const assetTableConfig = (projectId: string) => ({
@@ -40,7 +49,7 @@ export const assetTableConfig = (projectId: string) => ({
             "unit_code",
             "unit_id",
         ],
-        buildPayload: (row: any, ctx: { jurisdiction: string }) => {
+        buildPayload: (row: DataEntryRow, ctx: Pick<CalcCtx, "jurisdiction">) => {
             const mastertype = pickLabel(row.mastertype_name);
             const typecast = pickLabel(row.typecast_name);
             const sensitivity = pickLabel(row.band_code);
@@ -61,16 +70,17 @@ export const assetTableConfig = (projectId: string) => ({
             };
         },
         // table-specific API call
-        calculate: async (payload: any) => {
+        calculate: async (payload: Record<string, unknown>) => {
             // For asset table, use grade1 endpoint OR your table endpoint
             return EmissionCalculationsService.grade1EmissionValues(payload);
         },
 
         // map API response -> row changes
-        mapResultToRow: (apiRes: any, row?: any) => {
+        mapResultToRow: (apiRes: unknown, row?: DataEntryRow) => {
+            const result = asRecord(apiRes);
             const val =
-                apiRes?.total_emissions_tco2e != null && !Number.isNaN(Number(apiRes.total_emissions_tco2e))
-                    ? Number(apiRes.total_emissions_tco2e)
+                result.total_emissions_tco2e != null && !Number.isNaN(Number(result.total_emissions_tco2e))
+                    ? Number(result.total_emissions_tco2e)
                     : (row?.total_emissions_tco2e != null ? Number(row.total_emissions_tco2e) : null);
             return {
                 emissions_tco2e: val,
@@ -111,7 +121,7 @@ export const assetTableConfig = (projectId: string) => ({
             key: "mastertype_id",
             required: true,
             lookup: {
-                fetch: async (_ctx?: { row?: any }) => {
+                fetch: async (_ctx?: { row?: DataEntryRow }) => {
                     const list = await LookupsService.fetchMasterTypesbyProjectId(projectId);
                     return mapToOptions(list);
                 },
@@ -126,7 +136,7 @@ export const assetTableConfig = (projectId: string) => ({
             key: "typecast_id",
             required: true,
             lookup: {
-                fetch: async (ctx?: { row?: any }) => {
+                fetch: async (ctx?: { row?: DataEntryRow }) => {
                     const masterTypeId = ctx?.row?.mastertype_id;
                     if (!masterTypeId) return [];
                     const list = await LookupsService.fetchTypecasts(masterTypeId, projectId);
@@ -150,7 +160,7 @@ export const assetTableConfig = (projectId: string) => ({
             key: "unit_id",
             required: true,
             lookup: {
-                fetch: async (ctx?: { row?: any }) => {
+                fetch: async (ctx?: { row?: DataEntryRow }) => {
                     const typecastId = ctx?.row?.typecast_id;
                     if (typecastId) {
                         const revisionId = await LookupsService.resolveProjectDatasetRevisionId(projectId);
@@ -181,7 +191,6 @@ export const assetTableConfig = (projectId: string) => ({
             width: "20%",
             key: "mastertype_name",
             editable: true,
-            // editableWhen: (row: any) => row?.id === "__NEW__",
             editorType: "select",
             idKey: "mastertype_id",
             getOptions: async () => {
@@ -196,11 +205,10 @@ export const assetTableConfig = (projectId: string) => ({
             width: "20%",
             key: "typecast_name",
             editable: true,
-            // editableWhen: (row: any) => row?.id === "__NEW__",
             editorType: "select",
             idKey: "typecast_id",
             dependsOnKeys: ["mastertype_id"],
-            getOptions: async (ctx?: { row?: any }) => {
+            getOptions: async (ctx?: { row?: DataEntryRow }) => {
                 const masterTypeId = ctx?.row?.mastertype_id;
                 if (!masterTypeId) return [];
                 const list = await LookupsService.fetchTypecasts(masterTypeId, projectId);
@@ -215,7 +223,6 @@ export const assetTableConfig = (projectId: string) => ({
             width: "10%",
             key: "band_code",
             editable: true,
-            // editableWhen: (row: any) => row?.id === "__NEW__",
             editorType: "select",
             getOptions: () => SENSITIVITY_OPTIONS,
         },
@@ -224,11 +231,10 @@ export const assetTableConfig = (projectId: string) => ({
             width: "8%",
             key: "unit_code",
             editable: true,
-            // editableWhen: (row: any) => row?.id === "__NEW__",
             editorType: "select",
             idKey: "unit_id",
             dependsOnKeys: ["typecast_id"],
-            getOptions: async (ctx?: { row?: any }) => {
+            getOptions: async (ctx?: { row?: DataEntryRow }) => {
                 const typecastId = ctx?.row?.typecast_id;
                 if (!typecastId) return [];
                 const revisionId = await LookupsService.resolveProjectDatasetRevisionId(projectId);
@@ -242,7 +248,7 @@ export const assetTableConfig = (projectId: string) => ({
                     to_canonical_factor: u.to_canonical_factor ?? null,
                 }));
             },
-            onSelect: (selected: any) => ({
+            onSelect: (selected?: Record<string, unknown>) => ({
                 canonical_unit_id: selected?.canonical_unit_id ?? null,
                 unit_conversion_factor: selected?.to_canonical_factor ?? null,
                 canonical_unit_code: selected?.canonical_unit_code ?? selected?.label ?? null,

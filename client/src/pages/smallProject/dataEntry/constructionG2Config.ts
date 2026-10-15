@@ -1,19 +1,10 @@
 // componentConfig.ts
 import LookupsService, { type UnitOption } from "@/services/Lookups.service";
 import EmissionCalculationsService from "@/services/EmissionCalculations.service";
+import type { DataEntryRow } from "./dataEntryTypes";
+import { asTableConfigRecord, mapTableLookupOptions, pickTableLabel } from "./tableConfigUtils";
 
 const GRADE2_IDS = [2];
-
-const mapToOptions = (list: any[], labelField = "name", valueField = "id") =>
-  (list ?? []).map((x) => ({ label: x[labelField], value: x[valueField] }));
-
-
-const pickLabel = (v: any) => {
-  if (v == null) return "";
-  if (typeof v === "string" || typeof v === "number") return String(v);
-  return v.label ?? v.name ?? v.value ?? "";
-};
-
 
 export const constructionG2Config = (projectId?: string) => ({
   tableName: "Component level",
@@ -41,12 +32,12 @@ calculation: {
       "unit_id",
     // build API payload from row data
     ],
-    buildPayload: (row: any, ctx: { jurisdiction: string }) => {
-      const emissions_category = pickLabel(row.emissions_category);
-      const emissions_sub_category = pickLabel(row.emissions_subcategory);
-      const emissions_source = pickLabel(row.emissions_source_name);
+    buildPayload: (row: DataEntryRow, ctx: { jurisdiction: string }) => {
+      const emissions_category = pickTableLabel(row.emissions_category);
+      const emissions_sub_category = pickTableLabel(row.emissions_subcategory);
+      const emissions_source = pickTableLabel(row.emissions_source_name);
       const quantity = row.quantity != null ? Number(row.quantity) : NaN;
-      const unit = pickLabel(row.unit_code);
+      const unit = pickTableLabel(row.unit_code);
 
       if (!emissions_category || !emissions_sub_category || !emissions_source || Number.isNaN(quantity) || !unit) {
         return null;
@@ -63,16 +54,19 @@ calculation: {
     },
     
 // table-specific API call
-    calculate: async (payload: any) => {
+    calculate: async (payload: Record<string, unknown>) => {
       // For component table, use grade2 endpoint OR your table endpoint
       return EmissionCalculationsService.grade2EmissionValues(payload);
     },
 
     // map API response -> row changes
-    mapResultToRow: (apiRes: any) => ({
-      emissions_tco2e: apiRes?.total_emissions_tco2e ?? null,
-      total_emissions_tco2e: apiRes?.total_emissions_tco2e ?? null, // for easier access in calculations
-    }),
+    mapResultToRow: (apiRes: unknown) => {
+      const result = asTableConfigRecord(apiRes);
+      return {
+        emissions_tco2e: result.total_emissions_tco2e ?? null,
+        total_emissions_tco2e: result.total_emissions_tco2e ?? null,
+      };
+    },
 
   },
 
@@ -93,7 +87,7 @@ calculation: {
       lookup: {
         fetch: async () => {
           const list = await LookupsService.fetchBgmCategories(GRADE2_IDS, projectId);
-          return mapToOptions(list);
+          return mapTableLookupOptions(list);
         },
         labelField: "label",
         idField: "value",
@@ -105,11 +99,11 @@ calculation: {
       key: "emissions_subcategory_id",
       required: true,
       lookup: {
-        fetch: async (ctx?: { row?: any }) => {
+        fetch: async (ctx?: { row?: DataEntryRow }) => {
           const categoryId = ctx?.row?.emissions_category_id;
           if (!categoryId) return [];
           const list = await LookupsService.fetchBgmSubcategories(GRADE2_IDS, categoryId, projectId);
-          return mapToOptions(list);
+          return mapTableLookupOptions(list);
         },
         labelField: "label",
         idField: "value",
@@ -121,11 +115,11 @@ calculation: {
       key: "emissions_source",
       required: true,
       lookup: {
-        fetch: async (ctx?: { row?: any }) => {
+        fetch: async (ctx?: { row?: DataEntryRow }) => {
           const subCategoryId = ctx?.row?.emissions_subcategory_id;
           if (!subCategoryId) return [];
           const list = await LookupsService.fetchBgmSources(GRADE2_IDS, subCategoryId, projectId);
-          return mapToOptions(list);
+          return mapTableLookupOptions(list);
         },
         labelField: "label",
         idField: "value",
@@ -137,13 +131,14 @@ calculation: {
       key: "unit_id",
       required: true,
       lookup: {
-        fetch: async (ctx?: { row?: any }) => {
-          const source = ctx?.row?.emissions_source;
+        fetch: async (ctx?: { row?: DataEntryRow }) => {
+          const sourceValue = ctx?.row?.emissions_source;
+          const source = typeof sourceValue === "string" ? sourceValue : null;
           const subCategoryId = ctx?.row?.emissions_subcategory_id;
           if (source && subCategoryId) {
             const datasetRevisionId = projectId ? await LookupsService.resolveProjectDatasetRevisionId(projectId) : null;
             const list = await LookupsService.fetchBgmSourceUnits(GRADE2_IDS, subCategoryId, source, datasetRevisionId);
-            return mapToOptions(list);
+            return mapTableLookupOptions(list);
           }
           return [];
         },
@@ -171,12 +166,11 @@ calculation: {
       width: "20%",
       key: "emissions_category",
       editable: true,
-      // editableWhen: (row: any) => row?.id === "__NEW__",
       editorType: "select",
       idKey: "emissions_category_id",
       getOptions: async () => {
         const list = await LookupsService.fetchBgmCategories(GRADE2_IDS, projectId);
-        return mapToOptions(list);
+        return mapTableLookupOptions(list);
       },
       clearsOnChange: [
         "emissions_subcategory",
@@ -192,15 +186,14 @@ calculation: {
       width: "18%",
       key: "emissions_subcategory",
       editable: true,
-      // editableWhen: (row: any) => row?.id === "__NEW__",
       editorType: "select",
       idKey: "emissions_subcategory_id",
       dependsOnKeys: ["emissions_category_id"],
-      getOptions: async (ctx?: { row?: any }) => {
+      getOptions: async (ctx?: { row?: DataEntryRow }) => {
         const categoryId = ctx?.row?.emissions_category_id;
         if (!categoryId) return [];
         const list = await LookupsService.fetchBgmSubcategories(GRADE2_IDS, categoryId, projectId);
-        return mapToOptions(list);
+        return mapTableLookupOptions(list);
       },
       clearsOnChange: ["emissions_source_name", "emissions_source", "unit_code", "unit_id"],
       noCache: true,
@@ -211,15 +204,14 @@ calculation: {
       width: "22%",
       key: "emissions_source_name",
       editable: true,
-      // editableWhen: (row: any) => row?.id === "__NEW__",
       editorType: "select",
       idKey: "emissions_source",
       dependsOnKeys: ["emissions_subcategory_id"],
-      getOptions: async (ctx?: { row?: any }) => {
+      getOptions: async (ctx?: { row?: DataEntryRow }) => {
         const subCategoryId = ctx?.row?.emissions_subcategory_id;
         if (!subCategoryId) return [];
         const list = await LookupsService.fetchBgmSources(GRADE2_IDS, subCategoryId, projectId);
-        return mapToOptions(list);
+        return mapTableLookupOptions(list);
       },
       clearsOnChange: ["unit_code", "unit_id"],
       noCache: true,
@@ -233,8 +225,9 @@ calculation: {
       editorType: "select",
       idKey: "unit_id",
       dependsOnKeys: ["emissions_source"],
-      getOptions: async (ctx?: { row?: any }) => {
-        const source = ctx?.row?.emissions_source;
+      getOptions: async (ctx?: { row?: DataEntryRow }) => {
+        const sourceValue = ctx?.row?.emissions_source;
+        const source = typeof sourceValue === "string" ? sourceValue : null;
         const subCategoryId = ctx?.row?.emissions_subcategory_id;
         const datasetRevisionId = (source && subCategoryId && projectId)
           ? await LookupsService.resolveProjectDatasetRevisionId(projectId) : null;
@@ -249,7 +242,7 @@ calculation: {
           to_canonical_factor: u.to_canonical_factor ?? null,
         }));
       },
-      onSelect: (selected: any) => ({
+      onSelect: (selected?: Record<string, unknown>) => ({
         canonical_unit_id: selected?.canonical_unit_id ?? null,
         unit_conversion_factor: selected?.to_canonical_factor ?? null,
         canonical_unit_code: selected?.canonical_unit_code ?? selected?.label ?? null,

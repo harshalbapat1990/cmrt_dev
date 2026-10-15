@@ -66,7 +66,6 @@ export type LeftNavigationProps = {
   groups?: SubStageGroup[];
   reportFrequency?: string;
   firstSubmissionMonth?: string | null;
-  constructionReportStates?: { month: string; status: string }[];
   constructionPeriods?: ConstructionPeriod[];
   projectName?: string;
   programName?: string;

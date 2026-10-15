@@ -1,18 +1,25 @@
-export function normalizeValidationRules(rules: any[]): any[] {
-  return rules.map((r: any) =>
-    r?.lookup?.fetch
-      ? {
-          ...r,
-          lookup: {
-            ...r.lookup,
-            fetch: async (ctx?: { row?: any }) => {
-              const res = await r.lookup.fetch(ctx);
-              return Array.isArray(res) ? res : [];
-            },
-          },
-        }
-      : r,
-  );
+export type ValidationRow = Record<string, unknown>;
+export type LookupResult = object;
+
+type LookupFetch = {
+  bivarianceHack(context?: { row?: ValidationRow }): Promise<LookupResult[]>;
+}["bivarianceHack"];
+
+export function normalizeValidationRules(rules: FieldRule[]): FieldRule[] {
+  return rules.map((rule) => {
+    const lookup = rule.lookup;
+    if (!lookup?.fetch) return rule;
+    return {
+      ...rule,
+      lookup: {
+        ...lookup,
+        fetch: async (ctx?: { row?: ValidationRow }) => {
+          const result = await lookup.fetch(ctx);
+          return Array.isArray(result) ? result : [];
+        },
+      },
+    };
+  });
 }
 
 export type FieldRule = {
@@ -20,25 +27,25 @@ export type FieldRule = {
   key: string;
   required?: boolean;
   lookup?: {
-    fetch: (ctx?: { row?: any }) => Promise<any[]>;
-    labelField: string;
-    idField: string;
+    fetch: LookupFetch;
+    labelField?: string;
+    idField?: string;
   };
   number?: boolean;
-  options?: string[];
+  options?: Array<string | { label: string; value: string }>;
   keySource?: string;
 };
 
 export async function validateRows(
-  parsedRows: any[],
+  parsedRows: ValidationRow[],
   rules: FieldRule[]
 ) {
   const errors: string[] = [];
-  const validRows: any[] = [];
+  const validRows: ValidationRow[] = [];
 
   for (let rowIndex = 0; rowIndex < parsedRows.length; rowIndex++) {
     const row = parsedRows[rowIndex];
-    const out: any = {};
+    const out: ValidationRow = {};
     const rowNum = rowIndex + 2;
 
     for (const rule of rules) {
@@ -57,7 +64,9 @@ export async function validateRows(
       }
 
       // Options check
-      if (rule.options && !rule.options.includes(rawVal)) {
+      if (rule.options && !rule.options.some((option) =>
+        (typeof option === "string" ? option : option.value) === rawVal
+      )) {
         errors.push(`Row ${rowNum}: Invalid "${rule.label}" → "${rawVal}"`);
         continue;
       }
@@ -77,15 +86,16 @@ export async function validateRows(
       if (rule.lookup) {
         try {
           const list = await rule.lookup.fetch({ row: out }); // Pass current row progress
-          const map = new Map<string, any>();
+          const map = new Map<string, LookupResult>();
           
           
 for (const item of list) {
       const labelField = rule.lookup.labelField ?? "label";
 
-      const label = String(item[labelField] ?? "").toLowerCase();
+      const record = item as Record<string, unknown>;
+      const label = String(record[labelField] ?? "").toLowerCase();
       if (label) {
-        map.set(label, item);
+        map.set(label, record);
       }
     }
 
@@ -99,10 +109,11 @@ for (const item of list) {
     const labelField = rule.lookup.labelField ?? "label";
     const idField = rule.lookup.idField ?? "value";
 
-    out[rule.key] = hit[idField];
-    out[sourceKey] = hit[labelField];
+    const hitRecord = hit as Record<string, unknown>;
+    out[rule.key] = hitRecord[idField];
+    out[sourceKey] = hitRecord[labelField];
 
-          out[`${rule.key}Name`] = hit[rule.lookup.labelField];
+          out[`${rule.key}Name`] = hitRecord[labelField];
         } catch (error) {
           errors.push(`Row ${rowNum}: Error validating "${rule.label}"`);
         }

@@ -6,21 +6,24 @@ interface Props {
     open: boolean;
     onClose: () => void;
     option: ProjectOption | null;
-    onDeleted: () => void;
+    onDeleted: () => void | Promise<void>;
 }
 
 export default function DeleteOptionModal({ open, onClose, option, onDeleted }: Props) {
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     if (!open || !option) return null;
 
     const handleDelete = async () => {
+        setError(null);
         setLoading(true);
         try {
             await ProjectOptionsService.deleteOption(option.id);
-            onDeleted();
+            await onDeleted();
         } catch (e) {
             console.error("Failed to delete option:", e);
+            setError(e instanceof Error ? e.message : "Could not delete the option. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -42,6 +45,7 @@ export default function DeleteOptionModal({ open, onClose, option, onDeleted }: 
                 <p className="text-sm text-text-base leading-relaxed mb-12">
                     Do you want to proceed?
                 </p>
+                {error && <p className="mb-5 text-sm text-danger" role="alert">{error}</p>}
 
                 <div className="flex justify-end gap-3">
                     <button

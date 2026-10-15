@@ -1,5 +1,7 @@
 import http from '@/http';
 import { formatEmissionsOrQuantity } from '@/utils/utils';
+import type { DataEntryRow } from './dataEntryTypes';
+import { asTableConfigRecord } from './tableConfigUtils';
 
 interface OperationalEquipment {
   id: string;
@@ -12,8 +14,8 @@ interface OperationalEquipment {
 }
 
 type BoundaryContext = {
-  boundary: any;
-  existingRow?: any;
+  boundary: { id: string; category: string; sub_category: string };
+  existingRow?: DataEntryRow;
 };
 
 
@@ -24,7 +26,7 @@ async function fetchActiveOperationalEquipment(projectId?: string): Promise<Oper
   const cached = _opEquipCacheByProject[cacheKey];
   if (cached && cached.length > 0) return cached;
   try {
-    const params: Record<string, any> = { limit: 500 };
+    const params: Record<string, string | number> = { limit: 500 };
     if (projectId) {
       params.project_id = projectId;
     }
@@ -38,7 +40,7 @@ async function fetchActiveOperationalEquipment(projectId?: string): Promise<Oper
   return _opEquipCacheByProject[cacheKey] ?? [];
 }
 
-export const opEnergyTableConfig = (projectId: any) => ({
+export const opEnergyTableConfig = (projectId?: string) => ({
   tableName: "Component level (grade 2)",
 
 boundary: {
@@ -59,7 +61,7 @@ boundary: {
     grade: 2,
     requiredKeys: ["item", "quantity"],
     triggerKeys: ["item", "quantity"],
-    buildPayload: (row: any, ctx: any) => {
+    buildPayload: (row: DataEntryRow, ctx: { jurisdiction?: string; ops_start_year?: number; reference_period?: number }) => {
       if (!row.item || !row.quantity) return null;
       const opsStart = ctx.ops_start_year;
       const opsLife = ctx.reference_period;
@@ -79,19 +81,22 @@ boundary: {
         project_id: projectId,
       };
     },
-    calculate: async (payload: any) => {
+    calculate: async (payload: Record<string, unknown>) => {
       const res = await http.post('/api/operational-calculations/calculate', payload);
       return res.data;
     },
-    mapResultToRow: (apiRes: any) => ({
-      location_based_total_tco2e: apiRes.location_based_total_tco2e ?? null,
-      market_based_total_tco2e: apiRes.market_based_total_tco2e ?? null,
-      scope2_location_based_tco2e: apiRes.scope2_location_based_tco2e ?? null,
-      scope2_market_based_tco2e: apiRes.scope2_market_based_tco2e ?? null,
-      scope3_location_based_tco2e: apiRes.scope3_location_based_tco2e ?? null,
-      scope3_market_based_tco2e: apiRes.scope3_market_based_tco2e ?? null,
-      emissions_tco2e: apiRes.location_based_total_tco2e ?? null,
-    }),
+    mapResultToRow: (apiRes: unknown) => {
+      const result = asTableConfigRecord(apiRes);
+      return {
+        location_based_total_tco2e: result.location_based_total_tco2e ?? null,
+        market_based_total_tco2e: result.market_based_total_tco2e ?? null,
+        scope2_location_based_tco2e: result.scope2_location_based_tco2e ?? null,
+        scope2_market_based_tco2e: result.scope2_market_based_tco2e ?? null,
+        scope3_location_based_tco2e: result.scope3_location_based_tco2e ?? null,
+        scope3_market_based_tco2e: result.scope3_market_based_tco2e ?? null,
+        emissions_tco2e: result.location_based_total_tco2e ?? null,
+      };
+    },
   },
 
   fileHeaders: [
@@ -123,7 +128,7 @@ boundary: {
       key: "item",
       required: true,
       lookup: {
-        fetch: async (ctx?: { row?: any }) => {
+        fetch: async (ctx?: { row?: DataEntryRow }) => {
           const group = ctx?.row?.group_name;
           if (!group) return [];
           const equip = await fetchActiveOperationalEquipment(projectId);
@@ -140,24 +145,11 @@ boundary: {
   ],
 
   columns: () => [
-    // {
-    //   header: "Emissions Category",
-    //   key: "emissions_category",
-    //   editable: true,
-    //   editableWhen: (row: any) => row?.id === "__NEW__",
-    //   editorType: "select",
-    //   defaultValue: "Electricity",
-    //   getOptions: async () => [
-    //     { label: "Electricity", value: "Electricity" },
-    //   ],
-    //   render: (row: any) => row?.emissions_category ?? "Electricity",
-    // },
     {
       header: "Group",
       width: "18%",
       key: "group_name",
       editable: true,
-      // editableWhen: (row: any) => row?.id === "__NEW__",
       editorType: "select",
       getOptions: async () => {
         const equip = await fetchActiveOperationalEquipment(projectId);
@@ -171,11 +163,10 @@ boundary: {
       width: "24%",
       key: "item",
       editable: true,
-      // editableWhen: (row: any) => row?.id === "__NEW__",
       editorType: "select",
       idKey: "eq_id",
       dependsOnKeys: ["group_name"],
-      getOptions: async (ctx?: { row?: any }) => {
+      getOptions: async (ctx?: { row?: DataEntryRow }) => {
         const group = ctx?.row?.group_name;
         if (!group) return [];
         const equip = await fetchActiveOperationalEquipment(projectId);
@@ -183,7 +174,7 @@ boundary: {
           .filter((e) => e.group_name === group)
           .map((e) => ({ label: e.item, value: e.id }));
       },
-      onSelect: (_selected: any) => ({ unit_code: "Each" }),
+      onSelect: (_selected?: Record<string, unknown>) => ({ unit_code: "Each" }),
       noCache: true,
       refreshOnDepsChange: true,
     },
@@ -197,7 +188,7 @@ boundary: {
       getOptions: async () => [
         { label: "Each", value: "Each" },
       ],
-      render: (row: any) => row?.unit_code ?? "Each",
+      render: (row: DataEntryRow) => row.unit_code ?? "Each",
     },
     {
       header: "Quantity",
@@ -211,14 +202,14 @@ boundary: {
       width: "18%",
       key: "location_based_total_tco2e",
       editable: false,
-      render: (row: any) => formatEmissionsOrQuantity(row.location_based_total_tco2e),
+      render: (row: DataEntryRow) => formatEmissionsOrQuantity(row.location_based_total_tco2e),
     },
     {
       header: "Market-Based Emissions (tCO₂e)",
       width: "18%",
       key: "market_based_total_tco2e",
       editable: false,
-      render: (row: any) => formatEmissionsOrQuantity(row.market_based_total_tco2e),
+      render: (row: DataEntryRow) => formatEmissionsOrQuantity(row.market_based_total_tco2e),
     },
     // Hidden scope breakdown columns — stored for dashboard/LCA use but not shown in the UI
     // {

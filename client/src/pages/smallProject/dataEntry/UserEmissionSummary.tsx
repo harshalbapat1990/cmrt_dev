@@ -1,9 +1,9 @@
 import { formatDisplayNumber } from "@/utils/utils";
 
 type EmissionsSummaryState = {
-  absoluteEmissions: number;
-  baseCaseAbsoluteEmissions: number;
-  relativeUserEmissions: number;
+  absoluteEmissions: unknown;
+  baseCaseAbsoluteEmissions: unknown;
+  relativeUserEmissions: unknown;
 };
 
 export const emptySummary: EmissionsSummaryState = {

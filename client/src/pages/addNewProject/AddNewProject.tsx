@@ -137,7 +137,7 @@ export default function AddNewProject({ mode = "create" }: Props) {
   const isEdit = mode === "edit";
   const { projectId } = useParams<{ projectId: string }>();
 
-  const navigate = typeof useNavigate === "function" ? useNavigate() : null;
+  const navigate = useNavigate();
   const { user } = useUser();
   const [loading, setLoading] = useState(isEdit);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -704,9 +704,6 @@ const nextErrors: Step3Errors = {
     if (step === 3) {
       if (!validateStep3()) return;
     }
-    if (step === 4) {
-    }
-
     setStep(s => Math.min(s + 1, 4));
   }, [
     step,

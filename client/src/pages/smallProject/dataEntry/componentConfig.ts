@@ -1,23 +1,31 @@
 // componentConfig.ts
 import LookupsService, { type UnitOption } from "@/services/Lookups.service";
 import EmissionCalculationsService from "@/services/EmissionCalculations.service";
+import type { DataEntryRow } from "./dataEntryTypes";
+import type { CalcCtx } from "./useEmissionsCalc";
 
 const GRADE2_IDS = [2];
 
 type BoundaryContext = {
-  boundary: any;
-  existingRow?: any;
+  boundary: { id?: string; category?: string; sub_category?: string; source?: string | null };
+  existingRow?: DataEntryRow;
 };
 
+const asRecord = (value: unknown): Record<string, unknown> =>
+  typeof value === "object" && value !== null ? value as Record<string, unknown> : {};
 
-const mapToOptions = (list: any[], labelField = "name", valueField = "id") =>
-  (list ?? []).map((x) => ({ label: x[labelField], value: x[valueField] }));
+const mapToOptions = (list: unknown[], labelField = "name", valueField = "id") =>
+  list.map((value) => {
+    const record = asRecord(value);
+    return { label: record[labelField], value: record[valueField] };
+  });
 
 
-const pickLabel = (v: any) => {
+const pickLabel = (v: unknown): string => {
   if (v == null) return "";
   if (typeof v === "string" || typeof v === "number") return String(v);
-  return v.label ?? v.name ?? v.value ?? "";
+  const record = asRecord(v);
+  return pickLabel(record.label ?? record.name ?? record.value);
 };
 
 
@@ -62,7 +70,7 @@ export const componentTableConfig = (projectId: string) => ({
       "unit_code",
       "unit_id",
     ],
-    buildPayload: (row: any, ctx: { jurisdiction: string }) => {
+    buildPayload: (row: DataEntryRow, ctx: Pick<CalcCtx, "jurisdiction">) => {
       const emissions_category = pickLabel(row.emissions_category);
       const emissions_sub_category = pickLabel(row.emissions_subcategory);
       const emissions_source = pickLabel(row.emissions_source_name);
@@ -86,16 +94,19 @@ export const componentTableConfig = (projectId: string) => ({
     },
 
     // table-specific API call
-    calculate: async (payload: any) => {
+    calculate: async (payload: Record<string, unknown>) => {
       // For component table, use grade2 endpoint OR your table endpoint
       return EmissionCalculationsService.grade2EmissionValues(payload);
     },
 
     // map API response -> row changes
-    mapResultToRow: (apiRes: any) => ({
-      emissions_tco2e: apiRes?.total_emissions_tco2e ?? null,
-      total_emissions_tco2e: apiRes?.total_emissions_tco2e ?? null, // for easier access in calculations
-    }),
+    mapResultToRow: (apiRes: unknown) => {
+      const result = asRecord(apiRes);
+      return {
+        emissions_tco2e: result.total_emissions_tco2e ?? null,
+        total_emissions_tco2e: result.total_emissions_tco2e ?? null,
+      };
+    },
 
   },
 
@@ -129,7 +140,7 @@ export const componentTableConfig = (projectId: string) => ({
       key: "emissions_subcategory_id",
       required: true,
       lookup: {
-        fetch: async (ctx?: { row?: any }) => {
+        fetch: async (ctx?: { row?: DataEntryRow }) => {
           const categoryId = ctx?.row?.emissions_category_id;
           if (!categoryId) return [];
           const list = await LookupsService.fetchBgmSubcategories(GRADE2_IDS, categoryId, projectId);
@@ -145,7 +156,7 @@ export const componentTableConfig = (projectId: string) => ({
       key: "emissions_source",
       required: true,
       lookup: {
-        fetch: async (ctx?: { row?: any }) => {
+        fetch: async (ctx?: { row?: DataEntryRow }) => {
           const subCategoryId = ctx?.row?.emissions_subcategory_id;
           if (!subCategoryId) return [];
           const list = await LookupsService.fetchBgmSources(GRADE2_IDS, subCategoryId, projectId);
@@ -161,8 +172,9 @@ export const componentTableConfig = (projectId: string) => ({
       key: "unit_id",
       required: true,
       lookup: {
-        fetch: async (ctx?: { row?: any }) => {
-          const source = ctx?.row?.emissions_source;
+        fetch: async (ctx?: { row?: DataEntryRow }) => {
+          const sourceValue = ctx?.row?.emissions_source;
+          const source = typeof sourceValue === "string" ? sourceValue : null;
           const subCategoryId = ctx?.row?.emissions_subcategory_id;
           if (source && subCategoryId) {
             const datasetRevisionId = projectId ? await LookupsService.resolveProjectDatasetRevisionId(projectId) : null;
@@ -195,7 +207,6 @@ export const componentTableConfig = (projectId: string) => ({
       width: "20%",
       key: "emissions_category",
       editable: true,
-      // editableWhen: (row: any) => row?.id === "__NEW__",
       editorType: "select",
       idKey: "emissions_category_id",
       getOptions: async () => {
@@ -217,11 +228,10 @@ export const componentTableConfig = (projectId: string) => ({
       width: "18%",
       key: "emissions_subcategory",
       editable: true,
-      // editableWhen: (row: any) => row?.id === "__NEW__",
       editorType: "select",
       idKey: "emissions_subcategory_id",
       dependsOnKeys: ["emissions_category_id"],
-      getOptions: async (ctx?: { row?: any }) => {
+      getOptions: async (ctx?: { row?: DataEntryRow }) => {
         const categoryId = ctx?.row?.emissions_category_id;
         if (!categoryId) return [];
         const list = await LookupsService.fetchBgmSubcategories(GRADE2_IDS, categoryId, projectId);
@@ -236,11 +246,10 @@ export const componentTableConfig = (projectId: string) => ({
       width: "22%",
       key: "emissions_source_name",
       editable: true,
-      // editableWhen: (row: any) => row?.id === "__NEW__",
       editorType: "select",
       idKey: "emissions_source",
       dependsOnKeys: ["emissions_subcategory_id"],
-      getOptions: async (ctx?: { row?: any }) => {
+      getOptions: async (ctx?: { row?: DataEntryRow }) => {
         const subCategoryId = ctx?.row?.emissions_subcategory_id;
         if (!subCategoryId) return [];
         const list = await LookupsService.fetchBgmSources(GRADE2_IDS, subCategoryId, projectId);
@@ -255,12 +264,12 @@ export const componentTableConfig = (projectId: string) => ({
       width: "8%",
       key: "unit_code",
       editable: true,
-      // editableWhen: (row: any) => row?.id === "__NEW__",
       editorType: "select",
       idKey: "unit_id",
       dependsOnKeys: ["emissions_source"],
-      getOptions: async (ctx?: { row?: any }) => {
-        const source = ctx?.row?.emissions_source;
+      getOptions: async (ctx?: { row?: DataEntryRow }) => {
+        const sourceValue = ctx?.row?.emissions_source;
+        const source = typeof sourceValue === "string" ? sourceValue : null;
         const subCategoryId = ctx?.row?.emissions_subcategory_id;
         const datasetRevisionId = (source && subCategoryId && projectId)
           ? await LookupsService.resolveProjectDatasetRevisionId(projectId) : null;
@@ -275,7 +284,7 @@ export const componentTableConfig = (projectId: string) => ({
           to_canonical_factor: u.to_canonical_factor ?? null,
         }));
       },
-      onSelect: (selected: any) => ({
+      onSelect: (selected?: Record<string, unknown>) => ({
         canonical_unit_id: selected?.canonical_unit_id ?? null,
         unit_conversion_factor: selected?.to_canonical_factor ?? null,
         canonical_unit_code: selected?.canonical_unit_code ?? selected?.label ?? null,

@@ -53,7 +53,8 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   withSearch = false,
 }) => {
   const listboxId = useId();
-  const buttonId = id ?? useId();
+  const generatedButtonId = useId();
+  const buttonId = id ?? generatedButtonId;
 
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number>(-1);

@@ -1,17 +1,24 @@
 import LookupsService from "@/services/Lookups.service";
 import EmissionCalculationsService from "@/services/EmissionCalculations.service";
 import { formatDisplayNumber } from "@/utils/utils";
+import type { DataEntryRow } from "./dataEntryTypes";
 
 const GRADE2_IDS = [2];
 
-const mapToOptions = (list: any[], labelField = "name", valueField = "id") =>
-  (list ?? []).map((x) => ({ label: x[labelField], value: x[valueField] }));
+const asRecord = (value: unknown): Record<string, unknown> =>
+  typeof value === "object" && value !== null ? value as Record<string, unknown> : {};
+const mapToOptions = (list: unknown[], labelField = "name", valueField = "id") =>
+  list.map((value) => {
+    const record = asRecord(value);
+    return { label: record[labelField], value: record[valueField] };
+  });
 
 
-const pickLabel = (v: any) => {
+const pickLabel = (v: unknown): string => {
   if (v == null) return "";
   if (typeof v === "string" || typeof v === "number") return String(v);
-  return v.label ?? v.name ?? v.value ?? "";
+  const record = asRecord(v);
+  return pickLabel(record.label ?? record.name ?? record.value);
 };
 
 export const componentReplacementConfig = (projectId?: string) => ({
@@ -37,7 +44,7 @@ export const componentReplacementConfig = (projectId?: string) => ({
       "life",
       "quantity",
     ],
-    buildPayload: (row: any, ctx: { project_id?: string }) => {
+    buildPayload: (row: DataEntryRow, ctx: { project_id?: string }) => {
       const emissions_category = pickLabel(row.emissions_category);
       const emissions_sub_category = pickLabel(row.emissions_subcategory);
       const emissions_source = pickLabel(row.emissions_source_name);
@@ -74,16 +81,19 @@ export const componentReplacementConfig = (projectId?: string) => ({
     },
 
     // table-specific API call
-    calculate: async (payload: any) => {
+    calculate: async (payload: Record<string, unknown>) => {
       // For component table, use grade2 endpoint OR your table endpoint
       return EmissionCalculationsService.grade2B4ReplCalculations(payload);
     },
 
     // map API response -> row changes
-    mapResultToRow: (apiRes: any) => ({
-      emissions_tco2e: apiRes?.total_emissions_tco2e ?? null,
-      total_emissions_tco2e: apiRes?.total_emissions_tco2e ?? null,
-    }),
+    mapResultToRow: (apiRes: unknown) => {
+      const result = asRecord(apiRes);
+      return {
+        emissions_tco2e: result.total_emissions_tco2e ?? null,
+        total_emissions_tco2e: result.total_emissions_tco2e ?? null,
+      };
+    },
 
   },
 
@@ -131,7 +141,7 @@ export const componentReplacementConfig = (projectId?: string) => ({
       key: "emissions_subcategory_id",
       required: true,
       lookup: {
-        fetch: async (ctx?: { row?: any }) => {
+        fetch: async (ctx?: { row?: DataEntryRow }) => {
           const categoryId = ctx?.row?.emissions_category_id;
           if (!categoryId) return [];
           const list = await LookupsService.fetchBgmSubcategories(GRADE2_IDS, categoryId, projectId);
@@ -147,7 +157,7 @@ export const componentReplacementConfig = (projectId?: string) => ({
       key: "emissions_source",
       required: true,
       lookup: {
-        fetch: async (ctx?: { row?: any }) => {
+        fetch: async (ctx?: { row?: DataEntryRow }) => {
           const subCategoryId = ctx?.row?.emissions_subcategory_id;
           if (!subCategoryId) return [];
           const list = await LookupsService.fetchBgmSources(GRADE2_IDS, subCategoryId, projectId);
@@ -167,7 +177,6 @@ export const componentReplacementConfig = (projectId?: string) => ({
       width: "22%",
       key: "emissions_category",
       editable: true,
-      // editableWhen: (row: any) => row?.id === "__NEW__",
       editorType: "select",
       idKey: "emissions_category_id",
       getOptions: async () => {
@@ -186,11 +195,10 @@ export const componentReplacementConfig = (projectId?: string) => ({
       width: "22%",
       key: "emissions_subcategory",
       editable: true,
-      // editableWhen: (row: any) => row?.id === "__NEW__",
       editorType: "select",
       idKey: "emissions_subcategory_id",
       dependsOnKeys: ["emissions_category_id"],
-      getOptions: async (ctx?: { row?: any }) => {
+      getOptions: async (ctx?: { row?: DataEntryRow }) => {
         const categoryId = ctx?.row?.emissions_category_id;
         if (!categoryId) return [];
         const list = await LookupsService.fetchBgmSubcategories(GRADE2_IDS, categoryId, projectId);
@@ -205,11 +213,10 @@ export const componentReplacementConfig = (projectId?: string) => ({
       width: "24%",
       key: "emissions_source_name",
       editable: true,
-      // editableWhen: (row: any) => row?.id === "__NEW__",
       editorType: "select",
       idKey: "emissions_source",
       dependsOnKeys: ["emissions_subcategory_id"],
-      getOptions: async (ctx?: { row?: any }) => {
+      getOptions: async (ctx?: { row?: DataEntryRow }) => {
         const subCategoryId = ctx?.row?.emissions_subcategory_id;
         if (!subCategoryId) return [];
         const list = await LookupsService.fetchBgmSources(GRADE2_IDS, subCategoryId, projectId);
@@ -231,7 +238,7 @@ export const componentReplacementConfig = (projectId?: string) => ({
       width: "12%", 
       key: "emissions_tco2e", 
       editable: false,
-      render: (row: any) =>
+      render: (row: DataEntryRow) =>
         row.emissions_tco2e == null || row.emissions_tco2e === "-"
           ? "-"
           : formatDisplayNumber(row.emissions_tco2e),

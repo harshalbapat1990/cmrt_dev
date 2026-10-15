@@ -134,7 +134,7 @@ export const validateUploadedRows = async (
 
     // Units for that source
     const srcId = sourceHit.id;
-    // eslint-disable-next-line no-async-promise-executor
+     
     // We'll resolve sequentially since this is inside sync loop; we’ll collect promises and await later
     (async () => await ensureUnitsForSource(srcId))();
     validRows.push({
