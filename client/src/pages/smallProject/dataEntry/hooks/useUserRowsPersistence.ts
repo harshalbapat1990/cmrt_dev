@@ -39,28 +39,49 @@ export function useUserRowsPersistence<Row extends PersistedUserRow>({
   ) => {
     if (readOnly) return;
     setSaveState("saving");
+    const persistenceStartedAt = performance.now();
+    let bulkSaveMs = 0;
+    let totalsRefreshMs = 0;
     try {
       const payload = buildPayload(rows, summary);
       if (payload.length === 0) {
         setSaveState("idle");
         return;
       }
+      const bulkSaveStartedAt = performance.now();
       const saved = await persistUserActivityRows(
         stageInstanceId,
         tableKey,
         payload,
         projectMitigationId ?? undefined,
       );
+      bulkSaveMs = performance.now() - bulkSaveStartedAt;
       setRows((previous) => previous.map((row) => {
         const savedRow = saved.find((candidate) =>
           candidate.extra_fields?.vehicle_type === row.vehicleType
         );
         return savedRow ? { ...row, id: savedRow.id } : row;
       }));
+      const totalsRefreshStartedAt = performance.now();
       await onTotalsUpdated?.();
+      totalsRefreshMs = performance.now() - totalsRefreshStartedAt;
+      if (tableKey === "roadUsers" && import.meta.env.DEV) {
+        console.debug("[road users persistence timing]", {
+          bulkSaveMs: Math.round(bulkSaveMs),
+          totalsRefreshMs: Math.round(totalsRefreshMs),
+          totalMs: Math.round(performance.now() - persistenceStartedAt),
+        });
+      }
       setSaveState("saved");
     } catch (error) {
       console.error(`Failed to save ${errorLabel}:`, error);
+      if (tableKey === "roadUsers" && import.meta.env.DEV) {
+        console.debug("[road users persistence timing] failed", {
+          bulkSaveMs: Math.round(bulkSaveMs),
+          totalsRefreshMs: Math.round(totalsRefreshMs),
+          totalMs: Math.round(performance.now() - persistenceStartedAt),
+        });
+      }
       setSaveState("idle");
     }
   }, [

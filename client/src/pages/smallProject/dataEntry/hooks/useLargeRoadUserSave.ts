@@ -32,11 +32,32 @@ export function useLargeRoadUserSave({
 }: Params) {
   const save = useCallback(async () => {
     if (readOnly) return;
+    const saveStartedAt = performance.now();
+    let calculationMs = 0;
+    let persistenceMs = 0;
     try {
+      const calculationStartedAt = performance.now();
       const calculatedSummary = await calculateSummary(yearData, region, roadParams);
+      calculationMs = performance.now() - calculationStartedAt;
+      const persistenceStartedAt = performance.now();
       await persistAll(yearData, roadParams, calculatedSummary ?? currentSummary);
+      persistenceMs = performance.now() - persistenceStartedAt;
+      if (import.meta.env.DEV) {
+        console.debug("[large road users save timing]", {
+          calculationMs: Math.round(calculationMs),
+          persistenceAndTotalsMs: Math.round(persistenceMs),
+          totalMs: Math.round(performance.now() - saveStartedAt),
+        });
+      }
     } catch (error) {
       console.error("Failed to save large road users data:", error);
+      if (import.meta.env.DEV) {
+        console.debug("[large road users save timing] failed", {
+          calculationMs: Math.round(calculationMs),
+          persistenceAndTotalsMs: Math.round(persistenceMs),
+          totalMs: Math.round(performance.now() - saveStartedAt),
+        });
+      }
     }
   }, [readOnly, yearData, region, roadParams, currentSummary, calculateSummary, persistAll]);
 

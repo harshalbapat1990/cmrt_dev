@@ -31,8 +31,11 @@ Road parameter text → numeric mappings (large-project values):
 
 from __future__ import annotations
 
+import json
+import logging
 from dataclasses import dataclass
 from decimal import Decimal
+from time import perf_counter
 from typing import Optional
 from uuid import UUID
 
@@ -50,6 +53,12 @@ from schemas.user_emissions_aus_large_road import (
     VehicleTypeAnnualResult,
 )
 from services.user_emissions_result_ledger import sync_annual_road_results
+from services.aus_road_emissions_batch import (
+    AUS_INTENSITY_BATCH_SQL,
+    build_aus_intensity_pairs_for_inputs,
+)
+
+logger = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -84,16 +93,6 @@ _IRI_MAP: dict[str, float] = {
 # ─────────────────────────────────────────────────────────────────────────────
 # Project reference period helper
 # ─────────────────────────────────────────────────────────────────────────────
-
-_AUS_INTENSITY_SQL = text("""
-    SELECT vehicle_class, fleet_avg_emissions_intensity_gco2e_per_vkt
-    FROM fn_veh_emissions_intensity_aus(
-        :p_year, :p_state, :p_scenario,
-        :p_gradient, :p_curvature, :p_iri,
-        :p_speed_kph, :p_dataset_revision_id
-    )
-""")
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Fetch base-case option and its interim emissions (ALL vehicle types)
@@ -305,6 +304,7 @@ async def calculate_and_store_aus_large_road(
     The caller must commit the session after a successful return.
     """
 
+    calculation_started_at = perf_counter()
     # ── 1. Reference period ──────────────────────────────────────────────────
     commencement_year, operational_life_years, state_name = (
         await _get_project_reference_period(db, req.project_id)
@@ -362,48 +362,59 @@ async def calculate_and_store_aus_large_road(
         for vt, anchors in vehicle_anchors.items()
     }
 
-    # ── 5. Loop over years and vehicle types; cache DB calls by (year, speed) ─
-    # intensity_cache: (lookup_year, speed_float) → {vehicle_class: Optional[Decimal]}
-    intensity_cache: dict[tuple[int, float], dict[str, Optional[Decimal]]] = {}
+    # ── 5. Fetch required intensities in one round trip ───────────────────────
+    year_speed_inputs: set[tuple[int, float]] = set()
+    for year in ref_years:
+        lookup_year = max(aus_min_year, min(aus_max_year, year))
+        for year_values in vehicle_year_values.values():
+            _, speed = year_values[year]
+            year_speed_inputs.add((lookup_year, float(speed)))
+    requested_pairs = build_aus_intensity_pairs_for_inputs(
+        year_speed_inputs, aus_min_year, aus_max_year
+    )
+    intensity_started_at = perf_counter()
+    intensity_rows = []
+    if requested_pairs:
+        intensity_rows = (
+            await db.execute(
+                AUS_INTENSITY_BATCH_SQL,
+                {
+                    "requested_pairs": json.dumps(requested_pairs),
+                    "p_state": state_name,
+                    "p_scenario": req.ev_uptake_scenario,
+                    "p_gradient": gradient_val,
+                    "p_curvature": curvature_val,
+                    "p_iri": iri_val,
+                    "p_dataset_revision_id": str(dataset_revision_id),
+                },
+            )
+        ).mappings().all()
+    intensity_cache: dict[tuple[int, float], dict[str, Optional[Decimal]]] = {
+        (int(pair["assessment_year"]), float(pair["speed_kph"])): {}
+        for pair in requested_pairs
+    }
+    for row in intensity_rows:
+        intensity_value = row["fleet_avg_emissions_intensity_gco2e_per_vkt"]
+        intensity_cache.setdefault(
+            (int(row["assessment_year"]), float(row["speed_kph"])), {}
+        )[row["vehicle_class"]] = (
+            Decimal(str(intensity_value)).quantize(Decimal("0.000001"))
+            if intensity_value is not None
+            else None
+        )
+    intensity_elapsed_ms = (perf_counter() - intensity_started_at) * 1000
 
     vehicle_annual_rows: dict[str, list[AusLargeRoadAnnualRow]] = {
         vt: [] for vt in vehicle_anchors
     }
 
-    t = UserEmissionsAusLargeRoadResult.__table__
+    annual_upserts: list[dict[str, object]] = []
 
     for year in ref_years:
         for vt, year_vals in vehicle_year_values.items():
             vkt, speed = year_vals[year]
             lookup_year = max(aus_min_year, min(aus_max_year, year))
             cache_key = (lookup_year, float(speed))
-
-            # Only call fn_veh_emissions_intensity_aus once per (year, speed) combo
-            if cache_key not in intensity_cache:
-                rows = (
-                    await db.execute(
-                        _AUS_INTENSITY_SQL,
-                        {
-                            "p_year":      lookup_year,
-                            "p_state":     state_name,
-                            "p_scenario":  req.ev_uptake_scenario,
-                            "p_gradient":  gradient_val,
-                            "p_curvature": curvature_val,
-                            "p_iri":       iri_val,
-                            "p_speed_kph": float(speed),
-                            "p_dataset_revision_id": str(dataset_revision_id),
-                        },
-                    )
-                ).mappings().all()
-                intensity_cache[cache_key] = {
-                    r["vehicle_class"]: (
-                        Decimal(str(r["fleet_avg_emissions_intensity_gco2e_per_vkt"]))
-                        .quantize(Decimal("0.000001"))
-                        if r["fleet_avg_emissions_intensity_gco2e_per_vkt"] is not None
-                        else None
-                    )
-                    for r in rows
-                }
 
             intensity: Optional[Decimal] = intensity_cache[cache_key].get(vt)
 
@@ -425,41 +436,46 @@ async def calculate_and_store_aus_large_road(
                 )
             )
 
-            # Upsert into DB
-            ins = pg_insert(UserEmissionsAusLargeRoadResult).values(
-                id=_uuid.uuid4(),
-                project_id=req.project_id,
-                project_stage_instance_id=req.project_stage_instance_id,
-                project_option_id=req.project_option_id,
-                vehicle_type=vt,
-                assessment_year=year,
-                vkt_calc=vkt_q,
-                speed_kph_calc=speed_q,
-                gradient_m_per_km=Decimal(str(gradient_val)),
-                curvature_deg_per_km=Decimal(str(curvature_val)),
-                iri_m_per_km=Decimal(str(iri_val)),
-                emissions_intensity_gco2e_vkt=intensity,
-                emissions_tco2e=emissions,
+            annual_upserts.append({
+                "id": _uuid.uuid4(),
+                "project_id": req.project_id,
+                "project_stage_instance_id": req.project_stage_instance_id,
+                "project_option_id": req.project_option_id,
+                "vehicle_type": vt,
+                "assessment_year": year,
+                "vkt_calc": vkt_q,
+                "speed_kph_calc": speed_q,
+                "gradient_m_per_km": Decimal(str(gradient_val)),
+                "curvature_deg_per_km": Decimal(str(curvature_val)),
+                "iri_m_per_km": Decimal(str(iri_val)),
+                "emissions_intensity_gco2e_vkt": intensity,
+                "emissions_tco2e": emissions,
+            })
+
+    annual_write_started_at = perf_counter()
+    if annual_upserts:
+        ins = pg_insert(UserEmissionsAusLargeRoadResult).values(annual_upserts)
+        await db.execute(
+            ins.on_conflict_do_update(
+                constraint="uq_aus_large_road_option_vehicle_year",
+                set_={
+                    "vkt_calc":                      ins.excluded.vkt_calc,
+                    "speed_kph_calc":                ins.excluded.speed_kph_calc,
+                    "gradient_m_per_km":             ins.excluded.gradient_m_per_km,
+                    "curvature_deg_per_km":          ins.excluded.curvature_deg_per_km,
+                    "iri_m_per_km":                  ins.excluded.iri_m_per_km,
+                    "emissions_intensity_gco2e_vkt": ins.excluded.emissions_intensity_gco2e_vkt,
+                    "emissions_tco2e":               ins.excluded.emissions_tco2e,
+                    "created_at":                    sa_func.now(),
+                },
             )
-            await db.execute(
-                ins.on_conflict_do_update(
-                    constraint="uq_aus_large_road_option_vehicle_year",
-                    set_={
-                        "vkt_calc":                      ins.excluded.vkt_calc,
-                        "speed_kph_calc":                ins.excluded.speed_kph_calc,
-                        "gradient_m_per_km":             ins.excluded.gradient_m_per_km,
-                        "curvature_deg_per_km":          ins.excluded.curvature_deg_per_km,
-                        "iri_m_per_km":                  ins.excluded.iri_m_per_km,
-                        "emissions_intensity_gco2e_vkt": ins.excluded.emissions_intensity_gco2e_vkt,
-                        "emissions_tco2e":               ins.excluded.emissions_tco2e,
-                        "created_at":                    sa_func.now(),
-                    },
-                )
-            )
+        )
 
     # ── 6. Interim total: re-read from DB (all vehicle types for this option) ──
     # This mirrors the NZ/AUS-small pattern: after every vehicle-type call the
     # response shows the ACCUMULATED total for the option, not just this call.
+    annual_write_elapsed_ms = (perf_counter() - annual_write_started_at) * 1000
+    summary_started_at = perf_counter()
     total_row = (
         await db.execute(
             text(
@@ -490,7 +506,18 @@ async def calculate_and_store_aus_large_road(
             interim_total_rounded - base_case_interim_rounded
         ).quantize(Decimal("0.000001"))
 
+    summary_elapsed_ms = (perf_counter() - summary_started_at) * 1000
+    ledger_started_at = perf_counter()
     await sync_annual_road_results(db, project_option_id=req.project_option_id, project_class="LARGE", is_nz=False)
+    ledger_elapsed_ms = (perf_counter() - ledger_started_at) * 1000
+    logger.info(
+        "AUS large road calculation timing: years=%d vehicle_types=%d intensity_pairs=%d "
+        "intensity_batch_ms=%.1f annual_upsert_rows=%d annual_upsert_ms=%.1f "
+        "summary_queries_ms=%.1f ledger_sync_ms=%.1f total_ms=%.1f",
+        len(ref_years), len(vehicle_anchors), len(requested_pairs), intensity_elapsed_ms,
+        len(annual_upserts), annual_write_elapsed_ms, summary_elapsed_ms,
+        ledger_elapsed_ms, (perf_counter() - calculation_started_at) * 1000,
+    )
     return AusLargeRoadCalculateResponse(
         project_id=req.project_id,
         project_option_id=req.project_option_id,

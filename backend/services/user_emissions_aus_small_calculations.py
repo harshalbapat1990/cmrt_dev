@@ -32,12 +32,14 @@ Final user emissions = interim − base_case_emissions_tco2e.
 
 from __future__ import annotations
 
+import json
+import logging
+import uuid as _uuid
 from collections import defaultdict
 from decimal import Decimal
+from time import perf_counter
 from typing import Optional
 from uuid import UUID
-
-import uuid as _uuid
 
 from sqlalchemy import func, text
 from sqlalchemy.dialects.postgresql import insert as pg_insert
@@ -45,11 +47,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user_emissions_aus_small import UserEmissionsAusSmallResult
 from schemas.user_emissions_aus_small import (
-    AusSmallEmissionsAnnualRow,
     AusSmallEmissionsCalculateRequest,
     AusSmallEmissionsCalculateResponse,
 )
 from services.user_emissions_result_ledger import sync_annual_road_results
+from services.aus_road_emissions_batch import (
+    AUS_INTENSITY_BATCH_SQL,
+    build_aus_intensity_pairs,
+)
+
+logger = logging.getLogger(__name__)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Vehicle class mapping: request field prefix → ATAP vehicle class name
@@ -78,16 +85,6 @@ _DEFAULT_IRI:       float = 2.0
 # SQL — calls fn_veh_emissions_intensity_aus for a given year + speed
 # Returns all vehicle classes; we filter in Python for the 4 we need.
 # ─────────────────────────────────────────────────────────────────────────────
-
-_AUS_INTENSITY_SQL = text("""
-    SELECT vehicle_class, fleet_avg_emissions_intensity_gco2e_per_vkt
-    FROM fn_veh_emissions_intensity_aus(
-        :p_year, :p_state, :p_scenario,
-        :p_gradient, :p_curvature, :p_iri,
-        :p_speed_kph, :p_dataset_revision_id
-    )
-""")
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Project reference-period helper (same pattern as NZ service)
@@ -204,18 +201,16 @@ async def calculate_and_store_aus_small(
 ) -> AusSmallEmissionsCalculateResponse:
     """
     1. Resolve reference period from the project row.
-    2. Group the 4 vehicle types by their speed to minimise DB calls per year.
-    3. For each year in the reference period:
-         a. For each unique speed: call fn_veh_emissions_intensity_aus.
-         b. Extract intensity for each of the 4 vehicle classes.
-         c. Compute emissions = VKT × intensity / 1e6.
-         d. Insert UserEmissionsAusSmallResult row.
-    4. Delete previous results for this option before inserting new ones.
+    2. Group the 4 vehicle types by speed and fetch all year/speed intensities
+       with one database round trip.
+    3. Compute annual emissions and upsert annual result rows in one batch.
+    4. Synchronize the calculated annual totals into the shared result ledger.
     5. Compute interim total and final user emissions.
     6. Return full response.
 
     The caller must commit the session after a successful return.
     """
+    calculation_started_at = perf_counter()
     # ── 1. Reference period ───────────────────────────────────────────────────
     commencement_year, operational_life_years, state_name = await _get_project_reference_period(
         db, req.project_id
@@ -269,9 +264,38 @@ async def calculate_and_store_aus_small(
     aus_min_year: Optional[int] = int(aus_range_row["min_year"]) if aus_range_row and aus_range_row["min_year"] is not None else None
     aus_max_year: Optional[int] = int(aus_range_row["max_year"]) if aus_range_row and aus_range_row["max_year"] is not None else None
 
-    # ── 5. Loop over years ────────────────────────────────────────────────────
-    annual_rows: list[AusSmallEmissionsAnnualRow] = []
-    interim_total = Decimal("0")
+    # ── 5. Fetch all required intensities in one database round trip ──────────
+    requested_pairs = build_aus_intensity_pairs(
+        years, sorted(speed_to_v_keys), aus_min_year, aus_max_year
+    )
+    intensity_started_at = perf_counter()
+    intensity_rows = []
+    if requested_pairs:
+        intensity_rows = (
+            await db.execute(
+                AUS_INTENSITY_BATCH_SQL,
+                {
+                    "requested_pairs": json.dumps(requested_pairs),
+                    "p_state": state_name,
+                    "p_scenario": _SCENARIO,
+                    "p_gradient": _DEFAULT_GRADIENT,
+                    "p_curvature": _DEFAULT_CURVATURE,
+                    "p_iri": _DEFAULT_IRI,
+                    "p_dataset_revision_id": str(dataset_revision_id),
+                },
+            )
+        ).mappings().all()
+    intensity_lookup: dict[tuple[int, float], dict[str, Decimal]] = defaultdict(dict)
+    for row in intensity_rows:
+        value = row["fleet_avg_emissions_intensity_gco2e_per_vkt"]
+        if value is not None:
+            intensity_lookup[(int(row["assessment_year"]), float(row["speed_kph"]))][
+                row["vehicle_class"]
+            ] = Decimal(str(value))
+    intensity_elapsed_ms = (perf_counter() - intensity_started_at) * 1000
+
+    # ── 6. Compute annual emissions and collect result writes ─────────────────
+    annual_upserts: list[dict[str, object]] = []
 
     for year in years:
         # Clamp lookup year to available data range
@@ -281,36 +305,13 @@ async def calculate_and_store_aus_small(
         if aus_min_year is not None and lookup_year < aus_min_year:
             lookup_year = aus_min_year
 
-        # Fetch intensities from the DB function, grouped by speed
         intensities: dict[str, Optional[Decimal]] = {k: None for k in VEHICLE_CLASS_MAP}
-
-        for speed_val, v_keys in speed_to_v_keys.items():
-            rows = (
-                await db.execute(
-                    _AUS_INTENSITY_SQL,
-                    {
-                        "p_year":      lookup_year,
-                        "p_state":     state_name,
-                        "p_scenario":  _SCENARIO,
-                        "p_gradient":  _DEFAULT_GRADIENT,
-                        "p_curvature": _DEFAULT_CURVATURE,
-                        "p_iri":       _DEFAULT_IRI,
-                        "p_speed_kph": speed_val,
-                        "p_dataset_revision_id": str(dataset_revision_id),
-                    },
-                )
-            ).mappings().all()
-
-            # Build class_name → intensity lookup from the function result
-            class_to_intensity: dict[str, Decimal] = {
-                r["vehicle_class"]: Decimal(str(r["fleet_avg_emissions_intensity_gco2e_per_vkt"]))
-                for r in rows
-                if r["fleet_avg_emissions_intensity_gco2e_per_vkt"] is not None
-            }
-
-            for v_key in v_keys:
-                class_name = VEHICLE_CLASS_MAP[v_key]
-                intensities[v_key] = class_to_intensity.get(class_name)
+        for v_key in VEHICLE_CLASS_MAP:
+            speed = getattr(req, f"{v_key}_speed_kmh")
+            if speed is None:
+                continue
+            class_to_intensity = intensity_lookup.get((lookup_year, float(speed)), {})
+            intensities[v_key] = class_to_intensity.get(VEHICLE_CLASS_MAP[v_key])
 
         # Compute per-vehicle annual emissions (tCO2e = VKT × gCO2e/km / 1e6)
         def _emissions(v_key: str) -> Optional[Decimal]:
@@ -327,9 +328,6 @@ async def calculate_and_store_aus_small(
         heavy_em       = _emissions("heavy_vehicle")
         super_heavy_em = _emissions("super_heavy_vehicle")
 
-        parts = [e for e in (light_em, medium_em, heavy_em, super_heavy_em) if e is not None]
-        total_annual = sum(parts, Decimal("0")).quantize(Decimal("0.0000000001")) if parts else None
-
         # For INSERT case (no prior row): total = sum of what's provided now
         this_total = (
             (light_em       or Decimal("0"))
@@ -338,22 +336,26 @@ async def calculate_and_store_aus_small(
             + (super_heavy_em or Decimal("0"))
         )
 
-        ins = pg_insert(UserEmissionsAusSmallResult).values(
-            id=_uuid.uuid4(),
-            project_id=req.project_id,
-            project_stage_instance_id=req.project_stage_instance_id,
-            project_option_id=req.project_option_id,
-            assessment_year=year,
-            light_vehicle_intensity_gco2e_km=intensities["light_vehicle"]       if has_light       else None,
-            medium_vehicle_intensity_gco2e_km=intensities["medium_vehicle"]     if has_medium      else None,
-            heavy_vehicle_intensity_gco2e_km=intensities["heavy_vehicle"]       if has_heavy       else None,
-            super_heavy_vehicle_intensity_gco2e_km=intensities["super_heavy_vehicle"] if has_super_heavy else None,
-            light_vehicle_emissions_tco2e=light_em       if has_light       else None,
-            medium_vehicle_emissions_tco2e=medium_em     if has_medium      else None,
-            heavy_vehicle_emissions_tco2e=heavy_em       if has_heavy       else None,
-            super_heavy_vehicle_emissions_tco2e=super_heavy_em if has_super_heavy else None,
-            total_annual_emissions_tco2e=this_total,
-        )
+        annual_upserts.append({
+            "id": _uuid.uuid4(),
+            "project_id": req.project_id,
+            "project_stage_instance_id": req.project_stage_instance_id,
+            "project_option_id": req.project_option_id,
+            "assessment_year": year,
+            "light_vehicle_intensity_gco2e_km": intensities["light_vehicle"] if has_light else None,
+            "medium_vehicle_intensity_gco2e_km": intensities["medium_vehicle"] if has_medium else None,
+            "heavy_vehicle_intensity_gco2e_km": intensities["heavy_vehicle"] if has_heavy else None,
+            "super_heavy_vehicle_intensity_gco2e_km": intensities["super_heavy_vehicle"] if has_super_heavy else None,
+            "light_vehicle_emissions_tco2e": light_em if has_light else None,
+            "medium_vehicle_emissions_tco2e": medium_em if has_medium else None,
+            "heavy_vehicle_emissions_tco2e": heavy_em if has_heavy else None,
+            "super_heavy_vehicle_emissions_tco2e": super_heavy_em if has_super_heavy else None,
+            "total_annual_emissions_tco2e": this_total,
+        })
+
+    annual_write_started_at = perf_counter()
+    if annual_upserts:
+        ins = pg_insert(UserEmissionsAusSmallResult).values(annual_upserts)
         await db.execute(
             ins.on_conflict_do_update(
                 constraint="uq_user_emissions_aus_small_results",
@@ -402,23 +404,11 @@ async def calculate_and_store_aus_small(
             )
         )
 
-        annual_rows.append(
-            AusSmallEmissionsAnnualRow(
-                year=year,
-                light_vehicle_intensity_gco2e_km=intensities["light_vehicle"],
-                medium_vehicle_intensity_gco2e_km=intensities["medium_vehicle"],
-                heavy_vehicle_intensity_gco2e_km=intensities["heavy_vehicle"],
-                super_heavy_vehicle_intensity_gco2e_km=intensities["super_heavy_vehicle"],
-                light_vehicle_emissions_tco2e=light_em,
-                medium_vehicle_emissions_tco2e=medium_em,
-                heavy_vehicle_emissions_tco2e=heavy_em,
-                super_heavy_vehicle_emissions_tco2e=super_heavy_em,
-                total_annual_emissions_tco2e=this_total,
-            )
-        )
+    annual_write_elapsed_ms = (perf_counter() - annual_write_started_at) * 1000
 
     # ── Interim total: re-read from DB so it includes ALL vehicle types ─────────
     # (earlier calls may have stored light only; this call may add heavy etc.)
+    summary_started_at = perf_counter()
     total_row = (
         await db.execute(
             text(
@@ -447,7 +437,18 @@ async def calculate_and_store_aus_small(
     else:
         final_user_emissions = (interim_total_rounded - base_case_interim_rounded).quantize(Decimal("0.0001"))
 
+    summary_elapsed_ms = (perf_counter() - summary_started_at) * 1000
+    ledger_started_at = perf_counter()
     await sync_annual_road_results(db, project_option_id=req.project_option_id, project_class="SMALL", is_nz=False)
+    ledger_elapsed_ms = (perf_counter() - ledger_started_at) * 1000
+    logger.info(
+        "AUS small road calculation timing: years=%d distinct_speeds=%d intensity_pairs=%d "
+        "intensity_batch_ms=%.1f annual_upsert_rows=%d annual_upsert_ms=%.1f "
+        "summary_queries_ms=%.1f ledger_sync_ms=%.1f total_ms=%.1f",
+        len(years), len(speed_to_v_keys), len(requested_pairs), intensity_elapsed_ms,
+        len(annual_upserts), annual_write_elapsed_ms, summary_elapsed_ms,
+        ledger_elapsed_ms, (perf_counter() - calculation_started_at) * 1000,
+    )
     return AusSmallEmissionsCalculateResponse(
         project_id=req.project_id,
         project_stage_instance_id=req.project_stage_instance_id,

@@ -151,6 +151,11 @@ fuel_emission_factors AS (
     WHERE (to_jsonb(factor_row)->>'dataset_revision_id')::uuid = p_dataset_revision_id
       AND factor_row."Jurisdiction" IN (p_state, 'Australia', 'Global')
       AND factor_row."UoM" = 'kL'
+      AND factor_row."Emissions Source" IN (
+          SELECT DISTINCT bp.primary_ice_fuel
+          FROM base_params bp
+          WHERE bp.primary_ice_fuel IS NOT NULL
+      )
       AND ("emission_factor_scope1" IS NOT NULL
            OR "emission_factor_scope3" IS NOT NULL)
     ORDER BY "Emissions Source",

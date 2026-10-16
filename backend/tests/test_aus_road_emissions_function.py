@@ -78,3 +78,4 @@ def test_function_definition_uses_revision_scoped_factors_with_legacy_fallbacks(
     assert "euf.dataset_revision_id = p_dataset_revision_id" in normalized
     assert "edf.dataset_revision_id = p_dataset_revision_id" in normalized
     assert "to_jsonb(factor_row)->>'dataset_revision_id'" in normalized
+    assert 'factor_row."emissions source" in ( select distinct bp.primary_ice_fuel from base_params bp' in normalized

@@ -256,9 +256,13 @@ const LargeRoadUsersSubStage = ({
         calculateSummary,
         persistAll,
     });
+    const editorDisabled = readOnly || saveState === "saving" || emissionLoading;
 
     return (
-        <div className="mx-12 mb-8 bg-white p-6 border border-neutral-90 rounded-[var(--radius-3)]">
+        <div
+            className="mx-12 mb-8 bg-white p-6 border border-neutral-90 rounded-[var(--radius-3)]"
+            aria-busy={editorDisabled}
+        >
             <div className="flex items-center justify-between mb-4">
                 <div className="text-2xl font-light text-text-dark flex items-center gap-1">
                     Road users
@@ -281,6 +285,7 @@ const LargeRoadUsersSubStage = ({
                     <button
                         type="button"
                         onClick={() => setExpanded(v => !v)}
+                        disabled={editorDisabled}
                         className="w-5 h-5 inline-flex items-center justify-center  cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary rounded"
                     >
                         <span className="material-symbols-rounded">
@@ -302,7 +307,7 @@ const LargeRoadUsersSubStage = ({
                         <LargeRoadUsersYearSelector
                             years={availableModelledYears}
                             activeYear={displayedActiveYear}
-                            readOnly={readOnly}
+                            readOnly={editorDisabled}
                             onYearChange={onActiveYearChange}
                             onAddYear={onOpenAddYear}
                             onCopyYear={onOpenCopyYear}
@@ -314,7 +319,7 @@ const LargeRoadUsersSubStage = ({
                             <button
                                 type="button"
                                 className="px-3 py-2 text-sm bg-primary text-white rounded cursor-pointer ml-auto disabled:opacity-50"
-                                disabled={readOnly || saveState === "saving" || emissionLoading}
+                                disabled={editorDisabled}
                                 onClick={() => void handleSaveLargeRoadUsers()}
                             >
                                 Save
@@ -333,7 +338,7 @@ const LargeRoadUsersSubStage = ({
                             onChange={(val: string) =>
                                 updateParams({ ev_uptake_scenario: val })
                             }
-                            disabled={readOnly}
+                            disabled={editorDisabled}
                             className="h-9 flex-1"
                             minMenuWidth={240}
                         />
@@ -350,7 +355,7 @@ const LargeRoadUsersSubStage = ({
                             onChange={(val: string) =>
                                 updateParams({ roughness: val })
                             }
-                            disabled={readOnly}
+                            disabled={editorDisabled}
                             className="h-9 flex-1"
                             minMenuWidth={260}
                         />
@@ -366,7 +371,7 @@ const LargeRoadUsersSubStage = ({
                             onChange={(val: string) =>
                                 updateParams({ gradient: val })
                             }
-                            disabled={readOnly}
+                            disabled={editorDisabled}
                             className="h-9 flex-1 w-full"
                             minMenuWidth={240}
                         />
@@ -383,7 +388,7 @@ const LargeRoadUsersSubStage = ({
                             onChange={(val: string) =>
                                 updateParams({ curvature: val })
                             }
-                            disabled={readOnly}
+                            disabled={editorDisabled}
                             className="h-9 flex-1 w-full"
                             minMenuWidth={260}
                         />
@@ -448,7 +453,7 @@ const LargeRoadUsersSubStage = ({
                                                         }
                                                         onCommit={() => { }}
                                                         allowDecimal
-                                                        disabled={readOnly}
+                                                        disabled={editorDisabled}
                                                     />
                                                 </td>
 
@@ -468,7 +473,7 @@ const LargeRoadUsersSubStage = ({
                                                             }
                                                             onCommit={() => { }}
                                                             allowDecimal
-                                                            disabled={readOnly}
+                                                            disabled={editorDisabled}
                                                             className={
                                                                 vhtIsComputed
                                                                     ? "bg-neutral-50 text-text-faint"
@@ -503,7 +508,7 @@ const LargeRoadUsersSubStage = ({
                                                             }
                                                             onCommit={() => { }}
                                                             allowDecimal
-                                                            disabled={readOnly}
+                                                            disabled={editorDisabled}
                                                             className={
                                                                 speedIsComputed
                                                                     ? "bg-neutral-50 text-text-faint"
@@ -531,7 +536,7 @@ const LargeRoadUsersSubStage = ({
                                                                 notes: e.target.value,
                                                             })
                                                         }
-                                                        disabled={readOnly}
+                                                        disabled={editorDisabled}
                                                     />
                                                 </td>
                                             </tr>

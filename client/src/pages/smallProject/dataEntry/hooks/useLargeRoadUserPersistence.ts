@@ -41,6 +41,10 @@ export function useLargeRoadUserPersistence({
   ) => {
     if (readOnly) return;
     setSaveState("saving");
+    const persistenceStartedAt = performance.now();
+    let paramsSaveMs = 0;
+    let usersSaveMs = 0;
+    let totalsRefreshMs = 0;
     try {
       const { paramsPayload, usersPayload } = buildLargeRoadUserPersistencePayloads({
         years: getModelledYears(yearData),
@@ -56,25 +60,47 @@ export function useLargeRoadUserPersistence({
       });
 
       if (paramsPayload.length > 0) {
+        const paramsSaveStartedAt = performance.now();
         await persistUserActivityRows(
           stageInstanceId,
           paramsTableKey,
           paramsPayload,
           projectMitigationId ?? undefined,
         );
+        paramsSaveMs = performance.now() - paramsSaveStartedAt;
       }
       if (usersPayload.length > 0) {
+        const usersSaveStartedAt = performance.now();
         await persistUserActivityRows(
           stageInstanceId,
           usersTableKey,
           usersPayload,
           projectMitigationId ?? undefined,
         );
+        usersSaveMs = performance.now() - usersSaveStartedAt;
       }
+      const totalsRefreshStartedAt = performance.now();
       await onTotalsUpdated?.();
+      totalsRefreshMs = performance.now() - totalsRefreshStartedAt;
+      if (import.meta.env.DEV) {
+        console.debug("[large road users persistence timing]", {
+          paramsSaveMs: Math.round(paramsSaveMs),
+          usersSaveMs: Math.round(usersSaveMs),
+          totalsRefreshMs: Math.round(totalsRefreshMs),
+          totalMs: Math.round(performance.now() - persistenceStartedAt),
+        });
+      }
       setSaveState("saved");
     } catch (error) {
       console.error("Failed to save large road users data:", error);
+      if (import.meta.env.DEV) {
+        console.debug("[large road users persistence timing] failed", {
+          paramsSaveMs: Math.round(paramsSaveMs),
+          usersSaveMs: Math.round(usersSaveMs),
+          totalsRefreshMs: Math.round(totalsRefreshMs),
+          totalMs: Math.round(performance.now() - persistenceStartedAt),
+        });
+      }
       setSaveState("idle");
     }
   }, [
