@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from uuid import UUID, uuid4
+from types import SimpleNamespace
 
 import pytest
 
@@ -104,3 +105,166 @@ async def test_branch_rejects_unpublished_source(client):
         json={"name": "Org branch", "scope_type": "ORG", "scope_id": str(uuid4())},
     )
     assert response.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_org_branch_rejects_another_org_source(client, dataset_revision_store):
+    source_id = UUID(await _create_revision(client, "Other org source"))
+    source = dataset_revision_store[source_id]
+    source.status = "published"
+    source.scope_type = "ORG"
+    source.scope_id = uuid4()
+
+    response = await client.post(
+        f"/api/dataset-revisions/{source_id}/branch",
+        json={"name": "Wrong org branch", "scope_type": "ORG", "scope_id": str(uuid4())},
+    )
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_project_branch_rejects_another_project_source(client, dataset_revision_store):
+    source_id = UUID(await _create_revision(client, "Other project source"))
+    source = dataset_revision_store[source_id]
+    source.status = "published"
+    source.scope_type = "PROJECT"
+    source.scope_id = uuid4()
+
+    response = await client.post(
+        f"/api/dataset-revisions/{source_id}/branch",
+        json={"name": "Wrong project branch", "scope_type": "PROJECT", "scope_id": str(uuid4())},
+    )
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_org_branch_requires_owning_org_admin(client, monkeypatch, dataset_revision_store):
+    import core.rbac as rbac
+
+    source_id = UUID(await _create_revision(client, "Org role source"))
+    dataset_revision_store[source_id].status = "published"
+    async def no_org_admin(_db, _user_id, _org_id):
+        return {rbac.GENERAL_USER}
+    monkeypatch.setattr(rbac, "get_org_scoped_role_names", no_org_admin)
+
+    response = await client.post(
+        f"/api/dataset-revisions/{source_id}/branch",
+        json={"name": "Denied org branch", "scope_type": "ORG", "scope_id": str(uuid4())},
+    )
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_project_branch_requires_project_editor_or_admin(client, monkeypatch, dataset_revision_store):
+    import core.rbac as rbac
+
+    source_id = UUID(await _create_revision(client, "Project role source"))
+    dataset_revision_store[source_id].status = "published"
+    async def no_project_editor(_db, _user_id, project_id=None):
+        return {rbac.PROJECT_VIEWER}
+    monkeypatch.setattr(rbac, "get_effective_role_names", no_project_editor)
+
+    response = await client.post(
+        f"/api/dataset-revisions/{source_id}/branch",
+        json={"name": "Denied project branch", "scope_type": "PROJECT", "scope_id": str(uuid4())},
+    )
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_publish_requires_factor_set_and_archive_is_terminal(
+    client, dataset_revision_store, emissions_factor_set_store,
+):
+    revision_id = UUID(await _create_revision(client, "Lifecycle revision"))
+    response = await client.post(f"/api/dataset-revisions/{revision_id}/publish")
+    assert response.status_code == 422
+    assert dataset_revision_store[revision_id].status == "draft"
+
+    from tests.conftest import DummyEmissionsFactorSet
+
+    factor_set_id = uuid4()
+    emissions_factor_set_store[factor_set_id] = DummyEmissionsFactorSet(
+        id=factor_set_id,
+        name="Test factor set",
+        version="1",
+        dataset_revision_id=revision_id,
+    )
+    response = await client.post(f"/api/dataset-revisions/{revision_id}/publish")
+    assert response.status_code == 200
+    assert response.json()["status"] == "published"
+
+    response = await client.post(f"/api/dataset-revisions/{revision_id}/deprecate")
+    assert response.status_code == 200
+    assert response.json()["status"] == "deprecated"
+    response = await client.post(f"/api/dataset-revisions/{revision_id}/archive")
+    assert response.status_code == 200
+    assert response.json()["status"] == "archived"
+    response = await client.post(f"/api/dataset-revisions/{revision_id}/archive")
+    assert response.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_bound_revision_cannot_be_unpublished_or_archived(
+    client, dataset_revision_store, project_dataset_revision_store,
+):
+    revision_id = UUID(await _create_revision(client, "Bound lifecycle revision"))
+    dataset_revision_store[revision_id].status = "published"
+    project_id = uuid4()
+    project_dataset_revision_store[uuid4()] = SimpleNamespace(
+        project_id=project_id, dataset_revision_id=revision_id
+    )
+
+    unpublish = await client.post(
+        f"/api/dataset-revisions/{revision_id}/unpublish",
+        json={"confirm_bound_project_ids": [str(project_id)]},
+    )
+    archive = await client.post(f"/api/dataset-revisions/{revision_id}/archive")
+    assert unpublish.status_code == 409
+    assert archive.status_code == 409
+    assert dataset_revision_store[revision_id].status == "published"
+
+
+@pytest.mark.asyncio
+async def test_revision_with_factor_set_cannot_be_deleted(
+    client, emissions_factor_set_store,
+):
+    revision_id = UUID(await _create_revision(client, "Retained revision"))
+    from tests.conftest import DummyEmissionsFactorSet
+
+    factor_set_id = uuid4()
+    emissions_factor_set_store[factor_set_id] = DummyEmissionsFactorSet(
+        id=factor_set_id,
+        name="Attached factor set",
+        version="1",
+        dataset_revision_id=revision_id,
+    )
+    response = await client.delete(f"/api/dataset-revisions/{revision_id}")
+    assert response.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_org_lifecycle_requires_owning_org_admin(
+    client, monkeypatch, dataset_revision_store,
+):
+    import core.rbac as rbac
+
+    revision_id = uuid4()
+    org_id = uuid4()
+    from tests.conftest import DummyDatasetRevision
+
+    dataset_revision_store[revision_id] = DummyDatasetRevision(
+        id=revision_id,
+        name="Org revision",
+        status="draft",
+        scope_type="ORG",
+        scope_id=org_id,
+    )
+    async def no_org_admin(_db, _user_id, _org_id):
+        return {rbac.GENERAL_USER}
+    monkeypatch.setattr(rbac, "get_org_scoped_role_names", no_org_admin)
+
+    bindings = await client.get(f"/api/dataset-revisions/{revision_id}/bindings")
+    assert bindings.status_code == 403
+    response = await client.post(f"/api/dataset-revisions/{revision_id}/publish")
+    assert response.status_code == 403
+    assert dataset_revision_store[revision_id].status == "draft"

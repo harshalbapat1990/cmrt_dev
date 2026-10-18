@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
 from core.security import get_current_principal, Principal
-from core.dataset_authorization import assert_revision_edit_permission
+from core.dataset_authorization import assert_revision_edit_permission, require_dataset_read_access
 from crud.audit_logs import write_audit_event
 from crud.operational_equipment import (
     create_operational_equipment,
@@ -17,7 +17,6 @@ from crud.operational_equipment import (
     supersede_operational_equipment,
 )
 from crud.project_dataset_revisions import list_project_dataset_revisions_by_project
-from crud.dataset_revisions import get_published_dataset_revision
 from schemas.operational_equipment import (
     OperationalEquipmentCreate,
     OperationalEquipmentOut,
@@ -38,20 +37,22 @@ async def get_operational_equipment_list(
         None,
         description="Project context used to resolve dataset revision when dataset_revision_id is omitted",
     ),
+    authorized_revision_id: Optional[UUID] = Depends(require_dataset_read_access),
     skip: int = 0,
     limit: int = 500,
     db: AsyncSession = Depends(get_session),
 ):
-    resolved_dataset_revision_id = dataset_revision_id
+    resolved_dataset_revision_id = dataset_revision_id or authorized_revision_id
     if resolved_dataset_revision_id is None and project_id is not None:
         project_revisions = await list_project_dataset_revisions_by_project(db, project_id)
         if project_revisions:
             resolved_dataset_revision_id = project_revisions[0].dataset_revision_id
 
     if resolved_dataset_revision_id is None:
-        published_default = await get_published_dataset_revision(db)
-        if published_default is not None:
-            resolved_dataset_revision_id = published_default.id
+        raise HTTPException(
+            status_code=400,
+            detail="dataset_revision_id is required when project_id is not bound to a dataset revision",
+        )
 
     return await list_operational_equipment(db, resolved_dataset_revision_id, skip, limit)
 

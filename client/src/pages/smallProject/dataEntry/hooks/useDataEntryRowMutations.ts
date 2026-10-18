@@ -9,6 +9,7 @@ import type { DataEntryCellChange, DataEntryRow, DataEntryRowPatch, FugitiveOpti
 import type { CalcConfig } from "../useEmissionsCalc";
 
 interface UseDataEntryRowMutationsParams {
+    projectId: string;
     user: MeProfile | null;
     fugitiveList: FugitiveOption[];
     getRows: (key: UploadKey) => DataEntryRow[];
@@ -30,6 +31,7 @@ interface UseDataEntryRowMutationsParams {
 }
 
 export function useDataEntryRowMutations({
+    projectId,
     user,
     fugitiveList,
     getRows,
@@ -155,7 +157,7 @@ export function useDataEntryRowMutations({
             const isTrigger = !!cfg && cfg.triggerKeys.includes(String(key));
 
             if (isTrigger) {
-                if (tableKey === "refurbishment") await fetchAllActiveMrFactors();
+                if (tableKey === "refurbishment") await fetchAllActiveMrFactors(undefined, projectId);
 
                 const calcPatch = await computeEmissionsForRow(tableKey, finalRow);
 

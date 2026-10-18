@@ -10,6 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Union
 
 from core.session import get_session
+from core.security import Principal, get_current_principal
+from core.dataset_authorization import assert_dataset_revision_read_permission
 from services.grade1_asset_calculations import (
     Grade1CalculationRequest,
     Grade1CalculationResponse,
@@ -44,6 +46,7 @@ router = APIRouter(
 async def calculate_emissions(
     payload: Union[List[Grade1CalculationRequest], Grade1CalculationRequest],
     db: AsyncSession = Depends(get_session),
+    principal: Principal = Depends(get_current_principal),
 ) -> Union[Grade1CalculationResponse, Grade1BatchCalculationResponse]:
     """
     Calculate Grade 1 asset-level emissions — single or batch.
@@ -59,9 +62,20 @@ async def calculate_emissions(
     """
 
     try:
+        requests = payload if isinstance(payload, list) else [payload]
+        revision_ids = {request.dataset_revision_id for request in requests}
+        if None in revision_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="dataset_revision_id is required for Grade 1 calculations",
+            )
+        for revision_id in revision_ids:
+            await assert_dataset_revision_read_permission(db, principal, revision_id)
         if isinstance(payload, list):
             return await calculator.calculate_batch(db, payload)
         return await calculator.calculate(db, payload)
+    except HTTPException:
+        raise
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -25,7 +25,7 @@ from services._calc_utils import round_result
 from services.project_context_helper import ProjectContextHelper
 
 from models.project import Project
-from models.grade2_component_level_view import Grade2ComponentLevel
+from services.grade2_component_calculations import fetch_grade2_revision_factors
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -47,6 +47,7 @@ class Grade2B4ReplacementRequest(BaseModel):
 
     # B4-specific user input — component life (not the project operational life)
     life_years: float = Field(..., gt=0)
+    dataset_revision_id: Optional[UUID] = None
 
     class Config:
         json_schema_extra = {
@@ -115,11 +116,16 @@ class Grade2B4ReplacementCalculator:
         Raises:
             ValueError: when the project is not found, required project fields
                         (commencement_of_operations, operational_life_years) are
-                        missing, or no matching Grade 2 row is found in the view.
+                        missing, or no matching Grade 2 row exists in the project revision.
         """
         project = await self._fetch_project_data(db, request.project_id)
 
         jurisdiction = await ProjectContextHelper.fetch_jurisdiction(db, request.project_id)
+        revision_id = request.dataset_revision_id or await ProjectContextHelper.fetch_project_dataset_revision(
+            db, request.project_id
+        )
+        if revision_id is None:
+            raise ValueError("Project has no associated dataset revision")
 
         if project.commencement_of_operations is None:
             raise ValueError(
@@ -134,7 +140,7 @@ class Grade2B4ReplacementCalculator:
         operations_end_year = operations_start_year + project.operational_life_years
 
         lookup = await self._fetch_grade2_lookup(
-            db, request, jurisdiction=jurisdiction
+            db, request, jurisdiction=jurisdiction, dataset_revision_id=revision_id
         )
 
         if not lookup:
@@ -147,9 +153,9 @@ class Grade2B4ReplacementCalculator:
             )
 
         qty = float(request.quantity)
-        factor_a1_a3 = self._as_float(lookup.factor_a1_a3) or 0.0
-        factor_a4    = self._as_float(lookup.factor_a4) or 0.0
-        factor_a5    = self._as_float(lookup.factor_a5) or 0.0
+        factor_a1_a3 = self._as_float(lookup.get("factor_a1_a3")) or 0.0
+        factor_a4    = self._as_float(lookup.get("factor_a4")) or 0.0
+        factor_a5    = self._as_float(lookup.get("factor_a5")) or 0.0
 
         grade2_total_scope3 = (factor_a1_a3 + factor_a4 + factor_a5) * qty
 
@@ -169,8 +175,8 @@ class Grade2B4ReplacementCalculator:
             emissions_sub_category=request.emissions_sub_category,
             emissions_source=request.emissions_source,
             quantity=qty,
-            uom=lookup.uom,
-            source_comments=lookup.source_comments,
+            uom=lookup.get("uom"),
+            source_comments=lookup.get("source_comments"),
             life_years=request.life_years,
             operations_start_year=operations_start_year,
             operations_end_year=operations_end_year,
@@ -197,20 +203,17 @@ class Grade2B4ReplacementCalculator:
         request: Grade2B4ReplacementRequest,
         *,
         jurisdiction: str,
-    ) -> Optional[Grade2ComponentLevel]:
-        stmt = (
-            select(Grade2ComponentLevel)
-            .where(
-                Grade2ComponentLevel.jurisdiction == jurisdiction,
-                Grade2ComponentLevel.emissions_category == request.emissions_category,
-                Grade2ComponentLevel.emissions_sub_category == request.emissions_sub_category,
-                Grade2ComponentLevel.emissions_source == request.emissions_source,
-            )
+        dataset_revision_id: UUID,
+    ) -> Optional[dict]:
+        return await fetch_grade2_revision_factors(
+            db,
+            jurisdiction=jurisdiction,
+            emissions_category=request.emissions_category,
+            emissions_sub_category=request.emissions_sub_category,
+            emissions_source=request.emissions_source,
+            dataset_revision_id=dataset_revision_id,
+            source=request.source,
         )
-        if request.source is not None:
-            stmt = stmt.where(Grade2ComponentLevel.source_comments == request.source)
-        result = await db.execute(stmt)
-        return result.scalars().first()
 
     @staticmethod
     def _as_float(value) -> Optional[float]:

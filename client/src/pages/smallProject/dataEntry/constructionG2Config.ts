@@ -32,7 +32,7 @@ calculation: {
       "unit_id",
     // build API payload from row data
     ],
-    buildPayload: (row: DataEntryRow, ctx: { jurisdiction: string }) => {
+    buildPayload: (row: DataEntryRow, ctx: { jurisdiction: string; project_id?: string }) => {
       const emissions_category = pickTableLabel(row.emissions_category);
       const emissions_sub_category = pickTableLabel(row.emissions_subcategory);
       const emissions_source = pickTableLabel(row.emissions_source_name);
@@ -48,6 +48,7 @@ calculation: {
         emissions_source: emissions_source,
         emissions_sub_category: emissions_sub_category,
         jurisdiction: ctx.jurisdiction,
+        project_id: ctx.project_id,
         quantity: quantity,
         unit: unit,
       };

@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 from uuid import UUID
 from pydantic import BaseModel, Field
 
@@ -47,3 +47,32 @@ class DatasetRevisionOut(DatasetRevisionBase):
 
     class Config:
         from_attributes = True
+
+
+class DatasetRevisionUnpublishRequest(BaseModel):
+    confirm_bound_project_ids: list[UUID]
+
+
+class BoundProjectOut(BaseModel):
+    project_id: UUID
+    project_name: str
+
+
+class DatasetRevisionBindingsOut(BaseModel):
+    revision_id: UUID
+    scope_type: RevisionScopeType
+    status: RevisionStatus
+    projects: list[BoundProjectOut]
+
+
+class ProjectRecalculationOut(BaseModel):
+    project_id: UUID
+    project_name: str
+    status: Literal["recalculated", "failed"]
+    missing_data: list[dict[str, Any]] = Field(default_factory=list)
+    calculation_errors: list[dict[str, Any]] = Field(default_factory=list)
+    recalculated_count: int = 0
+
+
+class DatasetRevisionPublishOut(DatasetRevisionOut):
+    project_recalculations: list[ProjectRecalculationOut] = Field(default_factory=list)

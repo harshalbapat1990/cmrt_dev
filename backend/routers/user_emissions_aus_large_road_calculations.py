@@ -27,6 +27,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
 from core.security import get_current_principal, Principal
+from core.authorization_policy import AccessLevel
+from core.dataset_authorization import assert_project_dataset_revision_read_permission
 from models.project_options import ProjectOption
 from models.user_emissions_aus_large_road import UserEmissionsAusLargeRoadResult
 from schemas.user_emissions_aus_large_road import (
@@ -73,7 +75,12 @@ async def calculate_aus_large_road_emissions(
     principal: Principal = Depends(get_current_principal),
 ) -> AusLargeRoadCalculateResponse:
     try:
+        await assert_project_dataset_revision_read_permission(
+            db, principal, payload.project_id, minimum_access=AccessLevel.EDIT
+        )
         result = await calculate_and_store_aus_large_road(db, payload)
+    except HTTPException:
+        raise
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
 

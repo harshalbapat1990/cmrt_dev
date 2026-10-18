@@ -9,6 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
+from core.security import Principal, get_current_principal
+from core.dataset_authorization import assert_dataset_revision_read_permission
 from services.grade34_detailed_level_construction_calcs import (
     Grade34ConstructionRequest,
     Grade34ConstructionResponse,
@@ -50,6 +52,7 @@ router = APIRouter(
 async def calculate_grade34_construction_emissions(
     payload: Grade34ConstructionRequest,
     db: AsyncSession = Depends(get_session),
+    principal: Principal = Depends(get_current_principal),
 ) -> Grade34ConstructionResponse:
     """
     Calculate Grade 3/4 Detailed Level - Construction Stage emissions for one row.
@@ -58,7 +61,15 @@ async def calculate_grade34_construction_emissions(
     Raises 500 for unexpected calculation errors.
     """
     try:
+        if payload.dataset_revision_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="dataset_revision_id is required for Grade 3/4 calculations",
+            )
+        await assert_dataset_revision_read_permission(db, principal, payload.dataset_revision_id)
         return await calculator.calculate(db, payload)
+    except HTTPException:
+        raise
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

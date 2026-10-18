@@ -31,6 +31,7 @@ from models.recycled_content_factors import RecycledContentFactor
 from models.operational_equipment import OperationalEquipment
 from models.concrete_mix_design import ConcreteMixAssumption, ConcreteMixDesign
 from models.project_dataset_revisions import ProjectDatasetRevision
+from models.project import Project
 from models.emissions_factor_sets import EmissionsFactorSet
 from models.vepm_factors import VepmFactor
 from models.renewable_energy_classification import RenewableEnergyClassification
@@ -129,6 +130,17 @@ async def count_bound_projects(db: AsyncSession, revision_id: UUID) -> int:
         )
     )
     return len(result.scalars().all())
+
+
+async def list_bound_projects(db: AsyncSession, revision_id: UUID) -> list[tuple[UUID, str]]:
+    """Return projects currently assigned to a revision, with display names."""
+    result = await db.execute(
+        select(Project.id, Project.project_name)
+        .join(ProjectDatasetRevision, ProjectDatasetRevision.project_id == Project.id)
+        .where(ProjectDatasetRevision.dataset_revision_id == revision_id)
+        .order_by(Project.project_name, Project.id)
+    )
+    return [(row.id, row.project_name) for row in result.all()]
 
 
 async def set_revision_status(

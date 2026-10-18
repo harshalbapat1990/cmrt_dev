@@ -25,6 +25,7 @@ async def list_benchmark_typecasts(
     db: AsyncSession,
     mastertype_id: Optional[UUID] = None,
     jurisdiction_name: Optional[str] = None,
+    dataset_revision_id: Optional[UUID] = None,
 ) -> List[Dict[str, Any]]:
     q = (
         select(BenchmarkTypecast, BenchmarkMastertype.name.label("mastertype_name"))
@@ -33,6 +34,16 @@ async def list_benchmark_typecasts(
     )
     if mastertype_id is not None:
         q = q.where(BenchmarkTypecast.mastertype_id == mastertype_id)
+
+    if dataset_revision_id is not None:
+        q = q.where(
+            BenchmarkTypecast.id.in_(
+                select(distinct(BackgroundGradeMetric.typecast_id)).where(
+                    BackgroundGradeMetric.dataset_revision_id == dataset_revision_id,
+                    BackgroundGradeMetric.typecast_id.isnot(None),
+                )
+            )
+        )
     
     if jurisdiction_name:
         jur_result = await db.execute(
@@ -46,6 +57,10 @@ async def list_benchmark_typecasts(
                 .where(BackgroundGradeMetric.jurisdiction_id == jurisdiction_id)
                 .where(BackgroundGradeMetric.typecast_id.isnot(None))
             )
+            if dataset_revision_id is not None:
+                tc_ids_query = tc_ids_query.where(
+                    BackgroundGradeMetric.dataset_revision_id == dataset_revision_id
+                )
             
             tc_ids_result = await db.execute(tc_ids_query)
             valid_typecast_ids = tc_ids_result.scalars().all()

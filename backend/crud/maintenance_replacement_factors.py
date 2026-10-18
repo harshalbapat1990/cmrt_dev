@@ -78,26 +78,14 @@ async def list_maintenance_replacement_factors(
 async def list_maintenance_replacement_factors_active(
     db: AsyncSession,
     jurisdiction_name: Optional[str] = None,
+    dataset_revision_id: Optional[UUID] = None,
 ) -> List[dict]:
-    dr = DatasetRevision.__table__
     j = Jurisdiction.__table__
-
-    rev_q = (
-        select(dr.c.id)
-        .where(dr.c.scope_type == "DEFAULT")
-        .order_by(
-            sa_case((dr.c.status == "published", 0), else_=1),
-            dr.c.id.desc(),
-        )
-        .limit(1)
-    )
-    rev_res = await db.execute(rev_q)
-    revision_id = rev_res.scalar_one_or_none()
-    if revision_id is None:
+    if dataset_revision_id is None:
         return []
 
     mrf = MaintenanceReplacementFactor.__table__
-    q = _base_query().where(mrf.c.dataset_revision_id == revision_id)
+    q = _base_query().where(mrf.c.dataset_revision_id == dataset_revision_id)
     if jurisdiction_name is not None:
         q = q.where(j.c.name == jurisdiction_name)
 

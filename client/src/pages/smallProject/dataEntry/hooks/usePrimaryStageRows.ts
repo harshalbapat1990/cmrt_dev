@@ -18,6 +18,7 @@ const mapApiRows = (
 ): DataEntryRow[] => (Array.isArray(rows) ? rows : []).map(mapper);
 
 interface Params {
+    projectId: string;
     enabled: boolean;
     activeStage: StageLabel;
     activeSubStage: string;
@@ -38,6 +39,7 @@ interface Params {
 
 /** Loads option scoped rows for the Business Case and Design stages. */
 export function usePrimaryStageRows({
+    projectId,
     enabled,
     activeStage,
     activeSubStage,
@@ -145,7 +147,7 @@ export function usePrimaryStageRows({
                         return;
                     }
                     const maintenanceBoundaries = reportingBoundaries.filter((boundary) => boundary.stage_or_activity === "Maintenance");
-                    const factors = await fetchAllActiveMrFactors();
+                    const factors = await fetchAllActiveMrFactors(undefined, projectId);
                     const placeholders: DataEntryRow[] = maintenanceBoundaries
                         .filter((boundary) => !refurbishmentRows.some((row) => row.extra_fields?.reporting_boundary_id === boundary.id))
                         .map((boundary) => {

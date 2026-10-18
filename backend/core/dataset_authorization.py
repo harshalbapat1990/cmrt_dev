@@ -37,6 +37,46 @@ async def get_dataset_revision(db: AsyncSession, revision_id: UUID):
     return await dataset_revision_crud.get_dataset_revision(db, revision_id)
 
 
+async def assert_dataset_revision_read_permission(
+    db: AsyncSession,
+    principal: Principal,
+    revision_id: UUID,
+) -> None:
+    """Resolve and authorize a revision supplied to a non-GET calculation route."""
+    revision = await get_dataset_revision(db, revision_id)
+    if not revision:
+        raise HTTPException(status_code=404, detail="Dataset revision not found")
+    await assert_revision_view_permission(db, principal, revision)
+
+
+async def assert_project_dataset_revision_read_permission(
+    db: AsyncSession,
+    principal: Principal,
+    project_id: UUID,
+    requested_revision_id: Optional[UUID] = None,
+    minimum_access=None,
+) -> UUID:
+    """Authorize project access and enforce its bound revision as calculation context."""
+    from core.authorization_policy import AccessLevel
+
+    await rbac.require_project_access(
+        db,
+        principal,
+        project_id,
+        minimum_access if minimum_access is not None else AccessLevel.VIEW,
+    )
+    from crud.project_dataset_revisions import list_project_dataset_revisions_by_project
+
+    bindings = await list_project_dataset_revisions_by_project(db, project_id)
+    if not bindings:
+        raise HTTPException(status_code=404, detail="Project dataset revision binding not found")
+    bound_revision_id = bindings[0].dataset_revision_id
+    if requested_revision_id is not None and requested_revision_id != bound_revision_id:
+        raise HTTPException(status_code=404, detail="Dataset revision not found")
+    await assert_dataset_revision_read_permission(db, principal, bound_revision_id)
+    return bound_revision_id
+
+
 async def assert_revision_view_permission(
     db: AsyncSession,
     principal: Principal,
@@ -101,10 +141,10 @@ async def require_dataset_read_access(
     request: Request,
     db: AsyncSession = Depends(get_session),
     principal: Principal = Depends(get_current_principal),
-) -> None:
-    """Authenticate dataset reads and authorize explicit revision selectors."""
+) -> Optional[UUID]:
+    """Authorize a GET revision selector and return its resolved single revision ID."""
     if request.method != "GET":
-        return
+        return None
     raw_ids = list(request.query_params.getlist("dataset_revision_id"))
     raw_ids.extend(request.query_params.getlist("dataset_revision_ids"))
     path_revision_id = request.path_params.get("revision_id")
@@ -147,15 +187,6 @@ async def require_dataset_read_access(
         # handler perform its normal not-found lookup. In production, mapped
         # revisioned rows are authorized here before the handler returns them.
     if not raw_ids and not row_ids:
-        endpoint_name = getattr(getattr(request.scope.get("route"), "endpoint", None), "__name__", "")
-        if endpoint_name not in {
-            "get_operational_equipment_list",
-            "get_active_maintenance_replacement_factors",
-        }:
-            raise HTTPException(
-                status_code=400,
-                detail="dataset_revision_id is required when reading revisioned dataset data",
-            )
         project_id = request.query_params.get("project_id")
         if project_id:
             try:
@@ -165,16 +196,16 @@ async def require_dataset_read_access(
             from crud.project_dataset_revisions import list_project_dataset_revisions_by_project
 
             bindings = await list_project_dataset_revisions_by_project(db, parsed_project_id)
-            if bindings:
-                raw_ids.append(str(bindings[0].dataset_revision_id))
+            if not bindings:
+                raise HTTPException(status_code=404, detail="Project dataset revision binding not found")
+            raw_ids.append(str(bindings[0].dataset_revision_id))
+        else:
+            raise HTTPException(
+                status_code=400,
+                detail="dataset_revision_id is required when reading revisioned dataset data",
+            )
         if not raw_ids:
-            from crud.dataset_revisions import get_published_dataset_revision
-
-            default_revision = await get_published_dataset_revision(db)
-            if default_revision:
-                raw_ids.append(str(default_revision.id))
-        if not raw_ids:
-            raise HTTPException(status_code=404, detail="Published default dataset revision not found")
+            raise HTTPException(status_code=404, detail="Project dataset revision binding not found")
     for raw_id in set(raw_ids):
         try:
             revision_id = UUID(raw_id)
@@ -184,6 +215,7 @@ async def require_dataset_read_access(
         if not revision:
             raise HTTPException(status_code=404, detail="Dataset revision not found")
         await assert_revision_view_permission(db, principal, revision)
+    return UUID(raw_ids[0]) if len(raw_ids) == 1 else None
 
 
 def protect_dataset_reads(router) -> None:

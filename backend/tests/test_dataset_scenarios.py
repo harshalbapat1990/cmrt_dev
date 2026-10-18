@@ -1,5 +1,5 @@
 #TC1  : publish empty revision → 422
-#TC2  : unpublish with bound project → 409
+#TC2  : global revisions cannot be unpublished → 409
 #TC3  : deprecate published revision → 200, status=deprecated
 #TC4  : archive with bound project → 409
 #TC5a : publish archived revision → 409 (archived is terminal)
@@ -70,7 +70,7 @@ async def test_tc1_publish_empty_revision_fails(client):
 
 
 @pytest.mark.asyncio
-async def test_tc2_unpublish_with_bound_project_fails(client):
+async def test_tc2_global_revision_cannot_be_unpublished(client):
     rev = await _create_revision(client, name="TC2 Rev")
     await _add_factor_set(client, rev["id"], name="TC2 FS")
     pub = await _publish(client, rev["id"])
@@ -79,7 +79,10 @@ async def test_tc2_unpublish_with_bound_project_fails(client):
     bind = await _bind(client, str(uuid4()), rev["id"])
     assert bind.status_code == 201
 
-    resp = await client.post(f"/api/dataset-revisions/{rev['id']}/unpublish")
+    resp = await client.post(
+        f"/api/dataset-revisions/{rev['id']}/unpublish",
+        json={"confirm_bound_project_ids": []},
+    )
     assert resp.status_code == 409, resp.text
 
 
@@ -119,7 +122,10 @@ async def test_tc5b_archived_cannot_be_unpublished(client):
     rev = await _create_revision(client, name="TC5b Rev")
     await client.post(f"/api/dataset-revisions/{rev['id']}/archive")
 
-    resp = await client.post(f"/api/dataset-revisions/{rev['id']}/unpublish")
+    resp = await client.post(
+        f"/api/dataset-revisions/{rev['id']}/unpublish",
+        json={"confirm_bound_project_ids": []},
+    )
     assert resp.status_code == 409, resp.text
 
 
@@ -368,14 +374,16 @@ async def test_branch_nonexistent_revision_fails(client):
 
 
 @pytest.mark.asyncio
-async def test_publish_then_unpublish_restores_draft(client):
+async def test_global_published_revision_requires_new_revision(client):
     rev = await _create_revision(client, name="Repub Rev")
     await _add_factor_set(client, rev["id"], name="Repub FS")
     await _publish(client, rev["id"])
 
-    unp = await client.post(f"/api/dataset-revisions/{rev['id']}/unpublish")
-    assert unp.status_code == 200, unp.text
-    assert unp.json()["status"] == "draft"
+    unp = await client.post(
+        f"/api/dataset-revisions/{rev['id']}/unpublish",
+        json={"confirm_bound_project_ids": []},
+    )
+    assert unp.status_code == 409, unp.text
 
 
 @pytest.mark.asyncio

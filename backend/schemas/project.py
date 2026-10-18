@@ -302,4 +302,17 @@ class ProjectOut(ProjectBase):
 
     model_config = ConfigDict(from_attributes=True)
 
- 
+
+class DatasetRevisionStatusCounts(BaseModel):
+    draft: int = 0
+    published: int = 0
+    deprecated: int = 0
+    archived: int = 0
+
+
+class MeProjectOut(ProjectOut):
+    """Project row returned by /api/me/projects with its own dataset counts."""
+
+    dataset_revision_counts: DatasetRevisionStatusCounts = Field(
+        default_factory=DatasetRevisionStatusCounts
+    )

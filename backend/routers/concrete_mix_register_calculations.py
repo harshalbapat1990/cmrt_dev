@@ -23,6 +23,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
+from core.security import Principal, get_current_principal
+from core.dataset_authorization import assert_project_dataset_revision_read_permission
 from services.concrete_mix_register_calculations import (
     ConcreteMixCalculateRequest,
     ConcreteMixCalculateResponse,
@@ -63,11 +65,17 @@ router = APIRouter(
 async def calculate_concrete_mix(
     payload: Union[ConcreteMixCalculateRequest, List[ConcreteMixCalculateRequest]],
     db: AsyncSession = Depends(get_session),
+    principal: Principal = Depends(get_current_principal),
 ) -> Union[ConcreteMixCalculateResponse, List[ConcreteMixCalculateResponse]]:
     try:
+        requests = payload if isinstance(payload, list) else [payload]
+        for request in requests:
+            await assert_project_dataset_revision_read_permission(db, principal, request.project_id)
         if isinstance(payload, list):
             return await calculator.calculate_batch(db, payload)
         return await calculator.calculate(db, payload)
+    except HTTPException:
+        raise
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -98,9 +106,13 @@ async def calculate_concrete_mix(
 async def calculate_concrete_mix_epd_shortcut(
     payload: ConcreteEPDShortcutRequest,
     db: AsyncSession = Depends(get_session),
+    principal: Principal = Depends(get_current_principal),
 ) -> ConcreteEPDShortcutResponse:
     try:
+        await assert_project_dataset_revision_read_permission(db, principal, payload.project_id)
         return await calculate_epd_shortcut(db, payload)
+    except HTTPException:
+        raise
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -142,9 +154,13 @@ async def calculate_concrete_mix_epd_shortcut(
 async def calculate_concrete_simplified_register(
     payload: ConcreteSimplifiedRegisterRequest,
     db: AsyncSession = Depends(get_session),
+    principal: Principal = Depends(get_current_principal),
 ) -> ConcreteSimplifiedRegisterResponse:
     try:
+        await assert_project_dataset_revision_read_permission(db, principal, payload.project_id)
         return await calculate_simplified_register(db, payload)
+    except HTTPException:
+        raise
     except ValueError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -18,7 +18,7 @@ export function useDataEntryTableColumns(projectId: string, jurisdiction: string
     const assetColumns = useMemo(() => assetTableConfig(projectId).columns(), [projectId]);
     const componentColumns = useMemo(() => componentTableConfig(projectId).columns(), [projectId]);
     const componentReplColumns = useMemo(() => componentReplacementConfig(projectId).columns(), [projectId]);
-    const refurbColumns = useMemo(() => refurbishmentTableConfig(jurisdiction).columns(), [jurisdiction]);
+    const refurbColumns = useMemo(() => refurbishmentTableConfig(jurisdiction, projectId).columns(), [jurisdiction, projectId]);
     const opEnergyColumns = useMemo(() => opEnergyTableConfig(projectId).columns(), [projectId]);
     const opEnergyDetailedColumns = useMemo(() => createB1G3Config(projectId, ["Fuels", "Water"]).columns(), [projectId]);
     const opEnergyElectricityColumns = useMemo(() => electricityConfig(projectId).columns(), [projectId]);

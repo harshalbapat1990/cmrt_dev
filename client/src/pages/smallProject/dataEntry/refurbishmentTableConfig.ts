@@ -1,6 +1,7 @@
 import http from '@/http';
 import type { DataEntryRow } from './dataEntryTypes';
 import { asTableConfigRecord } from './tableConfigUtils';
+import LookupsService from '@/services/Lookups.service';
 
 export interface MrFactor {
   id: string;
@@ -20,15 +21,20 @@ type BoundaryContext = {
 
 const _mrFactorsCache: Record<string, MrFactor[]> = {};
 
-export async function fetchAllActiveMrFactors(jurisdictionName?: string | null): Promise<MrFactor[]> {
-  const cacheKey = jurisdictionName ?? "__all__";
+export async function fetchAllActiveMrFactors(jurisdictionName?: string | null, projectId?: string): Promise<MrFactor[]> {
+  const revisionId = projectId
+    ? await LookupsService.resolveProjectDatasetRevisionId(projectId)
+    : await LookupsService.resolvePublishedDefaultDatasetRevisionId();
+  const cacheKey = `${jurisdictionName ?? "__all__"}:${revisionId ?? "none"}`;
   if (_mrFactorsCache[cacheKey]?.length > 0) return _mrFactorsCache[cacheKey];
   try {
-    const url = jurisdictionName
-      ? `/api/maintenance-replacement-factors/active?jurisdiction_name=${encodeURIComponent(jurisdictionName)}`
-      : '/api/maintenance-replacement-factors/active';
-    const res = await http.get(url);
+    const params: Record<string, string> = {};
+    if (jurisdictionName) params.jurisdiction_name = jurisdictionName;
+    if (projectId) params.project_id = projectId;
+    else if (revisionId) params.dataset_revision_id = revisionId;
+    const res = await http.get('/api/maintenance-replacement-factors/active', { params });
     _mrFactorsCache[cacheKey] = (res.data ?? []) as MrFactor[];
+    _mrFactorsCache[`${jurisdictionName ?? "__all__"}:${projectId ?? "default"}`] = _mrFactorsCache[cacheKey];
   } catch (e) {
     console.error('Failed to load maintenance & replacement factors:', e);
     return [];
@@ -36,7 +42,7 @@ export async function fetchAllActiveMrFactors(jurisdictionName?: string | null):
   return _mrFactorsCache[cacheKey];
 }
 
-export const refurbishmentTableConfig = (jurisdictionName?: string | null) => ({
+export const refurbishmentTableConfig = (jurisdictionName?: string | null, projectId?: string) => ({
   tableName: "Other partial replacement or refurbishment activities",
   boundary: {
   appliesTo: "Maintenance",
@@ -56,7 +62,7 @@ export const refurbishmentTableConfig = (jurisdictionName?: string | null) => ({
     requiredKeys: ["mr_factor_id", "quantity", "frequency"],
     triggerKeys: ["mr_factor_id", "quantity", "frequency"],
     buildPayload: (row: DataEntryRow, ctx: { reference_period?: number }) => {
-      const cacheKey = jurisdictionName ?? "__all__";
+      const cacheKey = `${jurisdictionName ?? "__all__"}:${projectId ?? "default"}`;
       const factor = (_mrFactorsCache[cacheKey] ?? []).find((f) => f.id === row.mr_factor_id);
       if (!factor) return null;
       const quantity = Number(row.quantity);
@@ -104,7 +110,7 @@ export const refurbishmentTableConfig = (jurisdictionName?: string | null) => ({
       required: true,
       lookup: {
         fetch: async () => {
-          const factors = await fetchAllActiveMrFactors(jurisdictionName);
+          const factors = await fetchAllActiveMrFactors(jurisdictionName, projectId);
           const types = [...new Set(factors.map((f) => f.activity_type))];
           return types.map((t) => ({ label: t, value: t }));
         },
@@ -121,7 +127,7 @@ export const refurbishmentTableConfig = (jurisdictionName?: string | null) => ({
         fetch: async (ctx?: { row?: DataEntryRow }) => {
           const activityType = ctx?.row?.activityType;
           if (!activityType) return [];
-          const factors = await fetchAllActiveMrFactors(jurisdictionName);
+          const factors = await fetchAllActiveMrFactors(jurisdictionName, projectId);
           return factors
             .filter((f) => f.activity_type === activityType)
             .map((f) => ({
@@ -150,7 +156,7 @@ export const refurbishmentTableConfig = (jurisdictionName?: string | null) => ({
       editorType: "select",
       idKey: "activityType",
       getOptions: async () => {
-        const factors = await fetchAllActiveMrFactors(jurisdictionName);
+        const factors = await fetchAllActiveMrFactors(jurisdictionName, projectId);
         const types = [...new Set(factors.map((f) => f.activity_type))];
         return types.map((t) => ({ label: t, value: t }));
       },
@@ -167,7 +173,7 @@ export const refurbishmentTableConfig = (jurisdictionName?: string | null) => ({
       getOptions: async (ctx?: { row?: DataEntryRow }) => {
         const activityType = ctx?.row?.activityType;
         if (!activityType) return [];
-        const factors = await fetchAllActiveMrFactors(jurisdictionName);
+        const factors = await fetchAllActiveMrFactors(jurisdictionName, projectId);
         return factors
           .filter((f) => f.activity_type === activityType)
           .map((f) => ({

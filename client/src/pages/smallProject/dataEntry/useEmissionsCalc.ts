@@ -175,7 +175,7 @@ export function useEmissionsCalc({
             const resolvedDatasetRevisionId = await resolveDatasetRevisionId();
             const payloadWithDatasetRevision = {
                 ...payload,
-                dataset_revision_id: row?.dataset_revision_id ?? resolvedDatasetRevisionId ?? null,
+                dataset_revision_id: resolvedDatasetRevisionId ?? row?.dataset_revision_id ?? null,
             };
 
             try {

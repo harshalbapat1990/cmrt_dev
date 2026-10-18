@@ -89,6 +89,7 @@ export function useMitigationHandlers({
 
 const mitigationInlineEditDeps = useMemo(
         () => ({
+            projectId,
             computeEmissionsForRow,
             getCalcConfig,
             user,
@@ -99,6 +100,7 @@ const mitigationInlineEditDeps = useMemo(
             opsStartYear,
         }),
         [
+            projectId,
             computeEmissionsForRow,
             getCalcConfig,
             user,

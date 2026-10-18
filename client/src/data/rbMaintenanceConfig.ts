@@ -1,4 +1,10 @@
 import http from "@/http";
+import LookupsService from "@/services/Lookups.service";
+
+async function revisionParams() {
+  const dataset_revision_id = await LookupsService.resolvePublishedDefaultDatasetRevisionId();
+  return { use_org_jurisdiction: true, ...(dataset_revision_id ? { dataset_revision_id } : {}) };
+}
 
 export const rbMaintenanceUploadConfig = {
   fileHeaders: [
@@ -16,9 +22,7 @@ export const rbMaintenanceUploadConfig = {
           const res = await http.get(
             "/api/maintenance-replacement-factors/active",
             {
-              params: {
-                use_org_jurisdiction: true,
-              },
+              params: await revisionParams(),
             }
           );
           const types = [...new Set(res.data.map((r: any) => r.activity_type))];
@@ -37,9 +41,7 @@ export const rbMaintenanceUploadConfig = {
           const res = await http.get(
             "/api/maintenance-replacement-factors/active",
             {
-              params: {
-                use_org_jurisdiction: true,
-              },
+              params: await revisionParams(),
             }
           );
           return res.data

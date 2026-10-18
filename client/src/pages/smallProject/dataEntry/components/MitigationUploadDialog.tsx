@@ -27,7 +27,7 @@ function resolveUploadConfig(uploadKey: UploadKey, projectId: string) {
     case "useB1G2": return createB1G2Config(null, projectId);
     case "useB1G3": return createB1G3Config(projectId);
     case "componentRepl": return componentReplacementConfig(projectId);
-    case "refurbishment": return refurbishmentTableConfig(null);
+    case "refurbishment": return refurbishmentTableConfig(null, projectId);
     case "replDetailed": return createB1G3Config(projectId);
     case "opEnergy": return opEnergyTableConfig(projectId);
     case "opEnergyDetailed": return createB1G3Config(projectId, ["Fuels", "Water"]);

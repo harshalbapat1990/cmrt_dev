@@ -63,6 +63,12 @@ async def recalc_grade2_component_row(
         return None
 
     jurisdiction = await ProjectContextHelper.fetch_jurisdiction(db, activity_row.project_id)
+    dataset_revision_id = await ProjectContextHelper.fetch_project_dataset_revision(
+        db, activity_row.project_id
+    )
+    if dataset_revision_id is None:
+        logger.warning("grade2_component skip: no dataset revision for project=%s", activity_row.project_id)
+        return None
 
     req = Grade2CalculationRequest(
         jurisdiction=jurisdiction,
@@ -70,6 +76,9 @@ async def recalc_grade2_component_row(
         emissions_sub_category=emissions_sub_category,
         emissions_source=emissions_source,
         quantity=quantity,
+        source=_pick_label(extra.get("source_comments") or extra.get("source")) or None,
+        project_id=activity_row.project_id,
+        dataset_revision_id=dataset_revision_id,
     )
 
     try:

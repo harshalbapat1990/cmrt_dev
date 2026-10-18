@@ -5,7 +5,20 @@ import http from '@/http';
 interface Project {
   id: string;
   project_name: string;
+  dataset_revision_counts: {
+    draft: number;
+    published: number;
+    deprecated: number;
+    archived: number;
+  };
 }
+
+const DATASET_STATUSES = [
+  { key: 'draft', label: 'draft' },
+  { key: 'published', label: 'published' },
+  { key: 'deprecated', label: 'deprecated' },
+  { key: 'archived', label: 'archived' },
+] as const;
 
 export default function ProjectDatasetsSelectPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -56,8 +69,17 @@ export default function ProjectDatasetsSelectPage() {
             to={`/datasets/project/${p.id}`}
             className="flex items-center justify-between rounded border border-neutral-80 bg-white px-5 py-4 hover:border-primary hover:bg-primary/5 transition-colors group"
           >
-            <span className="text-sm font-medium text-text-dark group-hover:text-primary">
-              {p.project_name}
+            <span className="min-w-0">
+              <span className="block text-sm font-medium text-text-dark group-hover:text-primary">
+                {p.project_name}
+              </span>
+              <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-text-base">
+                {DATASET_STATUSES.map(({ key, label }) => (
+                  <span key={key}>
+                    {p.dataset_revision_counts?.[key] ?? 0} {label}
+                  </span>
+                ))}
+              </span>
             </span>
             <span className="material-symbols-rounded text-[18px] text-text-base group-hover:text-primary">
               chevron_right

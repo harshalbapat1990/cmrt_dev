@@ -431,9 +431,10 @@ const RBOperationsPanel: React.FC<RBOperationsPanelProps> = ({
     (async () => {
       try {
         setLoading(true);
+        const dataset_revision_id = await LookupsService.resolvePublishedDefaultDatasetRevisionId();
         const res = await http.get<{ group_name: string; item: string }[]>(
           "/api/operational-equipment",
-          { params: { limit: 500 } },
+          { params: { limit: 500, ...(dataset_revision_id ? { dataset_revision_id } : {}) } },
         );
         if (cancelled) return;
         const data = res.data ?? [];
@@ -613,11 +614,13 @@ const RBMaintenancePanel: React.FC<RBMaintenancePanelProps> = ({
     (async () => {
       try {
         setLoading(true);
+        const dataset_revision_id = await LookupsService.resolvePublishedDefaultDatasetRevisionId();
         const res = await http.get<{ activity_type: string; item: string }[]>(
           "/api/maintenance-replacement-factors/active",
           {
             params: {
               use_org_jurisdiction: true,
+              ...(dataset_revision_id ? { dataset_revision_id } : {}),
             },
           }
         );

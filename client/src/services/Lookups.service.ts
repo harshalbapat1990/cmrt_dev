@@ -43,6 +43,7 @@ export class LookupsService extends BaseService {
     }
 
     private datasetRevisionCache = new Map<string, string | null>();
+    private defaultDatasetRevisionId: string | null | undefined;
 
     clearProjectDatasetRevisionCache(projectId?: string): void {
         if (projectId) {
@@ -66,6 +67,32 @@ export class LookupsService extends BaseService {
             this.datasetRevisionCache.set(projectId, null);
             return null;
         }
+    }
+
+    async resolvePublishedDefaultDatasetRevisionId(): Promise<string | null> {
+        if (this.defaultDatasetRevisionId !== undefined) return this.defaultDatasetRevisionId;
+        try {
+            const response = await this.get(
+                "/dataset-revisions?scope_type=DEFAULT&status=published&limit=500",
+            );
+            const revisions = Array.isArray(response.data) ? response.data : [];
+            revisions.sort((a: { created_at?: string }, b: { created_at?: string }) =>
+                new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime(),
+            );
+            this.defaultDatasetRevisionId = revisions[0]?.id ?? null;
+        } catch {
+            this.defaultDatasetRevisionId = null;
+        }
+        return this.defaultDatasetRevisionId ?? null;
+    }
+
+    private async resolveLookupDatasetRevisionId(
+        requestedRevisionId?: string | null,
+        projectId?: string,
+    ): Promise<string | null> {
+        if (requestedRevisionId) return requestedRevisionId;
+        if (projectId) return this.resolveProjectDatasetRevisionId(projectId);
+        return this.resolvePublishedDefaultDatasetRevisionId();
     }
 
     /**
@@ -273,8 +300,9 @@ export class LookupsService extends BaseService {
     /** Get units compatible with an emission source for the requested revision. */
     async fetchUnitsBySource(sourceId: string, datasetRevisionId?: string | null): Promise<UnitOption[]> {
         try {
+            const revisionId = await this.resolveLookupDatasetRevisionId(datasetRevisionId);
             const params = new URLSearchParams();
-            if (datasetRevisionId) params.set("dataset_revision_id", datasetRevisionId);
+            if (revisionId) params.set("dataset_revision_id", revisionId);
             const query = params.toString();
             const response = await this.get(`/lookup/emission-sources/${encodeURIComponent(sourceId)}/units${query ? `?${query}` : ""}`);
             const rawData = response.data;
@@ -289,9 +317,10 @@ export class LookupsService extends BaseService {
 
     async fetchUnitsByTypecast(typecastId: string, gradeIds?: number[], datasetRevisionId?: string | null): Promise<UnitOption[]> {
         try {
+            const revisionId = await this.resolveLookupDatasetRevisionId(datasetRevisionId);
             const params = new URLSearchParams();
             if (gradeIds && gradeIds.length > 0) params.set("grade_ids", gradeIds.join(","));
-            if (datasetRevisionId) params.set("dataset_revision_id", datasetRevisionId);
+            if (revisionId) params.set("dataset_revision_id", revisionId);
             const query = params.toString();
             const response = await this.get(`/lookup/benchmark-typecasts/${encodeURIComponent(typecastId)}/units${query ? `?${query}` : ""}`);
             const rawData = response.data;
@@ -309,7 +338,7 @@ export class LookupsService extends BaseService {
     // ---------------------------------------------------------------
     async fetchBgmCategories(gradeIds: number[], projectId?: string, useOrgJurisdiction?: boolean, datasetRevisionId?: string | null): Promise<any[]> {
         try {
-            const revisionId = datasetRevisionId ?? (projectId ? await this.resolveProjectDatasetRevisionId(projectId) : null);
+            const revisionId = await this.resolveLookupDatasetRevisionId(datasetRevisionId, projectId);
             const params = new URLSearchParams({
                 grade_ids: gradeIds.join(","),
             });
@@ -325,7 +354,7 @@ export class LookupsService extends BaseService {
 
     async fetchBgmSubcategories(gradeIds: number[], categoryId: string, projectId?: string, useOrgJurisdiction?: boolean, datasetRevisionId?: string | null): Promise<any[]> {
         try {
-            const revisionId = datasetRevisionId ?? (projectId ? await this.resolveProjectDatasetRevisionId(projectId) : null);
+            const revisionId = await this.resolveLookupDatasetRevisionId(datasetRevisionId, projectId);
             const params = new URLSearchParams({
                 grade_ids: gradeIds.join(","),
                 category_id: categoryId,
@@ -342,7 +371,7 @@ export class LookupsService extends BaseService {
 
     async fetchBgmSources(gradeIds: number[], subcategoryId: string, projectId?: string, useOrgJurisdiction?: boolean, datasetRevisionId?: string | null): Promise<any[]> {
         try {
-            const revisionId = datasetRevisionId ?? (projectId ? await this.resolveProjectDatasetRevisionId(projectId) : null);
+            const revisionId = await this.resolveLookupDatasetRevisionId(datasetRevisionId, projectId);
             const params = new URLSearchParams({
                 grade_ids: gradeIds.join(","),
                 subcategory_id: subcategoryId,
@@ -359,12 +388,13 @@ export class LookupsService extends BaseService {
 
     async fetchBgmSourceUnits(gradeIds: number[], subcategoryId: string, source: string, datasetRevisionId?: string | null): Promise<UnitOption[]> {
         try {
+            const revisionId = await this.resolveLookupDatasetRevisionId(datasetRevisionId);
             const params = new URLSearchParams({
                 grade_ids: gradeIds.join(","),
                 subcategory_id: subcategoryId,
                 source,
             });
-            if (datasetRevisionId) params.set("dataset_revision_id", datasetRevisionId);
+            if (revisionId) params.set("dataset_revision_id", revisionId);
             const response = await this.get(`/lookup/bgm-source-units?${params.toString()}`);
             const data = Array.isArray(response.data) ? response.data : [];
             if (data.length > 0) return data;
@@ -380,7 +410,8 @@ export class LookupsService extends BaseService {
      * Falls back to the canonical MWh option if the conversion lookup is unavailable.
      */
     async fetchElectricityUnits(datasetRevisionId?: string | null): Promise<UnitOption[]> {
-        const cacheKey = datasetRevisionId ?? "global";
+        const revisionId = await this.resolveLookupDatasetRevisionId(datasetRevisionId);
+        const cacheKey = revisionId ?? "unavailable";
         const now = Date.now();
         const cached = electricityUnitsCache.get(cacheKey);
         if (cached && now - cached.timestamp < CACHE_EXPIRATION) {
@@ -388,7 +419,7 @@ export class LookupsService extends BaseService {
         }
         try {
             const params = new URLSearchParams();
-            if (datasetRevisionId) params.set("dataset_revision_id", datasetRevisionId);
+            if (revisionId) params.set("dataset_revision_id", revisionId);
             const query = params.toString();
             const response = await this.get(`/lookup/electricity-units${query ? `?${query}` : ""}`);
             const data: UnitOption[] = Array.isArray(response.data) ? response.data : [];
@@ -456,21 +487,12 @@ export class LookupsService extends BaseService {
     */
     async fetchMasterTypesbyProjectId(projectId: string): Promise<any[]> {
         if (!projectId) return [];
-        const now = Date.now();
-        // Check if we have valid cached data
-        if (masterTypeCache.data && (now - masterTypeCache.timestamp < CACHE_EXPIRATION)) {
-            return masterTypeCache.data;
-        }
         try {
             const response = await this.get(`/benchmark-mastertypes?project_id=${encodeURIComponent(projectId)}`);
             const rawData = response.data;
             if (!Array.isArray(rawData)) {
                 throw new Error(`Expected array but received ${typeof rawData}`);
             }
-            // Update the cache
-            masterTypeCache.data = rawData;
-            masterTypeCache.timestamp = now;
-
             return rawData;
 
         } catch (error: any) {

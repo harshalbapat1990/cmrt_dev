@@ -12,6 +12,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.session import get_session
+from core.security import Principal, get_current_principal
+from core.dataset_authorization import (
+    assert_dataset_revision_read_permission,
+    assert_project_dataset_revision_read_permission,
+)
 from services.detailed_level_calcs_operational_elec import (
     OperationalElecRequest,
     OperationalElecResponse,
@@ -60,13 +65,24 @@ router = APIRouter(
 async def calculate_operational_elec_emissions(
     payload: OperationalElecRequest,
     db: AsyncSession = Depends(get_session),
+    principal: Principal = Depends(get_current_principal),
 ) -> OperationalElecResponse:
     """
     Calculate Detailed Level - Operational Electricity (B6-7) Stage emissions for one row.
     Returns 422 for validation errors, 500 for unexpected calculation errors.
     """
     try:
+        if payload.project_id:
+            await assert_project_dataset_revision_read_permission(
+                db, principal, payload.project_id, payload.dataset_revision_id
+            )
+        else:
+            await assert_dataset_revision_read_permission(
+                db, principal, payload.dataset_revision_id
+            )
         return await calculator.calculate(db, payload)
+    except HTTPException:
+        raise
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     except Exception as e:

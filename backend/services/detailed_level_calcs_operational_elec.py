@@ -106,6 +106,10 @@ class OperationalElecRequest(BaseModel):
         gt=0,
         description="Electricity quantity in MWh.",
     )
+    project_id: Optional[UUID] = Field(
+        None,
+        description="Project context; when supplied, its bound dataset revision must match.",
+    )
     unit: Optional[str] = Field(
         None,
         description="Unit of measure — echoed in response, not used in calculation.",
@@ -114,11 +118,10 @@ class OperationalElecRequest(BaseModel):
         None,
         description="Free-text notes — echoed in response, not used in calculation.",
     )
-    dataset_revision_id: Optional[UUID] = Field(
-        None,
+    dataset_revision_id: UUID = Field(
+        ...,
         description=(
-            "Dataset revision UUID to pin factors to a specific revision. "
-            "If omitted, all active revisions for the jurisdiction/region are considered."
+            "Dataset revision UUID whose emissions factors are used for this calculation."
         ),
     )
 
@@ -141,7 +144,7 @@ class OperationalElecRequest(BaseModel):
                 "quantity_mwh": 10.0,
                 "unit": "MWh",
                 "notes": None,
-                "dataset_revision_id": None,
+                "dataset_revision_id": "00000000-0000-0000-0000-000000000001",
             }
         }
     }

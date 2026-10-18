@@ -317,6 +317,7 @@ const ConstructionStage = () => {
         });
 
     usePrimaryStageRows({
+        projectId,
         enabled: projectDataReady,
         activeStage,
         activeSubStage,

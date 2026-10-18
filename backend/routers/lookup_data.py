@@ -9,6 +9,7 @@ from sqlalchemy import select, func, distinct
 from core.config import Settings
 from core.session import get_session
 from core.security import get_current_principal, Principal
+from core.dataset_authorization import require_dataset_read_access
 from models.organizations import Organization
 
 from models.background_grade_metrics import BackgroundGradeMetric
@@ -57,9 +58,11 @@ async def get_unit(id: UUID, db: AsyncSession = Depends(get_session)):
 @router.get("/electricity-units", response_model=List[UnitOptionOut])
 async def list_electricity_units(
     dataset_revision_id: Optional[UUID] = Query(None),
+    authorized_revision_id: UUID = Depends(require_dataset_read_access),
     db: AsyncSession = Depends(get_session),
 ):
     """Return only Wh, kWh, MWh and GWh for electricity tables."""
+    dataset_revision_id = dataset_revision_id or authorized_revision_id
 
     stmt = select(Unit).where(func.lower(Unit.code) == "mwh")
     mwh_unit = (await db.execute(stmt)).scalar_one_or_none()
@@ -85,8 +88,10 @@ async def list_units_for_typecast(
     id: UUID,
     grade_ids: Optional[str] = Query(None, description="Comma-separated grade IDs to filter by, e.g. '1'"),
     dataset_revision_id: Optional[UUID] = Query(None),
+    authorized_revision_id: UUID = Depends(require_dataset_read_access),
     db: AsyncSession = Depends(get_session),
 ):
+    dataset_revision_id = dataset_revision_id or authorized_revision_id
     bgm = BackgroundGradeMetric
     u = Unit
     stmt = (
@@ -113,9 +118,11 @@ async def list_bgm_categories(
     use_org_jurisdiction: bool = Query(False),
     dataset_revision_id: Optional[UUID] = Query(None),
     current_user: Principal = Depends(get_current_principal),
+    authorized_revision_id: UUID = Depends(require_dataset_read_access),
     db: AsyncSession = Depends(get_session),
 ):
     """Distinct top-level emissions categories that have BGM rows for the given grades."""
+    dataset_revision_id = dataset_revision_id or authorized_revision_id
     grade_id_list = [int(g.strip()) for g in grade_ids.split(",") if g.strip().isdigit()]
     ec = EmissionsCategoryRecord
     bgm = BackgroundGradeMetric
@@ -171,9 +178,11 @@ async def list_bgm_subcategories(
     use_org_jurisdiction: bool = Query(False),
     dataset_revision_id: Optional[UUID] = Query(None),
     current_user: Principal = Depends(get_current_principal),
+    authorized_revision_id: UUID = Depends(require_dataset_read_access),
     db: AsyncSession = Depends(get_session),
 ):
     """Distinct subcategories (children of category_id) that have BGM rows for the given grades."""
+    dataset_revision_id = dataset_revision_id or authorized_revision_id
     grade_id_list = [int(g.strip()) for g in grade_ids.split(",") if g.strip().isdigit()]
     ec = EmissionsCategoryRecord
     bgm = BackgroundGradeMetric
@@ -232,9 +241,11 @@ async def list_bgm_sources(
     use_org_jurisdiction: bool = Query(False),
     dataset_revision_id: Optional[UUID] = Query(None),
     current_user: Principal = Depends(get_current_principal),
+    authorized_revision_id: UUID = Depends(require_dataset_read_access),
     db: AsyncSession = Depends(get_session),
 ):
     """Distinct emissions_source strings from BGM for the given grades and subcategory."""
+    dataset_revision_id = dataset_revision_id or authorized_revision_id
     
     grade_id_list = [
         int(g.strip())
@@ -316,10 +327,12 @@ async def list_bgm_source_units(
     subcategory_id: UUID = Query(..., description="Emissions subcategory UUID"),
     source: str = Query(..., description="Emissions source string"),
     dataset_revision_id: Optional[UUID] = Query(None, description="Active dataset revision UUID"),
+    authorized_revision_id: UUID = Depends(require_dataset_read_access),
     db: AsyncSession = Depends(get_session),
 ):
     """Distinct units from BGM for the given grades, subcategory and emissions source string,
     plus any units reachable via unit_conversions from those canonical units."""
+    dataset_revision_id = dataset_revision_id or authorized_revision_id
     grade_id_list = [int(g.strip()) for g in grade_ids.split(",") if g.strip().isdigit()]
     bgm = BackgroundGradeMetric
     stmt = (
@@ -370,10 +383,12 @@ async def list_emission_sources(
 async def list_units_for_source(
     id: UUID,
     dataset_revision_id: Optional[UUID] = Query(None),
+    authorized_revision_id: UUID = Depends(require_dataset_read_access),
     db: AsyncSession = Depends(get_session),
 ):
     """Return distinct units from all emission factors linked to this source,
     plus any units reachable via unit_conversions from those canonical units."""
+    dataset_revision_id = dataset_revision_id or authorized_revision_id
     ef = EmissionFactor
     stmt = (
         select(distinct(ef.measurement_unit_id))

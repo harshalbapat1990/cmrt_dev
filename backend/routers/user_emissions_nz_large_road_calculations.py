@@ -29,6 +29,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.security import Principal, get_current_principal
 from core.session import get_session
+from core.authorization_policy import AccessLevel
+from core.dataset_authorization import assert_project_dataset_revision_read_permission
 from models.project_options import ProjectOption
 from models.user_emissions_nz_large_road import UserEmissionsNzLargeRoadResult
 from schemas.user_emissions_nz_large_road import (
@@ -73,9 +75,14 @@ async def calculate_nz_large_road_emissions(
     principal: Principal = Depends(get_current_principal),
 ) -> NzLargeRoadCalculateResponse:
     try:
+        await assert_project_dataset_revision_read_permission(
+            db, principal, payload.project_id, minimum_access=AccessLevel.EDIT
+        )
         result = await calculate_and_store_nz_large_road(db, payload)
         await db.commit()
         return result
+    except HTTPException:
+        raise
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
     except Exception as exc:

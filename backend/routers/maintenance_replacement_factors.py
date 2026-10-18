@@ -17,7 +17,10 @@ from schemas.maintenance_replacement_factors import (
 )
 
 from core.security import get_current_principal, Principal
-from core.dataset_authorization import assert_revision_edit_permission
+from core.dataset_authorization import (
+    assert_revision_edit_permission,
+    require_dataset_read_access,
+)
 from models.maintenance_replacement_factors import MaintenanceReplacementFactor
 from models.organizations import Organization
 from models.jurisdictions import Jurisdiction
@@ -35,9 +38,13 @@ router = APIRouter(
 async def get_active_maintenance_replacement_factors(
     jurisdiction_name: Optional[str] = Query(None, description="Filter by jurisdiction name (e.g. 'Australia')"),
     use_org_jurisdiction: bool = Query(False),
+    dataset_revision_id: Optional[UUID] = Query(None),
+    project_id: Optional[UUID] = Query(None),
     current_user: Principal = Depends(get_current_principal),
+    authorized_revision_id: UUID = Depends(require_dataset_read_access),
     db: AsyncSession = Depends(get_session),
 ):
+    dataset_revision_id = dataset_revision_id or authorized_revision_id
     if use_org_jurisdiction and current_user.organization_id:
         org_result = await db.execute(
             select(Organization.jurisdiction_id)
@@ -53,7 +60,11 @@ async def get_active_maintenance_replacement_factors(
                     .where(Jurisdiction.id == org_jurisdiction_id)
                 )
             ).scalar_one_or_none()
-    return await list_maintenance_replacement_factors_active(db, jurisdiction_name=jurisdiction_name)
+    return await list_maintenance_replacement_factors_active(
+        db,
+        jurisdiction_name=jurisdiction_name,
+        dataset_revision_id=dataset_revision_id,
+    )
 
 
 @router.get("", response_model=List[MaintenanceReplacementFactorOut])

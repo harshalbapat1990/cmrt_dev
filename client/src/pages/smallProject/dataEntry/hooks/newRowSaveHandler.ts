@@ -118,7 +118,7 @@ export function createNewRowSaveHandler({
                     };
                     metricId = await resolveMetricId(draft, tableKey);
                 } else if (tableKey === "refurbishment") {
-                    await fetchAllActiveMrFactors();
+                    await fetchAllActiveMrFactors(undefined, projectId);
                     metricId = null;
                     unit_id = null;
                 } else {

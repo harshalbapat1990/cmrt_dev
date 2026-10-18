@@ -70,7 +70,7 @@ export const componentTableConfig = (projectId: string) => ({
       "unit_code",
       "unit_id",
     ],
-    buildPayload: (row: DataEntryRow, ctx: Pick<CalcCtx, "jurisdiction">) => {
+    buildPayload: (row: DataEntryRow, ctx: Pick<CalcCtx, "jurisdiction" | "project_id">) => {
       const emissions_category = pickLabel(row.emissions_category);
       const emissions_sub_category = pickLabel(row.emissions_subcategory);
       const emissions_source = pickLabel(row.emissions_source_name);
@@ -88,6 +88,7 @@ export const componentTableConfig = (projectId: string) => ({
         emissions_source: emissions_source,
         emissions_sub_category: emissions_sub_category,
         jurisdiction: ctx.jurisdiction,
+        project_id: ctx.project_id,
         quantity: convertedQuantity,
         unit: unit,
       };

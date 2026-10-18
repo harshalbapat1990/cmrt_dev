@@ -176,7 +176,7 @@ export function useRowOperations({
 
                 if (tableKey === "refurbishment") {
                     unit_id = null;
-                    await fetchAllActiveMrFactors();
+                    await fetchAllActiveMrFactors(undefined, projectId);
                 }
 
                 try { metricId = await resolveMetricId(finalRow, tableKey); } catch { metricId = null; }
@@ -299,6 +299,7 @@ export function useRowOperations({
     );
 
     const { onCellChange, onRowPatch, doDeleteRow } = useDataEntryRowMutations({
+        projectId,
         user,
         fugitiveList,
         getRows,

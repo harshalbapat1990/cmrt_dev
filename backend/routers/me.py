@@ -7,7 +7,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.access_context import DatasetVisibility, get_dataset_visibility_context
@@ -25,7 +25,8 @@ from core.authorization_policy import access_name
 from core.security import Principal, get_current_principal
 from core.session import get_session
 from crud.project import list_projects_for_org, list_projects_for_user_roles
-from schemas.project import ProjectOut
+from schemas.project import MeProjectOut, DatasetRevisionStatusCounts
+from models.dataset_revisions import DatasetRevision, REVISION_STATUSES
 
 router = APIRouter(prefix="/api/me", tags=["me"])
 
@@ -174,7 +175,7 @@ async def get_my_dataset_tier(
     )
 
 
-@router.get("/projects", response_model=List[ProjectOut])
+@router.get("/projects", response_model=List[MeProjectOut])
 async def get_my_projects(
     principal: Principal = Depends(get_current_principal),
     db: AsyncSession = Depends(get_session),
@@ -186,9 +187,42 @@ async def get_my_projects(
         roles = await get_effective_role_names(db, principal.user_id)
 
     if "ORG_ADMIN" in roles and principal.organization_id is not None:
-        return await list_projects_for_org(db, principal.organization_id)
+        projects = await list_projects_for_org(db, principal.organization_id)
+    else:
+        projects = await list_projects_for_user_roles(db, principal.user_id)
 
-    return await list_projects_for_user_roles(db, principal.user_id)
+    project_ids = [project.id for project in projects]
+    counts_by_project: dict[UUID, DatasetRevisionStatusCounts] = {}
+    if project_ids:
+        result = await db.execute(
+            select(
+                DatasetRevision.scope_id.label("project_id"),
+                DatasetRevision.status,
+                func.count(DatasetRevision.id).label("count"),
+            )
+            .where(
+                DatasetRevision.scope_type == "PROJECT",
+                DatasetRevision.scope_id.in_(project_ids),
+                DatasetRevision.status.in_(REVISION_STATUSES),
+            )
+            .group_by(DatasetRevision.scope_id, DatasetRevision.status)
+        )
+        for row in result.all():
+            counts = counts_by_project.setdefault(
+                row.project_id, DatasetRevisionStatusCounts()
+            )
+            setattr(counts, row.status, row.count)
+
+    return [
+        MeProjectOut.model_validate(project).model_copy(
+            update={
+                "dataset_revision_counts": counts_by_project.get(
+                    project.id, DatasetRevisionStatusCounts()
+                )
+            }
+        )
+        for project in projects
+    ]
 
 
 class PendingActionOut(BaseModel):

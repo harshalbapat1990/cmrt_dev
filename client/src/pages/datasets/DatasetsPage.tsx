@@ -57,6 +57,10 @@ import UninterruptedVehiclesTable from './components/UninterruptedVehiclesTable'
 import VehicleEnergyConversionTable from './components/VehicleEnergyConversionTable';
 import CarbonValuesTable from './components/CarbonValuesTable';
 import NewRevisionModal from './components/NewRevisionModal';
+import DatasetLifecycleModal, {
+  type BoundProject,
+  type ProjectRecalculation,
+} from './components/DatasetLifecycleModal';
 import DatasetBulkBar from './components/DatasetBulkBar';
 import { UploadModal } from '../dummy-table/UploadModal';
 import { downloadCsv } from '@/utils/downloadCsv';
@@ -146,11 +150,30 @@ function isScopeAllowedForTab(tab: PageTab, scopeType: string): boolean {
 export default function DatasetsPage({ scope = { type: 'DEFAULT' } }: { scope?: DatasetScope }) {
   const today = new Date().toISOString().slice(0, 10);
   const { roles } = useUser();
+  const [projectRoles, setProjectRoles] = useState<string[]>([]);
+  const projectScopeId = scope.type === 'PROJECT' ? scope.projectId : undefined;
+  useEffect(() => {
+    if (!projectScopeId) {
+      setProjectRoles([]);
+      return;
+    }
+    let cancelled = false;
+    setProjectRoles([]);
+    http.get<{ effective_roles?: string[] }>(`/api/me/access?project_id=${encodeURIComponent(projectScopeId)}`)
+      .then(({ data }) => {
+        if (!cancelled) setProjectRoles(data.effective_roles ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setProjectRoles([]);
+      });
+    return () => { cancelled = true; };
+  }, [projectScopeId]);
+  const scopeRoles = scope.type === 'PROJECT' ? projectRoles : roles;
   // Derive edit rights based on the tier being managed
   const canEditScope =
-    scope.type === 'DEFAULT' ? roles.includes('SUPER_ADMIN') :
-    scope.type === 'ORG'     ? roles.includes('ORG_ADMIN') :
-    /* PROJECT */              (roles.includes('PROJECT_ADMIN') || roles.includes('PROJECT_EDITOR'));
+    scope.type === 'DEFAULT' ? scopeRoles.includes('SUPER_ADMIN') :
+    scope.type === 'ORG'     ? scopeRoles.includes('ORG_ADMIN') :
+    /* PROJECT */              (scopeRoles.includes('PROJECT_ADMIN') || scopeRoles.includes('PROJECT_EDITOR'));
   const canArchiveScope = canEditScope;
   const [revisions, setRevisions]             = useState<DatasetRevision[]>([]);
   const [branchableRevisions, setBranchableRevisions] = useState<DatasetRevision[]>([]);
@@ -174,6 +197,7 @@ export default function DatasetsPage({ scope = { type: 'DEFAULT' } }: { scope?: 
     (scope.type === 'DEFAULT' || selectedRevision.scope_id === (scope.type === 'ORG' ? scope.orgId : scope.projectId))
   );
   const canEdit = canEditScope && ownsSelectedRevision && selectedRevision?.status === 'draft';
+  const canManageLifecycle = canEditScope && ownsSelectedRevision;
   const canArchive = canArchiveScope && ownsSelectedRevision;
   const canEditTab = canEdit && isScopeAllowedForTab(activeTab, scope.type);
   const [activeGroup, setActiveGroup] = useState<string>(TAB_GROUPS[0].label);
@@ -2200,6 +2224,11 @@ useMemo(() => {
   }, []);
 
   const [lifecycleLoading, setLifecycleLoading] = useState(false);  const [lifecycleError, setLifecycleError]     = useState('');
+  const [lifecycleDialog, setLifecycleDialog] = useState<
+    | { mode: 'unpublish' | 'deprecate'; projects: BoundProject[]; error?: string }
+    | { mode: 'publish-report'; recalculations: ProjectRecalculation[] }
+    | null
+  >(null);
   const [deleteRevLoading, setDeleteRevLoading] = useState(false);
   const [deleteRevError,   setDeleteRevError]   = useState('');
 
@@ -2232,32 +2261,109 @@ useMemo(() => {
     setBaseData([]); setDisplayData([]); setActiveGrade('');
   }, [scope]);
 
-  const doLifecycleAction = useCallback(async (
-    action: 'publish' | 'unpublish' | 'deprecate' | 'archive',
-  ) => {
+  const refreshScopeRevisions = useCallback(async () => {
+    const revUrl =
+      scope.type === 'DEFAULT' ? '/api/dataset-revisions?scope_type=DEFAULT&limit=200' :
+      scope.type === 'ORG' ? `/api/dataset-revisions?scope_type=ORG&scope_id=${scope.orgId}&limit=200` :
+      `/api/dataset-revisions?scope_type=PROJECT&scope_id=${scope.projectId}&limit=200`;
+    const res = await http.get<DatasetRevision[]>(revUrl);
+    setRevisions(res.data);
+  }, [scope]);
+
+  const openLifecycleDialog = useCallback(async (action: 'unpublish' | 'deprecate') => {
     if (!selectedRevisionId) return;
-    const confirmMsg: Record<string, string> = {
-      deprecate: 'Mark this revision as deprecated? Existing project bindings remain intact.',
-      archive:   'Archive this revision? This is a terminal state — it cannot be undone.',
-    };
-    if (confirmMsg[action] && !window.confirm(confirmMsg[action])) return;
     setLifecycleLoading(true);
     setLifecycleError('');
     try {
-      await http.post(`/api/dataset-revisions/${selectedRevisionId}/${action}`);
-      const revUrl =
-        scope.type === 'DEFAULT' ? '/api/dataset-revisions?scope_type=DEFAULT&limit=200' :
-        scope.type === 'ORG'     ? `/api/dataset-revisions?scope_type=ORG&scope_id=${scope.orgId}&limit=200` :
-        `/api/dataset-revisions?scope_type=PROJECT&scope_id=${scope.projectId}&limit=200`;
-      const res = await http.get<DatasetRevision[]>(revUrl);
-      setRevisions(res.data);
+      const { data } = await http.get<{
+        projects: BoundProject[];
+      }>(`/api/dataset-revisions/${selectedRevisionId}/bindings`);
+      setLifecycleDialog({ mode: action, projects: data.projects ?? [] });
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+      setLifecycleError(typeof detail === 'string' ? detail : `Failed to load revision bindings.`);
+    } finally {
+      setLifecycleLoading(false);
+    }
+  }, [selectedRevisionId]);
+
+  const confirmLifecycleDialog = useCallback(async () => {
+    if (!selectedRevisionId || !lifecycleDialog || lifecycleDialog.mode === 'publish-report') return;
+    const dialog = lifecycleDialog;
+    setLifecycleLoading(true);
+    setLifecycleError('');
+    try {
+      if (dialog.mode === 'unpublish') {
+        await http.post(`/api/dataset-revisions/${selectedRevisionId}/unpublish`, {
+          confirm_bound_project_ids: dialog.projects.map(project => project.project_id),
+        });
+      } else {
+        await http.post(`/api/dataset-revisions/${selectedRevisionId}/deprecate`);
+      }
+      setLifecycleDialog(null);
+      setRevisions(prev => prev.map(revision => revision.id === selectedRevisionId
+        ? { ...revision, status: dialog.mode === 'unpublish' ? 'draft' : 'deprecated' }
+        : revision));
+      try {
+        await refreshScopeRevisions();
+      } catch {
+        // The lifecycle action succeeded; retain the updated status locally.
+      }
+    } catch (err: unknown) {
+      const responseDetail = (err as {
+        response?: { data?: { detail?: { code?: string; message?: string; projects?: BoundProject[] } | string } };
+      })?.response?.data?.detail;
+      if (typeof responseDetail === 'object' && responseDetail?.code === 'bindings_changed') {
+        setLifecycleDialog({
+          ...dialog,
+          projects: responseDetail.projects ?? [],
+          error: responseDetail.message ?? 'Bindings changed. Review the updated list and confirm again.',
+        });
+      } else if (typeof responseDetail === 'object' && responseDetail?.code === 'revision_bound') {
+        setLifecycleDialog({
+          ...dialog,
+          projects: responseDetail.projects ?? dialog.projects,
+          error: responseDetail.message ?? 'This revision is currently bound and cannot be deprecated.',
+        });
+      } else {
+        setLifecycleDialog({
+          ...dialog,
+          error: typeof responseDetail === 'string' ? responseDetail : 'Failed to update revision status.',
+        });
+      }
+    } finally {
+      setLifecycleLoading(false);
+    }
+  }, [lifecycleDialog, refreshScopeRevisions, selectedRevisionId]);
+
+  const doLifecycleAction = useCallback(async (action: 'publish' | 'archive') => {
+    if (!selectedRevisionId) return;
+    if (action === 'archive' && !window.confirm('Archive this revision? This is a terminal state — it cannot be undone.')) return;
+    setLifecycleLoading(true);
+    setLifecycleError('');
+    try {
+      const { data } = await http.post<{
+        status?: string;
+        project_recalculations?: ProjectRecalculation[];
+      }>(`/api/dataset-revisions/${selectedRevisionId}/${action}`);
+      setRevisions(prev => prev.map(revision => revision.id === selectedRevisionId
+        ? { ...revision, status: action === 'publish' ? 'published' : 'archived' }
+        : revision));
+      if (action === 'publish' && data.project_recalculations?.length) {
+        setLifecycleDialog({ mode: 'publish-report', recalculations: data.project_recalculations });
+      }
+      try {
+        await refreshScopeRevisions();
+      } catch {
+        // The lifecycle action already succeeded; keep its response reflected locally.
+      }
     } catch (err: unknown) {
       const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
       setLifecycleError(typeof detail === 'string' ? detail : `Failed to ${action} revision.`);
     } finally {
       setLifecycleLoading(false);
     }
-  }, [selectedRevisionId]);
+  }, [refreshScopeRevisions, selectedRevisionId]);
 
   const doDeleteRevision = useCallback(async () => {
     if (!selectedRevisionId) return;
@@ -2916,6 +3022,17 @@ useMemo(() => {
           onCreate={doCreateRevision}
         />
       )}
+      {lifecycleDialog && (
+        <DatasetLifecycleModal
+          mode={lifecycleDialog.mode}
+          projects={lifecycleDialog.mode === 'publish-report' ? undefined : lifecycleDialog.projects}
+          recalculations={lifecycleDialog.mode === 'publish-report' ? lifecycleDialog.recalculations : undefined}
+          error={lifecycleDialog.mode === 'publish-report' ? undefined : lifecycleDialog.error}
+          loading={lifecycleLoading}
+          onClose={() => setLifecycleDialog(null)}
+          onConfirm={confirmLifecycleDialog}
+        />
+      )}
       <div className="px-6 pt-6 pb-4 border-b border-neutral-90 bg-white">
         <h1 className="text-xl font-semibold text-text-dark">
           {scope.type === 'DEFAULT'  ? 'Datasets' :
@@ -2983,19 +3100,21 @@ useMemo(() => {
                       )}
                       {rev.status === 'published' && (
                         <>
-                          {canEdit && (
+                          {canManageLifecycle && (
                             <>
+                              {scope.type !== 'DEFAULT' && (
+                                <button
+                                  type="button"
+                                  onClick={() => openLifecycleDialog('unpublish')}
+                                  disabled={lifecycleLoading}
+                                  className="rounded cursor-pointer border border-neutral-400 bg-white px-2 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-98 disabled:opacity-40 disabled:cursor-not-allowed"
+                                >
+                                  {lifecycleLoading ? '…' : 'Unpublish'}
+                                </button>
+                              )}
                               <button
                                 type="button"
-                                onClick={() => doLifecycleAction('unpublish')}
-                                disabled={lifecycleLoading}
-                                className="rounded cursor-pointer border border-neutral-400 bg-white px-2 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-98 disabled:opacity-40 disabled:cursor-not-allowed"
-                              >
-                                {lifecycleLoading ? '…' : 'Unpublish'}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => doLifecycleAction('deprecate')}
+                                onClick={() => openLifecycleDialog('deprecate')}
                                 disabled={lifecycleLoading}
                                 className="rounded cursor-pointer border border-yellow-500 bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 hover:bg-yellow-100 disabled:opacity-40 disabled:cursor-not-allowed"
                               >

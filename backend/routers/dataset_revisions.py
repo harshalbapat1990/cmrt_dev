@@ -13,6 +13,7 @@ from schemas.dataset_revisions import DatasetRevisionBranch, DatasetRevisionCrea
 from crud.dataset_revisions import (
     branch_dataset_revision,
     count_bound_projects,
+    list_bound_projects,
     create_dataset_revision,
     get_dataset_revision,
     get_dataset_revision_by_name,
@@ -21,6 +22,13 @@ from crud.dataset_revisions import (
     update_dataset_revision,
     delete_dataset_revision,
 )
+from schemas.dataset_revisions import (
+    BoundProjectOut,
+    DatasetRevisionBindingsOut,
+    DatasetRevisionPublishOut,
+    DatasetRevisionUnpublishRequest,
+    ProjectRecalculationOut,
+)
 from crud.emissions_factor_sets import count_factor_sets_for_revision as count_factor_sets
 from crud.audit_logs import write_audit_event
 
@@ -28,8 +36,8 @@ router = APIRouter(prefix="/api/dataset-revisions", tags=["dataset-revisions"])
 
 # Status transitions validation rules:
 # draft      → published  (via /publish)  — no restrictions
-# published  → draft      (via /unpublish) — requires no bound projects
-# published  → deprecated (via /deprecate) — no restrictions; represents supersession
+# published  → draft      (via /unpublish) — ORG/PROJECT only; explicitly confirm current bindings
+# published  → deprecated (via /deprecate) — no bound projects
 # published  → archived   (via /archive)  — requires no bound projects
 # deprecated → archived   (via /archive)  — requires no bound projects
 # draft      → archived   (via /archive)  — requires no bound projects
@@ -201,6 +209,28 @@ async def get_dataset_revision_by_id(
     return obj
 
 
+@router.get("/{revision_id}/bindings", response_model=DatasetRevisionBindingsOut)
+async def get_dataset_revision_bindings(
+    revision_id: UUID,
+    db: AsyncSession = Depends(get_session),
+    principal: Principal = Depends(get_current_principal),
+):
+    obj = await get_dataset_revision(db, revision_id)
+    if not obj:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dataset revision not found")
+    await _assert_revision_permission(db, principal, obj.scope_type, obj.scope_id)
+    projects = await list_bound_projects(db, revision_id)
+    return DatasetRevisionBindingsOut(
+        revision_id=revision_id,
+        scope_type=obj.scope_type,
+        status=obj.status,
+        projects=[
+            BoundProjectOut(project_id=project_id, project_name=project_name)
+            for project_id, project_name in projects
+        ],
+    )
+
+
 @router.patch("/{revision_id}", response_model=DatasetRevisionOut)
 async def patch_dataset_revision(
     revision_id: UUID,
@@ -251,7 +281,7 @@ async def remove_dataset_revision(
     return None
 
 
-@router.post("/{revision_id}/publish", response_model=DatasetRevisionOut)
+@router.post("/{revision_id}/publish", response_model=DatasetRevisionPublishOut)
 async def publish_dataset_revision(
     revision_id: UUID,
     db: AsyncSession = Depends(get_session),
@@ -272,19 +302,65 @@ async def publish_dataset_revision(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Cannot publish a dataset revision without at least one emissions factor set",
         )
+
+    project_recalculations: list[ProjectRecalculationOut] = []
+    bound_projects = await list_bound_projects(db, revision_id)
+    if bound_projects:
+        from services.project_dataset_recalculation import (
+            ProjectDatasetRecalculationError,
+            recalculate_project_for_revision,
+        )
+
+        for project_id, project_name in bound_projects:
+            try:
+                async with db.begin_nested():
+                    report = await recalculate_project_for_revision(db, project_id, revision_id)
+                project_recalculations.append(ProjectRecalculationOut(
+                    project_id=project_id,
+                    project_name=project_name,
+                    status="recalculated",
+                    missing_data=report.get("missing_data", []),
+                    calculation_errors=report.get("calculation_errors", []),
+                    recalculated_count=report.get("recalculated_count", 0),
+                ))
+            except ProjectDatasetRecalculationError as exc:
+                project_recalculations.append(ProjectRecalculationOut(
+                    project_id=project_id,
+                    project_name=project_name,
+                    status="failed",
+                    missing_data=exc.report.get("missing_data", []),
+                    calculation_errors=exc.report.get("calculation_errors", []),
+                    recalculated_count=exc.report.get("recalculated_count", 0),
+                ))
+            except Exception as exc:
+                project_recalculations.append(ProjectRecalculationOut(
+                    project_id=project_id,
+                    project_name=project_name,
+                    status="failed",
+                    calculation_errors=[{"entry": "Project recalculation", "message": str(exc)}],
+                ))
+
     obj = await set_revision_status(db, obj, "published")
     await write_audit_event(
         db, entity_type="dataset_revision", entity_id=obj.id,
         action="PUBLISH", new_value="published",
+        metadata={
+            "project_recalculation_count": len(project_recalculations),
+            "project_recalculation_failures": sum(
+                report.status == "failed" for report in project_recalculations
+            ),
+        },
     )
     await db.commit()
     await db.refresh(obj)
-    return obj
+    output = DatasetRevisionPublishOut.model_validate(obj)
+    return output.model_copy(update={"project_recalculations": project_recalculations})
 
 
 @router.post("/{revision_id}/unpublish", response_model=DatasetRevisionOut)
 async def unpublish_dataset_revision(
     revision_id: UUID,
+    payload: DatasetRevisionUnpublishRequest,
     db: AsyncSession = Depends(get_session),
     principal: Principal = Depends(get_current_principal),
 ):
@@ -292,21 +368,36 @@ async def unpublish_dataset_revision(
     if not obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dataset revision not found")
     await _assert_revision_permission(db, principal, obj.scope_type, obj.scope_id)
+    if obj.scope_type == "DEFAULT":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Published global revisions cannot be changed back to draft. Create a new revision instead.",
+        )
     if obj.status != "published":
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Cannot unpublish a revision with status '{obj.status}' (must be 'published')",
         )
-    bound = await count_bound_projects(db, revision_id)
-    if bound:
+    bound_projects = await list_bound_projects(db, revision_id)
+    current_ids = sorted(str(project_id) for project_id, _ in bound_projects)
+    confirmed_ids = sorted(str(project_id) for project_id in payload.confirm_bound_project_ids)
+    if current_ids != confirmed_ids:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Cannot unpublish: {bound} project(s) are bound to this revision. Create a new revision instead.",
+            detail={
+                "code": "bindings_changed",
+                "message": "Project bindings changed while you were confirming. Review the current list and confirm again.",
+                "projects": [
+                    {"project_id": str(project_id), "project_name": project_name}
+                    for project_id, project_name in bound_projects
+                ],
+            },
         )
     obj = await set_revision_status(db, obj, "draft")
     await write_audit_event(
         db, entity_type="dataset_revision", entity_id=obj.id,
         action="UNPUBLISH", new_value="draft",
+        metadata={"bound_project_ids": current_ids},
     )
     await db.commit()
     await db.refresh(obj)
@@ -327,6 +418,19 @@ async def deprecate_dataset_revision(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Cannot deprecate a revision with status '{obj.status}' (must be 'published')",
+        )
+    bound_projects = await list_bound_projects(db, revision_id)
+    if bound_projects:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "code": "revision_bound",
+                "message": "A dataset revision cannot be deprecated while any project is using it.",
+                "projects": [
+                    {"project_id": str(project_id), "project_name": project_name}
+                    for project_id, project_name in bound_projects
+                ],
+            },
         )
     obj = await set_revision_status(db, obj, "deprecated")
     await write_audit_event(

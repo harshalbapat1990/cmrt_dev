@@ -23,6 +23,7 @@ export type MitigationInlineRowPatchFactory = (
 ) => (args: DataEntryRowPatch) => Promise<void>;
 
 export type MitigationInlineEditDeps = {
+    projectId: string;
     computeEmissionsForRow: (tableKey: UploadKey, row: DataEntryRow) => Promise<Partial<DataEntryRow> | null>;
     getCalcConfig: (tableKey: UploadKey) => CalcConfig | null;
     user: MeProfile | null;
@@ -227,7 +228,7 @@ export function createMitigationOnCellChange(
             const isTrigger = !!cfg && cfg.triggerKeys.includes(String(key));
 
             if (isTrigger) {
-                if (tk === "refurbishment") await fetchAllActiveMrFactors();
+                if (tk === "refurbishment") await fetchAllActiveMrFactors(undefined, deps.projectId);
 
                 const calcPatch = await computeEmissionsForRow(tk, finalRow);
 

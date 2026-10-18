@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from crud.emissions_results import upsert_result
 from models.activity_data import ActivityData
+from services.project_context_helper import ProjectContextHelper
 from services.grade2_b4_replacement_calculations import (
     Grade2B4ReplacementCalculator,
     Grade2B4ReplacementRequest,
@@ -72,6 +73,13 @@ async def recalc_grade2_b4_replacement_row(
         )
         return None
 
+    dataset_revision_id = await ProjectContextHelper.fetch_project_dataset_revision(
+        db, activity_row.project_id
+    )
+    if dataset_revision_id is None:
+        logger.warning("grade2_b4_replacement skip: no dataset revision for project=%s", activity_row.project_id)
+        return None
+
     req = Grade2B4ReplacementRequest(
         project_id=activity_row.project_id,
         emissions_category=emissions_category,
@@ -79,6 +87,7 @@ async def recalc_grade2_b4_replacement_row(
         emissions_source=emissions_source,
         quantity=qty,
         life_years=life_years,
+        dataset_revision_id=dataset_revision_id,
     )
 
     try:

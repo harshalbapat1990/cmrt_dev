@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 # Ensure imports like `from app.main import app` work no matter where pytest is invoked from.
@@ -107,6 +108,10 @@ class FakeSession:
             items = self._execute_queue.pop(0)
             return _FakeResult(items if isinstance(items, list) else [items])
         return _FakeResult([])
+
+    @asynccontextmanager
+    async def begin_nested(self):
+        yield
 
     def add(self, obj) -> None:
         self._added.append(obj)
@@ -2102,6 +2107,13 @@ def patch_dataset_revisions_crud(
             if pdr.dataset_revision_id == revision_id
         )
 
+    async def list_bound_projects(_db, revision_id: UUID):
+        return sorted(
+            (pdr.project_id, f"Project {pdr.project_id}")
+            for pdr in project_dataset_revision_store.values()
+            if pdr.dataset_revision_id == revision_id
+        )
+
     async def set_revision_status(_db, obj, new_status: str):
         obj.status = new_status
         return obj
@@ -2132,6 +2144,7 @@ def patch_dataset_revisions_crud(
     monkeypatch.setattr(dr_router, "update_dataset_revision", update_dataset_revision)
     monkeypatch.setattr(dr_router, "delete_dataset_revision", delete_dataset_revision)
     monkeypatch.setattr(dr_router, "count_bound_projects", count_bound_projects)
+    monkeypatch.setattr(dr_router, "list_bound_projects", list_bound_projects)
     monkeypatch.setattr(dr_router, "set_revision_status", set_revision_status)
     monkeypatch.setattr(dr_router, "branch_dataset_revision", branch_dataset_revision)
     monkeypatch.setattr(dr_router, "count_factor_sets", count_factor_sets)

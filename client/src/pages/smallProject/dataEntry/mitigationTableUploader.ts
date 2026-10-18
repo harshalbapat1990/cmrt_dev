@@ -92,7 +92,7 @@ export function createMitigationTableUploader({
                 if (["constructionG2", "constructionG3"].includes(baseKey) && !activePeriod) {
                     throw new Error("No active construction period selected.");
                 }
-                if (baseKey === "refurbishment") { await fetchAllActiveMrFactors(); }
+                if (baseKey === "refurbishment") { await fetchAllActiveMrFactors(undefined, projectId); }
 
                 const authorName = [user?.first_name, user?.last_name].filter(Boolean).join(" ") || user?.email || "";
 

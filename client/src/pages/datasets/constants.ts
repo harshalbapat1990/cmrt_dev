@@ -11,7 +11,7 @@ export const TABS: Array<{ id: PageTab; label: string }> = [
 /*   { id: 'recycled',               label: 'Recycled Content'          }, */
   { id: 'content_recycled',       label: 'Recycled Content'          },
   { id: 'transport',              label: 'Default Transport'         },
-  { id: 'waste',                  label: 'Waste Rates'               },
+  // { id: 'waste',                  label: 'Waste Rates'               },
   { id: 'decarb',                 label: 'Electricity'               },
   { id: 'carbon_values',          label: 'Carbon Values'             },
   { id: 'ev_uptake',              label: 'EV Uptake'                 },
@@ -66,7 +66,7 @@ export const TAB_GROUPS: Array<{ label: string; ids: PageTab[];  alwaysShowSubTa
    'recycled', 
    'content_recycled',
    'transport', 
-     'waste',
+    //  'waste',
      'operational_equipment', 
       'carbon_values', 
          'wastage_rates',

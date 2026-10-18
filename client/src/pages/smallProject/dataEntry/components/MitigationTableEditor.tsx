@@ -270,7 +270,7 @@ const mitigationUploadModal = (
     () => componentReplacementConfig(projectId).columns(),
     [projectId]
   );
-  const refurbColumns = useMemo(() => refurbishmentTableConfig(jurisdictionName).columns(), [jurisdictionName]);
+  const refurbColumns = useMemo(() => refurbishmentTableConfig(jurisdictionName, projectId).columns(), [jurisdictionName, projectId]);
   const opEnergyColumns = useMemo(() => opEnergyTableConfig(projectId).columns(), [projectId]);
   const replDetailedColumns = useMemo(
     () => createB1G3Config(projectId).columns(),

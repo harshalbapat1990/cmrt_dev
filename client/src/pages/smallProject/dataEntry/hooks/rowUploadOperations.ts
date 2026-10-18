@@ -129,7 +129,7 @@ export function createRowUploadOperations({
           };
           metricId = await resolveMetricId(row, tableKey);
         } else if (tableKey === "refurbishment") {
-          await fetchAllActiveMrFactors();
+          await fetchAllActiveMrFactors(undefined, projectId);
           metricId = null;
           unitId = null;
         } else {
