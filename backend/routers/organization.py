@@ -42,6 +42,7 @@ async def get_orgs(
     is_active: Optional[bool] = None,
     organization_type: Optional[str] = Query(None, description="Filter by organization type: DESIGNERS or CONTRACTORS"),
     q: Optional[str] = Query(None, description="Search by name"),
+    registration_only: bool = Query(True, description="Only organizations available in user registration"),
     _: Optional[Principal] = Depends(get_optional_principal),
     db: AsyncSession = Depends(get_session),
 ):
@@ -52,7 +53,7 @@ async def get_orgs(
             org_type_value = OrganizationTypeEnum(organization_type).value
         except ValueError:
             org_type_value = None
-    rows = await list_organizations(db, skip, limit, is_active, org_type_value, q)
+    rows = await list_organizations(db, skip, limit, is_active, org_type_value, q, registration_only)
     return rows
 
 @router.get("/{id:uuid}", response_model=OrganizationOut)

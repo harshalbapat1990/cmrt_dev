@@ -150,7 +150,7 @@ const RegisterForm = () => {
 
     const loadOrgOptions = async (): Promise<AutocompleteOption[]> => {
         try {
-            const all = await OrganizationService.fetchAllOrganizations();
+            const all = await OrganizationService.fetchRegistrationOrganizations();
             return all.map((o) => ({ label: o.name, value: String(o.id ?? '') }));
         } catch { return []; }
     };

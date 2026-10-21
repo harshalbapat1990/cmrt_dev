@@ -6,6 +6,8 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select as sa_select
 
+from core import rbac
+from core.security import Principal, get_current_principal
 from core.session import get_session
 from crud.audit_logs import write_audit_event
 from crud.project import touch_project, get_project
@@ -42,8 +44,34 @@ class MigrateRequest(BaseModel):
     notes: Optional[str] = None
 
 
+async def _require_dataset_assignment_manager(
+    db: AsyncSession,
+    principal: Principal,
+    project_id: UUID,
+) -> None:
+    project = await get_project(db, project_id)
+    if not project:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
+    roles = await rbac.get_effective_role_names(
+        db,
+        principal.user_id,
+        project_id=project_id,
+    )
+    if not set(roles).intersection({rbac.PROJECT_ADMIN, rbac.PROJECT_EDITOR}):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only Project Admins and Project Editors may change a project's dataset revision",
+        )
+
+
 @router.post("", response_model=ProjectDatasetRevisionMigrationOut, status_code=status.HTTP_201_CREATED)
-async def create_new_project_dataset_revision(payload: ProjectDatasetRevisionCreate, db: AsyncSession = Depends(get_session)):
+async def create_new_project_dataset_revision(
+    payload: ProjectDatasetRevisionCreate,
+    db: AsyncSession = Depends(get_session),
+    principal: Principal = Depends(get_current_principal),
+):
+    await _require_dataset_assignment_manager(db, principal, payload.project_id)
     rev_status = await get_revision_status(db, payload.dataset_revision_id)
     if rev_status is None:
         raise HTTPException(
@@ -101,7 +129,9 @@ async def create_new_project_dataset_revision(payload: ProjectDatasetRevisionCre
 async def migrate_project_revision(
     payload: MigrateRequest,
     db: AsyncSession = Depends(get_session),
+    principal: Principal = Depends(get_current_principal),
 ):
+    await _require_dataset_assignment_manager(db, principal, payload.project_id)
     rev_status = await get_revision_status(db, payload.to_revision_id)
     if rev_status is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Target dataset revision not found")

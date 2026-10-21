@@ -119,7 +119,38 @@ async def delete_dataset_revision(db: AsyncSession, revision_id: UUID) -> bool:
     obj = await get_dataset_revision(db, revision_id)
     if not obj:
         return False
+
+    # Revision-owned rows use ON DELETE SET NULL in parts of the legacy schema.
+    # Remove the revision's dataset contents first so deleting a draft branch
+    # cannot leave those rows detached and accidentally visible as global data.
+    existing_result = await db.execute(text("""
+        SELECT table_name
+        FROM information_schema.columns
+        WHERE table_schema = current_schema()
+          AND column_name = 'dataset_revision_id'
+    """))
+    existing_revision_tables = set(existing_result.scalars().all())
+    non_dataset_tables = {
+        "project_dataset_revisions",
+        "activity_data",
+        "emissions_results",
+        "user_emissions_nz_large_road",
+        # Removed by the active delta architecture migration.
+        "emissions_factor_sets",
+    }
+    for table in reversed(Base.metadata.sorted_tables):
+        if (
+            table.name not in existing_revision_tables
+            or table.name in non_dataset_tables
+            or "dataset_revision_id" not in table.c
+        ):
+            continue
+        await db.execute(
+            table.delete().where(table.c.dataset_revision_id == revision_id)
+        )
+
     await db.delete(obj)
+    await db.flush()
     return True
 
 

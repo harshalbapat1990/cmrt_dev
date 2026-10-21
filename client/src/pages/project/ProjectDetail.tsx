@@ -307,7 +307,9 @@ export default function ProjectDetail() {
     }));
   });
 
-  const canChangeDataset = canEditProjectSetup && project.is_active;
+  const canChangeDataset =
+    project.is_active &&
+    projectRoles.some((role) => ["PROJECT_ADMIN", "PROJECT_EDITOR"].includes(role));
 
   async function handleSwitchDataset() {
     if (!project || !pendingRevision) return;

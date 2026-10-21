@@ -15,6 +15,7 @@ from routers.lookup_data import router as lookup_router
 from routers.emissions_entries import router as entries_router
 from routers.view_emission_factor_values_pivot import router as pivot_router
 from routers.project import router as project_router
+from routers.partner_organizations import router as partner_organizations_router
 from routers.project_reporting_submission import router as submission_router
 from routers.roles import router as roles_router
 from routers.users import router as users_router
@@ -235,6 +236,7 @@ app.include_router(lookup_router)
 app.include_router(entries_router)
 app.include_router(pivot_router)
 app.include_router(project_router)
+app.include_router(partner_organizations_router)
 app.include_router(submission_router)
 app.include_router(roles_router)
 app.include_router(users_router)

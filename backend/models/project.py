@@ -57,7 +57,7 @@ class Project(Base):
 
     # Relationships
     stage_configs = relationship("ProjectStageConfig", cascade="all, delete-orphan")
-    org_links = relationship("ProjectOrganization", cascade="all, delete-orphan")
+    org_links = relationship("ProjectPartnerOrganization", cascade="all, delete-orphan")
     postcodes = relationship("ProjectPostcode", cascade="all, delete-orphan")
     stage_instances = relationship("ProjectStageInstance", cascade="all, delete-orphan")
     project_parties = relationship("ProjectParty", cascade="all, delete-orphan")

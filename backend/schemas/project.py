@@ -65,7 +65,6 @@ class ReportFrequencyEnum(str, Enum):
     ANNUAL = "ANNUAL"
  
 class OrgRoleEnum(str, Enum):
-    PROPONENT = "PROPONENT"
     DESIGNER  = "DESIGNER"
     DELIVERY  = "DELIVERY"
  
@@ -80,14 +79,18 @@ class StageConfigIn(BaseModel):
  
  
 class OrgLinkIn(BaseModel):
-    organization_id: Optional[UUID] = None
-    org_name: Optional[str] = None  # free-text: uppercased and find-or-created server-side
+    partner_organization_id: Optional[UUID] = None
+    custom_partner_name: Optional[str] = Field(default=None, max_length=255)
     role: OrgRoleEnum
 
     @model_validator(mode="after")
     def _require_id_or_name(self) -> "OrgLinkIn":
-        if self.organization_id is None and not (self.org_name or "").strip():
-            raise ValueError("Either organization_id or org_name must be provided")
+        has_directory_id = self.partner_organization_id is not None
+        has_custom_name = bool((self.custom_partner_name or "").strip())
+        if has_directory_id == has_custom_name:
+            raise ValueError("Provide exactly one of partner_organization_id or custom_partner_name")
+        if self.custom_partner_name is not None:
+            self.custom_partner_name = " ".join(self.custom_partner_name.split())
         return self
 
 class ProjectRoleEnum(str, Enum):
@@ -211,7 +214,7 @@ class StageConfigOut(StageConfigIn):
 
 class OrgLinkOut(OrgLinkIn):
     id: UUID
-    organization_name: Optional[str] = None
+    partner_name: Optional[str] = None
     created_on: Optional[datetime] = None
     updated_on: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
@@ -280,7 +283,7 @@ class ProjectPartyOut(BaseModel):
 class ProjectOut(ProjectBase):
     id: UUID
     created_by_user_id: UUID
-    last_updated_by_user_id: Optional[UUID]
+    last_updated_by_user_id: Optional[UUID] = None
     created_on: Optional[datetime] = None
     updated_on: Optional[datetime] = None
     # Return both IDs and resolved objects

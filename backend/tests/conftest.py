@@ -141,6 +141,7 @@ class DummyOrganization:
     name: str
     organization_type: str
     is_active: bool = True
+    is_registration_org: bool = True
     is_proponent: bool = True
     jurisdiction_id: Optional[UUID] = None
     region_id: Optional[UUID] = None
@@ -221,6 +222,7 @@ def patch_audit_log(monkeypatch: pytest.MonkeyPatch):
         "routers.identity",
         "routers.me",
         "routers.organization_domains",
+        "routers.partner_organizations",
     ):
         try:
             import importlib
@@ -377,7 +379,7 @@ def patch_organizations_crud(
     async def get_organization(_db, organization_id: UUID):
         return organization_store.get(organization_id)
 
-    async def list_organizations(_db, skip: int = 0, limit: int = 50, is_active=None, organization_type=None, q=None):
+    async def list_organizations(_db, skip: int = 0, limit: int = 50, is_active=None, organization_type=None, q=None, registration_only=False):
         items = list(organization_store.values())
         if is_active is not None:
             items = [o for o in items if o.is_active is is_active]
@@ -386,6 +388,8 @@ def patch_organizations_crud(
         if q:
             q_lower = q.lower()
             items = [o for o in items if q_lower in o.name.lower()]
+        if registration_only:
+            items = [o for o in items if getattr(o, "is_registration_org", True)]
         items.sort(key=lambda o: o.name)
         return items[skip : skip + limit]
 
@@ -1768,7 +1772,7 @@ class DummyDatasetRevision:
     applicable_to: Optional[object] = None
     notes: Optional[str] = None
     created_by: Optional[UUID] = None
-    created_at: Optional[datetime] = None
+    created_at: Optional[datetime] = field(default_factory=datetime.utcnow)
     parent_revision_id: Optional[UUID] = None
 
 

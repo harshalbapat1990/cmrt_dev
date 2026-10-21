@@ -134,11 +134,6 @@ WITH eligible_projects AS (
     WHERE p.is_active = TRUE
       AND (
           p.proponent_org_id = :org_id
-          OR EXISTS (
-              SELECT 1 FROM project_organizations po
-              WHERE po.project_id = p.id
-                AND po.organization_id = :org_id
-          )
       )
       AND (CAST(:project_class AS TEXT) IS NULL OR p.project_class::text = CAST(:project_class AS TEXT))
       AND (CAST(:program_name AS TEXT) IS NULL OR LOWER(p.program_name) = LOWER(CAST(:program_name AS TEXT)))
@@ -173,11 +168,6 @@ WITH eligible_projects AS (
     WHERE p.is_active = TRUE
       AND (
           p.proponent_org_id = :org_id
-          OR EXISTS (
-              SELECT 1 FROM project_organizations po
-              WHERE po.project_id = p.id
-                AND po.organization_id = :org_id
-          )
       )
       AND (CAST(:project_class AS TEXT) IS NULL OR p.project_class::text = CAST(:project_class AS TEXT))
       AND (CAST(:program_name AS TEXT) IS NULL OR LOWER(p.program_name) = LOWER(CAST(:program_name AS TEXT)))
@@ -212,11 +202,6 @@ WITH eligible_projects AS (
     WHERE p.is_active = TRUE
       AND (
           p.proponent_org_id = :org_id
-          OR EXISTS (
-              SELECT 1 FROM project_organizations po
-              WHERE po.project_id = p.id
-                AND po.organization_id = :org_id
-          )
       )
       AND (CAST(:project_class AS TEXT) IS NULL OR p.project_class::text = CAST(:project_class AS TEXT))
       AND (CAST(:program_name AS TEXT) IS NULL OR LOWER(p.program_name) = LOWER(CAST(:program_name AS TEXT)))
@@ -251,11 +236,6 @@ WITH eligible_projects AS (
     WHERE p.is_active = TRUE
       AND (
           p.proponent_org_id = :org_id
-          OR EXISTS (
-              SELECT 1 FROM project_organizations po
-              WHERE po.project_id = p.id
-                AND po.organization_id = :org_id
-          )
       )
       AND (CAST(:project_class AS TEXT) IS NULL OR p.project_class::text = CAST(:project_class AS TEXT))
       AND (CAST(:program_name AS TEXT) IS NULL OR LOWER(p.program_name) = LOWER(CAST(:program_name AS TEXT)))
@@ -290,11 +270,6 @@ WITH eligible_projects AS (
     WHERE p.is_active = TRUE
       AND (
           p.proponent_org_id = :org_id
-          OR EXISTS (
-              SELECT 1 FROM project_organizations po
-              WHERE po.project_id = p.id
-                AND po.organization_id = :org_id
-          )
       )
       AND (CAST(:project_class AS TEXT) IS NULL OR p.project_class::text = CAST(:project_class AS TEXT))
       AND (CAST(:program_name AS TEXT) IS NULL OR LOWER(p.program_name) = LOWER(CAST(:program_name AS TEXT)))

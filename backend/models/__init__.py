@@ -15,6 +15,11 @@ from .users import User
 from .organizations import Organization
 from .project_stage_config import ProjectStageConfig
 from .project_organizations import ProjectOrganization
+from .partner_organizations import (
+    PartnerOrganization,
+    PartnerOrganizationSuggestion,
+    ProjectPartnerOrganization,
+)
 from .postcode import PostcodeReference, ProjectPostcode
 from .project_type import ProjectType, ProjectTypecast
 

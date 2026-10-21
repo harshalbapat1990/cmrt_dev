@@ -5,6 +5,8 @@ import alertIconUrl from "../../assets/icons/emergency_home.svg";
 import accessRequestsService from "../../services/accessRequests.service";
 import userRolesService, { type UserRoleEnriched, type SuperAdminCandidate } from "../../services/userRoles.service";
 import orgAdminService, { type OrgUser } from "../../services/orgAdmin.service";
+// TEMPORARILY DISABLED: partner suggestion review is paused at the client's request.
+// import PartnerOrganizationSuggestions from "./PartnerOrganizationSuggestions";
 
 const th =
   "px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-text-base bg-[#F7F7F7]";
@@ -305,6 +307,10 @@ const SuperAdminAccessPage: React.FC = () => {
             </table>
           </div>
         </section>
+
+        {/* TEMPORARILY DISABLED: partner suggestion review is paused at the client's request.
+        <PartnerOrganizationSuggestions />
+        */}
 
         <section className="mt-8 overflow-hidden rounded-[var(--radius-3)] border border-slate-200 bg-white">
           <div className="flex items-center justify-between border-b border-slate-100 px-6 py-5">

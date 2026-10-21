@@ -91,3 +91,29 @@ async def test_list_organizations_filters(client):
     r = await client.get("/api/organizations?q=beta")
     assert r.status_code == 200
     assert {o["name"] for o in r.json()} == {"Beta Build"}
+
+
+@pytest.mark.asyncio
+async def test_registration_directory_hides_legacy_partner_only_organizations(client, organization_store):
+    from tests.conftest import DummyOrganization
+
+    registered_id = UUID("4dedbb93-65c7-49ce-a612-780cd59cb71c")
+    partner_only_id = UUID("4dedbb93-65c7-49ce-a612-780cd59cb71d")
+    organization_store[registered_id] = DummyOrganization(
+        id=registered_id,
+        name="Registered Proponent",
+        organization_type="DESIGNERS",
+        is_registration_org=True,
+    )
+    organization_store[partner_only_id] = DummyOrganization(
+        id=partner_only_id,
+        name="Legacy Partner Entry",
+        organization_type="CONTRACTORS",
+        is_registration_org=False,
+        is_proponent=False,
+    )
+
+    response = await client.get("/api/organizations?registration_only=true")
+
+    assert response.status_code == 200
+    assert {item["name"] for item in response.json()} == {"Registered Proponent"}

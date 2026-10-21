@@ -7,7 +7,6 @@ from models.users import User
 from models.user_roles import UserRole
 from models.roles import Role
 from models.project import Project
-from models.project_organizations import ProjectOrganization
 
 
 async def get_org_users_with_project_roles(
@@ -32,19 +31,8 @@ async def get_org_users_with_project_roles(
         proponent_result = await db.execute(proponent_projects_q)
         proponent_projects = {p.id: p.project_name for p in proponent_result.all()}
         
-        secondary_projects_q = select(
-            ProjectOrganization.project_id,
-            Project.project_name
-        ).join(
-            Project, Project.id == ProjectOrganization.project_id
-        ).where(
-            ProjectOrganization.organization_id == organization_id
-        )
-        secondary_result = await db.execute(secondary_projects_q)
-        secondary_projects = {p.project_id: p.project_name for p in secondary_result.all()}
-        
-        all_org_project_ids = set(list(proponent_projects.keys()) + list(secondary_projects.keys()))
-        all_project_names = {**proponent_projects, **secondary_projects}
+        all_org_project_ids = set(proponent_projects.keys())
+        all_project_names = proponent_projects
         
         if all_org_project_ids:
             role_query = (
@@ -130,14 +118,7 @@ async def verify_project_belongs_to_org(
     if proponent_result.scalar() is not None:
         return True
     
-    secondary_query = select(ProjectOrganization.project_id).where(
-        and_(
-            ProjectOrganization.project_id == project_id,
-            ProjectOrganization.organization_id == organization_id
-        )
-    )
-    secondary_result = await db.execute(secondary_query)
-    return secondary_result.scalar() is not None
+    return False
 
 
 async def verify_user_in_org(

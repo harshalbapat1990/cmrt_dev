@@ -74,6 +74,11 @@ export class OrganizationService extends BaseService {
     return raw;
   }
 
+  async fetchRegistrationOrganizations(): Promise<OrganizationDto[]> {
+    const raw = await this.safeGet(`?registration_only=true&is_active=true&limit=500`);
+    return raw;
+  }
+
   async fetchOrganizationById(id: string | number): Promise<any> {
     try {
       const response = await this.get(`/${id}`);

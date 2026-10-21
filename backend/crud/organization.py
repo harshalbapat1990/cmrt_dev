@@ -52,9 +52,12 @@ async def list_organizations(
     limit: int = 50,
     is_active: Optional[bool] = None,
     organization_type: Optional[str] = None,
-    q: Optional[str] = None
+    q: Optional[str] = None,
+    registration_only: bool = False,
 ) -> List[Organization]:
     query = select(Organization)
+    if registration_only:
+        query = query.where(Organization.is_registration_org.is_(True))
     if is_active is not None:
         query = query.where(Organization.is_active == is_active)
     if organization_type:

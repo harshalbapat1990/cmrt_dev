@@ -1,6 +1,4 @@
-import { useEffect, useState } from 'react';
 import { useUser } from '../../context/UserContext';
-import accessRequestsService, { type AccessRequestEnriched } from '../../services/accessRequests.service';
 
 const ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN: 'Super Admin',
@@ -29,6 +27,10 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 
 export default function UserProfile() {
   const { user, roles } = useUser();
+
+  // TEMPORARILY HIDDEN at the client's request. Keep this implementation so
+  // the self-service Super Admin request flow can be restored when approved.
+  /*
   const [adminRequest, setAdminRequest] = useState<AccessRequestEnriched | null>(null);
   const [requestReason, setRequestReason] = useState('');
   const [requestLoading, setRequestLoading] = useState(false);
@@ -40,6 +42,7 @@ export default function UserProfile() {
       .then(setAdminRequest)
       .catch(() => setRequestError('Could not load your Super Admin request status.'));
   }, [user, roles]);
+  */
 
   if (!user) {
     return (
@@ -52,6 +55,7 @@ export default function UserProfile() {
   const displayName =
     [user.first_name, user.last_name].filter(Boolean).join(' ') || null;
 
+  /*
   const submitSuperAdminRequest = async () => {
     if (!requestReason.trim() || requestLoading) return;
     setRequestLoading(true);
@@ -65,6 +69,7 @@ export default function UserProfile() {
       setRequestLoading(false);
     }
   };
+  */
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -121,6 +126,7 @@ export default function UserProfile() {
           </div>
         </div>
 
+        {/* TEMPORARILY HIDDEN at the client's request; restore with the request flow above.
         {!roles.includes('SUPER_ADMIN') && (
           <section className="mt-6 rounded-[var(--radius-3)] border border-slate-200 bg-white px-8 py-6 shadow-sm">
             <h3 className="text-lg font-medium text-slate-800">Super Admin access</h3>
@@ -157,6 +163,7 @@ export default function UserProfile() {
             )}
           </section>
         )}
+        */}
       </div>
     </div>
   );

@@ -486,7 +486,6 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
       return [
         `/api/dataset-revisions?scope_type=ORG&scope_id=${scope.orgId}&status=published&limit=200`,
         '/api/dataset-revisions?scope_type=DEFAULT&status=published&limit=200',
-        `/api/dataset-revisions?scope_type=PROJECT&scope_id=${scope.projectId}&status=published&limit=200`,
       ];
     })();
 
@@ -511,6 +510,13 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
         setRevisions([...ownRevisions, ...inheritedRevisions]);
         if (scope.type === 'DEFAULT') {
           setBranchableRevisions(ownRevisions.filter(r => r.status === 'published'));
+        } else if (scope.type === 'PROJECT') {
+          // A project may branch from its own published revisions as well as
+          // from published revisions in its owning organisation and globally.
+          setBranchableRevisions([
+            ...ownRevisions.filter(r => r.status === 'published'),
+            ...inheritedRevisions.filter(r => r.status === 'published'),
+          ]);
         } else {
           setBranchableRevisions(inheritedRevisions.filter(r => r.status === 'published'));
         }
@@ -2266,8 +2272,34 @@ useMemo(() => {
       scope.type === 'DEFAULT' ? '/api/dataset-revisions?scope_type=DEFAULT&limit=200' :
       scope.type === 'ORG' ? `/api/dataset-revisions?scope_type=ORG&scope_id=${scope.orgId}&limit=200` :
       `/api/dataset-revisions?scope_type=PROJECT&scope_id=${scope.projectId}&limit=200`;
-    const res = await http.get<DatasetRevision[]>(revUrl);
-    setRevisions(res.data);
+    const inheritedUrls =
+      scope.type === 'DEFAULT' ? [] :
+      scope.type === 'ORG'
+        ? ['/api/dataset-revisions?scope_type=DEFAULT&status=published&limit=200']
+        : [
+            `/api/dataset-revisions?scope_type=ORG&scope_id=${scope.orgId}&status=published&limit=200`,
+            '/api/dataset-revisions?scope_type=DEFAULT&status=published&limit=200',
+          ];
+    const [ownResponse, ...inheritedResponses] = await Promise.all([
+      http.get<DatasetRevision[]>(revUrl),
+      ...inheritedUrls.map(url => http.get<DatasetRevision[]>(url)),
+    ]);
+    const ownRevisions = ownResponse.data;
+    const inheritedRevisions = inheritedResponses.flatMap(response => response.data);
+    setRevisions([
+      ...ownRevisions,
+      ...inheritedRevisions,
+    ]);
+    setBranchableRevisions(
+      scope.type === 'DEFAULT'
+        ? ownRevisions.filter(revision => revision.status === 'published')
+        : scope.type === 'PROJECT'
+          ? [
+              ...ownRevisions.filter(revision => revision.status === 'published'),
+              ...inheritedRevisions.filter(revision => revision.status === 'published'),
+            ]
+          : inheritedRevisions.filter(revision => revision.status === 'published'),
+    );
   }, [scope]);
 
   const openLifecycleDialog = useCallback(async (action: 'unpublish' | 'deprecate') => {
@@ -2375,19 +2407,14 @@ useMemo(() => {
       await http.delete(`/api/dataset-revisions/${selectedRevisionId}`);
       setSelectedRevisionId('');
       setBaseData([]); setDisplayData([]); setActiveGrade('');
-      const revUrl =
-        scope.type === 'DEFAULT' ? '/api/dataset-revisions?scope_type=DEFAULT&limit=200' :
-        scope.type === 'ORG'     ? `/api/dataset-revisions?scope_type=ORG&scope_id=${scope.orgId}&limit=200` :
-        `/api/dataset-revisions?scope_type=PROJECT&scope_id=${scope.projectId}&limit=200`;
-      const res = await http.get<DatasetRevision[]>(revUrl);
-      setRevisions(res.data);
+      await refreshScopeRevisions();
     } catch (err: unknown) {
       const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
       setDeleteRevError(typeof detail === 'string' ? detail : 'Cannot delete this revision.');
     } finally {
       setDeleteRevLoading(false);
     }
-  }, [selectedRevisionId, revisions, scope]);
+  }, [selectedRevisionId, revisions, refreshScopeRevisions]);
 
   const doStartEdit = useCallback((id: string, draft: Record<string, string>) => {
     setEditingId(id); setEditDraft(draft);
@@ -3057,6 +3084,18 @@ useMemo(() => {
               loading={loadingMeta}
               className="w-56"
             />
+            {selectedRevision && (
+              <span
+                className="whitespace-nowrap rounded-full bg-neutral-90 px-2.5 py-1 text-xs font-medium text-text-base"
+                aria-live="polite"
+              >
+                {selectedRevision.scope_type === 'DEFAULT'
+                  ? 'Global / Default'
+                  : selectedRevision.scope_type === 'ORG'
+                    ? 'Organisation level'
+                    : 'Project level'}
+              </span>
+            )}
           </div>
 
           <div className="ml-auto flex items-center gap-1.5 flex-wrap justify-end">

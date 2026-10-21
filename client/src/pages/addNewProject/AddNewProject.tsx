@@ -15,7 +15,6 @@ import ProjectInfoImg from "../../assets/icons/projectInfo.svg";
 import CheckCircle from "../../assets/icons/check-circle-green.svg";
 
 import DeliveryPartners from "../../components/DeliveryPartner";
-import OrganizationService from "../../services/organization.service";
 import ReportingBoundarySmall from "../../components/ReportingBoundarySmall";
 import ReportingBoundaryActivity from "../../components/ReportingBoundaryActivity";
 
@@ -95,9 +94,10 @@ interface ProjectData {
     frequency?: string;
   }>;
   org_links?: Array<{
-    organization_id: string;
+    partner_organization_id: string | null;
+    custom_partner_name?: string | null;
     role: string;
-    organization_name?: string;
+    partner_name?: string | null;
   }>;
   postcodes?: Array<{
     postcode: string;
@@ -300,12 +300,12 @@ export default function AddNewProject({ mode = "create" }: Props) {
         if (project.org_links) {
           for (const link of project.org_links) {
             if (link.role === "DELIVERY") {
-              setConstructionOrgId(link.organization_id);
-              setConstructionOrg(link.organization_name ?? "");
+              setConstructionOrgId(link.partner_organization_id ?? "");
+              setConstructionOrg(link.partner_name ?? link.custom_partner_name ?? "");
             }
             if (link.role === "DESIGNER") {
-              setDesignerOrgId(link.organization_id);
-              setDesignerOrg(link.organization_name ?? "");
+              setDesignerOrgId(link.partner_organization_id ?? "");
+              setDesignerOrg(link.partner_name ?? link.custom_partner_name ?? "");
             }
           }
         }
@@ -766,16 +766,16 @@ const nextErrors: Step3Errors = {
       }
     }
 
-    const org_links: ({ organization_id: string; role: string } | { org_name: string; role: string })[] = [];
+    const org_links: ({ partner_organization_id: string; role: string } | { custom_partner_name: string; role: string })[] = [];
     if (constructionOrgId) {
-      org_links.push({ organization_id: constructionOrgId, role: "DELIVERY" });
+      org_links.push({ partner_organization_id: constructionOrgId, role: "DELIVERY" });
     } else if (constructionOrg.trim()) {
-      org_links.push({ org_name: constructionOrg.trim().toUpperCase(), role: "DELIVERY" });
+      org_links.push({ custom_partner_name: constructionOrg.trim(), role: "DELIVERY" });
     }
     if (designerOrgId) {
-      org_links.push({ organization_id: designerOrgId, role: "DESIGNER" });
+      org_links.push({ partner_organization_id: designerOrgId, role: "DESIGNER" });
     } else if (designerOrg.trim()) {
-      org_links.push({ org_name: designerOrg.trim().toUpperCase(), role: "DESIGNER" });
+      org_links.push({ custom_partner_name: designerOrg.trim(), role: "DESIGNER" });
     }
 
     const accessRoleMap = new Map<string, "Can edit" | "Can view">();
@@ -846,18 +846,14 @@ const nextErrors: Step3Errors = {
         }; */
 
     try {
-      // bust org cache when free-text names were entered so autocomplete stays fresh
-      const hasFreeTextOrg = (!constructionOrgId && constructionOrg.trim()) || (!designerOrgId && designerOrg.trim());
       if (isEdit && projectId) {
         // PATCH request for edit mode
         await http.patch(`/api/projects/${projectId}`, payload);
-        if (hasFreeTextOrg) OrganizationService.clearCacheAll();
         closeCompleteConfirm();
         navigate?.(`/projects/${projectId}`);
       } else {
         // POST request for create mode
         await http.post("/api/projects", { ...payload, member_accesses });
-        if (hasFreeTextOrg) OrganizationService.clearCacheAll();
         closeCompleteConfirm();
         navigate?.("/Home/user");
       }
@@ -1107,11 +1103,13 @@ const nextErrors: Step3Errors = {
                     designerOrg={designerOrg}
                     setDesignerOrg={setDesignerOrg}
                     onDesignerOrgSelect={(id) => setDesignerOrgId(id)}
+                    designerOrgId={designerOrgId}
                     constructionContract={constructionContract}
                     setConstructionContract={setConstructionContract}
                     constructionOrg={constructionOrg}
                     setConstructionOrg={setConstructionOrg}
                     onConstructionOrgSelect={(id) => setConstructionOrgId(id)}
+                    constructionOrgId={constructionOrgId}
                   />
 
                   {selectedCategory === "small" && (

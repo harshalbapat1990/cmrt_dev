@@ -1,6 +1,6 @@
 import uuid as _uuid
 from enum import Enum as PyEnum
-from sqlalchemy import Boolean, Column, Enum, ForeignKey, String, TIMESTAMP
+from sqlalchemy import Boolean, Column, Enum, ForeignKey, String, TIMESTAMP, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship, synonym
 from sqlalchemy.sql import func, text
@@ -26,6 +26,8 @@ class Organization(Base):
     region_id = Column(UUID(as_uuid=True), ForeignKey("jurisdictions.id"), nullable=True)
     
     is_proponent = Column(Boolean, nullable=False, server_default=text("true"), default=True)
+    # Registered-account directory visibility is independent of partner entries.
+    is_registration_org = Column(Boolean, nullable=False, server_default=text("true"), default=True)
     is_active = Column(Boolean, nullable=False, default=True)
     created_on = Column(TIMESTAMP(timezone=False), nullable=False, server_default=func.now())
     updated_on = Column(TIMESTAMP(timezone=False), nullable=True)

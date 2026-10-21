@@ -446,9 +446,9 @@ async def test_delete_revision_blocked_when_bound(client):
 
 
 @pytest.mark.asyncio
-async def test_delete_revision_blocked_when_has_factor_sets(client):
+async def test_delete_revision_succeeds_when_it_has_factor_sets(client):
     rev = await _create_revision(client, name="Del FS Rev")
     await _add_factor_set(client, rev["id"], name="Del FS Item")
 
     resp = await client.delete(f"/api/dataset-revisions/{rev['id']}")
-    assert resp.status_code == 409, resp.text
+    assert resp.status_code == 204, resp.text

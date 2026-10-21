@@ -198,22 +198,13 @@ async def get_user_roles_enriched(
             else:
                 from sqlalchemy.future import select as sa_select
                 from models.project import Project
-                from models.project_organizations import ProjectOrganization
-
                 proponent_q = await db.execute(
                     sa_select(Project.id).where(
                         Project.proponent_org_id == principal.organization_id
                     )
                 )
-                secondary_q = await db.execute(
-                    sa_select(ProjectOrganization.project_id).where(
-                        ProjectOrganization.organization_id == principal.organization_id
-                    )
-                )
                 scope_ids = list({
-                    pid
-                    for pid in [*proponent_q.scalars().all(), *secondary_q.scalars().all()]
-                    if pid is not None
+                    pid for pid in proponent_q.scalars().all() if pid is not None
                 })
                 if not scope_ids:
                     return []

@@ -225,7 +225,7 @@ async def test_bound_revision_cannot_be_unpublished_or_archived(
 
 
 @pytest.mark.asyncio
-async def test_revision_with_factor_set_cannot_be_deleted(
+async def test_revision_with_factor_rows_can_be_deleted(
     client, emissions_factor_set_store,
 ):
     revision_id = UUID(await _create_revision(client, "Retained revision"))
@@ -239,7 +239,7 @@ async def test_revision_with_factor_set_cannot_be_deleted(
         dataset_revision_id=revision_id,
     )
     response = await client.delete(f"/api/dataset-revisions/{revision_id}")
-    assert response.status_code == 409
+    assert response.status_code == 204
 
 
 @pytest.mark.asyncio

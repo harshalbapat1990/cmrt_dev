@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import InfoTooltip from "./common/InfoTooltip";
-import OrganizationService, {type OrganizationDto} from "../services/organization.service";
+import partnerOrganizationsService from "../services/partnerOrganizations.service";
 import AutoComplete, {type  AutocompleteOption } from "./common/AutoComplete";
 
 
@@ -23,6 +23,8 @@ type DeliveryPartnersProps = {
 
   onDesignerOrgSelect?: (id: string) => void;
   onConstructionOrgSelect?: (id: string) => void;
+  designerOrgId?: string;
+  constructionOrgId?: string;
 
   defaultExpanded?: boolean;
   className?: string;
@@ -40,6 +42,8 @@ const DeliveryPartners: React.FC<DeliveryPartnersProps> = ({
   setConstructionOrg,
   onDesignerOrgSelect,
   onConstructionOrgSelect,
+  designerOrgId = "",
+  constructionOrgId = "",
   defaultExpanded = false,
   className,
 }) => {
@@ -64,34 +68,62 @@ const DeliveryPartners: React.FC<DeliveryPartnersProps> = ({
   };
 
   
-  const toOption = (o: OrganizationDto): AutocompleteOption => ({
-    id: o.id ?? o.code ?? o.name,
+  const toOption = (o: { id: string; name: string }): AutocompleteOption => ({
+    id: o.id,
     label: o.name,
-    ...o,
   });
 
   const loadDesignerOptions = async () => {
-    const list = await OrganizationService.fetchOrganizations("DESIGNERS");
+    const list = await partnerOrganizationsService.list("DESIGNERS");
     return list.map(toOption);
   };
   const loadConstructionOptions = async () => {
-    const list = await OrganizationService.fetchOrganizations("CONTRACTORS");
+    const list = await partnerOrganizationsService.list("CONTRACTORS");
     return list.map(toOption);
   };
 
-  const optionFilter = (opt: AutocompleteOption, input: string) => {
-    const q = input.trim().toLowerCase();
-    if (!q) return true;
-    const name = (opt.label || "").toLowerCase();
-    const shortName = (opt as any).shortName?.toLowerCase?.() || "";
-    const code = (opt as any).code?.toLowerCase?.() || "";
-    const aliases: string[] = (opt as any).aliases || [];
+  /* TEMPORARILY DISABLED: partner directory suggestions are paused at the client's request.
+  const suggestPartner = async (name: string, type: 'DESIGNERS' | 'CONTRACTORS') => {
+    const key = `${type}:${name.trim().toLocaleLowerCase()}`;
+    setSuggestionError(null);
+    try {
+      await partnerOrganizationsService.suggest(name, type);
+      setSuggestionState((current) => ({ ...current, [key]: "Sent for Super Admin review." }));
+    } catch (error: any) {
+      const detail = error?.response?.data?.detail;
+      setSuggestionError(typeof detail === "string" ? detail : detail?.message ?? "Could not submit this suggestion.");
+    }
+  };
+
+  const renderSuggestion = (name: string, type: PartnerType, selectedId: string) => {
+    if (!name.trim() || selectedId) return null;
+    const key = `${type}:${name.trim().toLocaleLowerCase()}`;
     return (
-      name.includes(q) ||
-      shortName.includes(q) ||
-      code.includes(q) ||
-      aliases.some((a) => a.toLowerCase().includes(q))
+      <div className="mt-2 flex flex-wrap items-center gap-3 text-xs">
+        <button type="button" className="text-primary underline" onClick={() => void suggestPartner(name.trim(), type)}>
+          Suggest “{name.trim()}” for the shared directory
+        </button>
+        {suggestionState[key] && <span className="text-emerald-700">{suggestionState[key]}</span>}
+        {suggestionError && <span role="alert" className="text-red-700">{suggestionError}</span>}
+      </div>
     );
+  };
+  */
+
+  const normalizeSearchText = (value: string) =>
+    value
+      .normalize("NFKC")
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .trim()
+      .replace(/\s+/g, " ")
+      .toLocaleLowerCase();
+
+  const optionFilter = (opt: AutocompleteOption, input: string) => {
+    const q = normalizeSearchText(input);
+    if (!q) return true;
+    const name = normalizeSearchText(opt.label || "");
+    return name.includes(q);
   };
 
 
@@ -151,9 +183,9 @@ const DeliveryPartners: React.FC<DeliveryPartnersProps> = ({
               <AutoComplete
                 label="Designer organisation"
                 value={designerOrg}
-                onChange={(v) => { setDesignerOrg(v.toUpperCase()); onDesignerOrgSelect?.(""); }}
+                onChange={(v) => { setDesignerOrg(v); onDesignerOrgSelect?.(""); }}
                 onSelect={(opt) => {
-                  setDesignerOrg(opt.label.toUpperCase());
+                  setDesignerOrg(opt.label);
                   onDesignerOrgSelect?.(String(opt.id));
                 }}
                 loadOptions={loadDesignerOptions}
@@ -163,6 +195,7 @@ const DeliveryPartners: React.FC<DeliveryPartnersProps> = ({
                 minLength={1}
                 enableInlineCompletion
               />
+              {/* TEMPORARILY DISABLED: {renderSuggestion(designerOrg, "DESIGNERS", designerOrgId)} */}
               <div className="flex flex-col">
                 <label className="mb-1 text-sm text-text-base">Contract number (construction)</label>
                 <input
@@ -175,9 +208,9 @@ const DeliveryPartners: React.FC<DeliveryPartnersProps> = ({
               <AutoComplete
                 label="Construction delivery organisation"
                 value={constructionOrg}
-                onChange={(v) => { setConstructionOrg(v.toUpperCase()); onConstructionOrgSelect?.(""); }}
+                onChange={(v) => { setConstructionOrg(v); onConstructionOrgSelect?.(""); }}
                 onSelect={(opt) => {
-                  setConstructionOrg(opt.label.toUpperCase());
+                  setConstructionOrg(opt.label);
                   onConstructionOrgSelect?.(String(opt.id));
                 }}
                 loadOptions={loadConstructionOptions}
@@ -187,6 +220,7 @@ const DeliveryPartners: React.FC<DeliveryPartnersProps> = ({
                 minLength={1}
                 enableInlineCompletion
               />
+              {/* TEMPORARILY DISABLED: {renderSuggestion(constructionOrg, "CONTRACTORS", constructionOrgId)} */}
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-8">
@@ -203,9 +237,9 @@ const DeliveryPartners: React.FC<DeliveryPartnersProps> = ({
               <AutoComplete
                 label="Supply & maintenance delivery organisation"
                 value={constructionOrg}
-                onChange={(v) => { setConstructionOrg(v.toUpperCase()); onConstructionOrgSelect?.(""); }}
+                onChange={(v) => { setConstructionOrg(v); onConstructionOrgSelect?.(""); }}
                 onSelect={(opt) => {
-                  setConstructionOrg(opt.label.toUpperCase());
+                  setConstructionOrg(opt.label);
                   onConstructionOrgSelect?.(String(opt.id));
                 }}
                 loadOptions={loadConstructionOptions}
@@ -215,6 +249,7 @@ const DeliveryPartners: React.FC<DeliveryPartnersProps> = ({
                 minLength={1}
                 enableInlineCompletion
               />
+              {/* TEMPORARILY DISABLED: {renderSuggestion(constructionOrg, "CONTRACTORS", constructionOrgId)} */}
             </div>
           )}
         </div>

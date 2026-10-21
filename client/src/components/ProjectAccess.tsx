@@ -288,7 +288,7 @@ const enabledStages = useMemo(() => {
       try {
         setIsResolvingOrg(true);
         setOrgLookupError(null);
-        const orgs = await OrganizationService.fetchAllOrganizations();
+        const orgs = await OrganizationService.fetchRegistrationOrganizations();
         if (cancelled) return;
         const match = orgs.find(o => o.name.toLowerCase().includes(q.toLowerCase()));
         if (match && match.id) {

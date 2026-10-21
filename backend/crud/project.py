@@ -9,12 +9,12 @@ from sqlalchemy.orm import selectinload
 
 from models.project import Project, ProjectClass
 from models.project_stage_config import ProjectStageConfig, ProjectStage, ReportFrequency
-from models.project_organizations import ProjectOrganization, OrgRole
+from models.partner_organizations import PartnerOrganization, ProjectPartnerOrganization
 from models.postcode import ProjectPostcode, PostcodeReference, AreaClass
 from models.project_type import ProjectType
 from models.benchmark_mastertypes import BenchmarkMastertype
 from models.benchmark_typecasts import BenchmarkTypecast
-from models.organizations import Organization, Organization_Type
+from models.organizations import Organization
 from models.project_stage_instances import (
     ProjectStageInstance as StageInstanceModel,
     ProjectStage as StageInstanceProjectStage,
@@ -31,33 +31,37 @@ from crud.project_access import (
     deactivate_all_project_stage_access,
 )
 
-_ROLE_TO_ORG_TYPE = {
-    OrgRole.DELIVERY: Organization_Type.CONTRACTORS,
-    OrgRole.DESIGNER: Organization_Type.DESIGNERS,
+_ROLE_TO_PARTNER_TYPE = {
+    "DELIVERY": "CONTRACTORS",
+    "DESIGNER": "DESIGNERS",
 }
 
 
-async def _resolve_org_id(db: AsyncSession, link) -> UUID:
-    """Return an org UUID for an OrgLinkIn — uses existing ID or finds/creates by uppercased name."""
-    if link.organization_id:
-        return link.organization_id
-    name = (link.org_name or "").strip().upper()
-    if not name:
-        raise HTTPException(status_code=400, detail="org_name must not be empty when organization_id is omitted")
-    role = OrgRole(link.role)
-    org_type = _ROLE_TO_ORG_TYPE.get(role, Organization_Type.CONTRACTORS)
-    existing = (await db.execute(
-        select(Organization).where(
-            Organization.name == name,
-            Organization.organization_type == org_type,
+async def _build_project_partner_link(db: AsyncSession, project_id: UUID, link):
+    role = link.role.value if hasattr(link.role, "value") else str(link.role)
+    partner_type = _ROLE_TO_PARTNER_TYPE[role]
+    if link.partner_organization_id:
+        result = await db.execute(select(PartnerOrganization).where(
+            PartnerOrganization.id == link.partner_organization_id,
+            PartnerOrganization.partner_type == partner_type,
+            PartnerOrganization.is_active.is_(True),
+        ))
+        partner = result.scalars().first()
+        if partner is None:
+            raise HTTPException(status_code=422, detail="Selected delivery partner is unavailable for this role")
+        return ProjectPartnerOrganization(
+            project_id=project_id,
+            partner_organization_id=partner.id,
+            role=role,
         )
-    )).scalars().first()
-    if existing:
-        return existing.id
-    new_org = Organization(name=name, organization_type=org_type, is_proponent=False, is_active=True)
-    db.add(new_org)
-    await db.flush()
-    return new_org.id
+    name = " ".join((link.custom_partner_name or "").split())
+    if not name:
+        raise HTTPException(status_code=422, detail="Partner name cannot be blank")
+    return ProjectPartnerOrganization(
+        project_id=project_id,
+        custom_partner_name=name,
+        role=role,
+    )
 
 
 
@@ -84,9 +88,6 @@ async def _enrich(db: AsyncSession, projects: list) -> None:
         # Collect org IDs
         if p.proponent_org_id:
             org_id_set.add(p.proponent_org_id)
-        for link in (p.org_links or []):
-            if link.organization_id:
-                org_id_set.add(link.organization_id)
 
     # Fetch type names from ProjectType table (legacy)
     type_map: dict = {}
@@ -118,7 +119,8 @@ async def _enrich(db: AsyncSession, projects: list) -> None:
             typecast_map[str(row.id)] = row.name
             typecast_objs[str(row.id)] = row
 
-    # Fetch organizations
+    # Fetch proponent organizations. Partner directory records are stored
+    # separately and never participate in the registered organization map.
     org_map: dict = {}
     if org_id_set:
         rows = (await db.execute(
@@ -306,9 +308,6 @@ async def _enrich(db: AsyncSession, projects: list) -> None:
         
         # Set organization names
         p.proponent_org_name = org_map.get(str(p.proponent_org_id)) if p.proponent_org_id else None
-        for link in (p.org_links or []):
-            link.organization_name = org_map.get(str(link.organization_id)) if link.organization_id else None
-        
         # Set member accesses
         p.member_accesses = member_access_map.get(str(p.id), [])
 
@@ -468,12 +467,7 @@ async def create_project(db: AsyncSession, payload: ProjectCreate) -> Project:
         ))
 
     for link in payload.org_links:
-        org_id = await _resolve_org_id(db, link)
-        db.add(ProjectOrganization(
-            project_id=obj.id,
-            organization_id=org_id,
-            role=OrgRole(link.role),
-        ))
+        db.add(await _build_project_partner_link(db, obj.id, link))
 
 
     for pc, area, jid in pc_pairs:
@@ -908,12 +902,7 @@ async def update_project(db: AsyncSession, obj: Project, payload: ProjectUpdate)
         for existing in list(obj.org_links):
             await db.delete(existing)
         for link in payload.org_links:
-            org_id = await _resolve_org_id(db, link)
-            db.add(ProjectOrganization(
-                project_id=obj.id,
-                organization_id=org_id,
-                role=OrgRole(link.role)
-            ))
+            db.add(await _build_project_partner_link(db, obj.id, link))
 
     if payload.postcodes is not None:
         pc_pairs = await _validate_postcodes(
@@ -1092,7 +1081,7 @@ async def delete_project(db: AsyncSession, project_id: UUID) -> bool:
 
 _PROJECT_EAGER = [
     selectinload(Project.stage_configs),
-    selectinload(Project.org_links),
+    selectinload(Project.org_links).selectinload(ProjectPartnerOrganization.partner_organization),
     selectinload(Project.postcodes).selectinload(ProjectPostcode.jurisdiction),
     selectinload(Project.stage_instances),
     selectinload(Project.project_parties),

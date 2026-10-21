@@ -20,7 +20,6 @@ from core.security import Principal, get_current_principal
 from crud import dataset_revisions as dataset_revision_crud
 from models.project import Project
 from models.user_roles import UserRole
-from models.roles import Role
 from sqlalchemy import select
 from core.session import get_session
 
@@ -117,16 +116,17 @@ async def assert_revision_view_permission(
             )
             allowed = result.scalars().first() is not None
     elif scope_type == "PROJECT":
-        result = await db.execute(
-            select(UserRole.id).join(Role, Role.id == UserRole.role_id).where(
-                UserRole.user_id == user_id,
-                UserRole.is_active == True,
-                UserRole.scope_type == rbac.PROJECT,
-                UserRole.scope_id == scope_id,
-                Role.name.in_({rbac.PROJECT_ADMIN, rbac.PROJECT_EDITOR, rbac.PROJECT_VIEWER}),
-            )
+        roles = await get_effective_role_names(db, user_id, project_id=scope_id)
+        allowed = bool(
+            _role_set(roles)
+            & {
+                rbac.SUPER_ADMIN,
+                rbac.ORG_ADMIN,
+                rbac.PROJECT_ADMIN,
+                rbac.PROJECT_EDITOR,
+                rbac.PROJECT_VIEWER,
+            }
         )
-        allowed = result.scalars().first() is not None
     else:
         allowed = False
 

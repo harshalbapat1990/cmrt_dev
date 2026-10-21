@@ -269,12 +269,6 @@ async def remove_dataset_revision(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Cannot delete: {bound} project(s) are bound to this revision",
         )
-    factor_set_count = await count_factor_sets(db, revision_id)
-    if factor_set_count:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Cannot delete: {factor_set_count} emissions factor set(s) belong to this revision",
-        )
     await write_audit_event(db, entity_type="dataset_revision", entity_id=revision_id, action="DELETE")
     await delete_dataset_revision(db, revision_id)
     await db.commit()
@@ -296,11 +290,11 @@ async def publish_dataset_revision(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Cannot publish a revision with status '{obj.status}' (must be 'draft')",
         )
-    factor_set_count = await count_factor_sets(db, revision_id)
-    if factor_set_count == 0:
+    factor_count = await count_factor_sets(db, revision_id)
+    if factor_count == 0:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Cannot publish a dataset revision without at least one emissions factor set",
+            detail="Cannot publish a dataset revision without at least one emissions factor row",
         )
 
     project_recalculations: list[ProjectRecalculationOut] = []
