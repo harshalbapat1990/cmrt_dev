@@ -42,8 +42,6 @@ const DeliveryPartners: React.FC<DeliveryPartnersProps> = ({
   setConstructionOrg,
   onDesignerOrgSelect,
   onConstructionOrgSelect,
-  designerOrgId = "",
-  constructionOrgId = "",
   defaultExpanded = false,
   className,
 }) => {
