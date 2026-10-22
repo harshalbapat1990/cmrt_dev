@@ -16,6 +16,7 @@ from dateutil.relativedelta import relativedelta
 
 from models.project import Project
 from models.project_stage_config import ProjectStageConfig, ProjectStage, ReportFrequency
+from models.project_stage_instances import ProjectStageInstance
 from models.project_reporting_submission import ProjectReportingSubmission
 from models.activity_data import ActivityData
 from models.project_options import ProjectOption
@@ -158,10 +159,22 @@ async def generate_submissions_for_project(db: AsyncSession, project: Project, p
             today = date.today()
             anchor = date(today.year, today.month, 1)
 
+    project_class = getattr(project.project_class, "name", str(project.project_class))
+    target_stage = "RECURRING" if project_class == "RECURRING" else "CONSTRUCTION"
+    stage_instance_result = await db.execute(
+        select(ProjectStageInstance).where(
+            ProjectStageInstance.project_id == project.id,
+            ProjectStageInstance.stage == target_stage,
+        )
+    )
+    stage_instance = stage_instance_result.scalars().first()
+    if stage_instance is None:
+        return
+
     for start, end, label in _period_iter(anchor, freq, periods):
         exists = (await db.execute(
             select(ProjectReportingSubmission).where(
-                (ProjectReportingSubmission.project_id == project.id) &
+                (ProjectReportingSubmission.stage_instance_id == stage_instance.id) &
                 (ProjectReportingSubmission.period_label == label)
             )
         )).scalar_one_or_none()
@@ -170,6 +183,7 @@ async def generate_submissions_for_project(db: AsyncSession, project: Project, p
 
         db.add(ProjectReportingSubmission(
             project_id=project.id,
+            stage_instance_id=stage_instance.id,
             frequency=freq.name,
             period_label=label,
             period_start_date=start,
@@ -177,6 +191,23 @@ async def generate_submissions_for_project(db: AsyncSession, project: Project, p
             status="in_progress",
         ))
     await db.flush()
+
+
+async def seed_recurring_first_period(
+    db: AsyncSession,
+    project_id: UUID,
+) -> Optional[ProjectReportingSubmission]:
+    """Ensure a newly created recurring project has its first selectable period."""
+    stage_instance_result = await db.execute(
+        select(ProjectStageInstance).where(
+            ProjectStageInstance.project_id == project_id,
+            ProjectStageInstance.stage == "RECURRING",
+        )
+    )
+    stage_instance = stage_instance_result.scalars().first()
+    if stage_instance is None:
+        return None
+    return await seed_first_period(db, stage_instance.id)
 
 
 async def create_construction_period(

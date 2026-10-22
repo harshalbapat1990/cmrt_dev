@@ -29,7 +29,10 @@ from crud.project import (
     get_reporting_boundaries,
 )
 
-from crud.project_reporting_submission import generate_submissions_for_project
+from crud.project_reporting_submission import (
+    generate_submissions_for_project,
+    seed_recurring_first_period,
+)
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
 
@@ -60,6 +63,9 @@ async def create_new_project(
         )
 
     obj = await create_project(db, payload)
+
+    if getattr(obj.project_class, "name", str(obj.project_class)) == "RECURRING":
+        await seed_recurring_first_period(db, obj.id)
 
     if auto_generate_submissions:
         await generate_submissions_for_project(db, obj, periods=periods)
