@@ -1,10 +1,15 @@
 import { act, renderHook } from "@testing-library/react";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
+import ActivityDataService from "@/services/ActivityData.service";
 import type { ActivityDataOut } from "@/services/ActivityData.service";
 import type { DataEntryRow, TableRowMap } from "../dataEntryTypes";
 import type { UploadKey } from "../stageConstants";
 import { useRowOperations } from "./useRowOperations";
+
+vi.mock("@/services/ActivityData.service", () => ({
+    default: { createRow: vi.fn().mockResolvedValue({ id: "saved-row" }) },
+}));
 
 function createParams() {
     return {
@@ -32,6 +37,51 @@ function createParams() {
 }
 
 describe("useRowOperations validation", () => {
+    it("refreshes totals after saving a reporting-boundary row", async () => {
+        const params = createParams();
+        params.activeStageInstance = { id: "recurring-stage", stage: "RECURRING" };
+        params.activePeriod = {
+            id: "period-1",
+            project_id: "project-1",
+            stage_instance_id: "recurring-stage",
+            frequency: "monthly",
+            period_label: "January 2025",
+            period_start_date: "2025-01-01",
+            period_end_date: "2025-01-31",
+            due_date: null,
+            status: "in_progress",
+            submitted_by: null,
+            submitted_at: null,
+            decision_by: null,
+            decision_at: null,
+            rejection_reason: null,
+            reopen_requested_by: null,
+            reopen_requested_at: null,
+            reopen_reason: null,
+            created_on: null,
+            updated_on: null,
+            period_emissions_tco2e: null,
+            previous_period_emissions_tco2e: null,
+            all_periods_emissions_tco2e: null,
+        };
+        params.apiRowToUiRow = () => ({ id: "saved-row", _fromApi: true });
+        const refreshOptionTotals = vi.fn().mockResolvedValue(undefined);
+        params.refreshOptionTotals = refreshOptionTotals;
+        const { result } = renderHook(() => useRowOperations(params));
+
+        await act(async () => {
+            await result.current.handleSaveBoundaryRow(
+                "__BOUNDARY_boundary-1__",
+                "recurringG3",
+                { quantity: 1, _fromBoundary: true },
+                vi.fn(),
+            );
+        });
+
+        expect(ActivityDataService.createRow).toHaveBeenCalled();
+        expect(refreshOptionTotals).toHaveBeenCalledOnce();
+    });
+
     it("validates electricity years against their stage-specific year windows", () => {
         const { result } = renderHook(() => useRowOperations(createParams()));
 

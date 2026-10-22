@@ -5,6 +5,7 @@ import type { ConstructionPeriod } from "@/services/ConstructionPeriods.service"
 import type { ProjectOption } from "@/services/ProjectOptions.service";
 import type { StageInstance, StageLabel } from "../dataEntryTypes";
 import { ConstructionPeriodsService } from "@/services/ConstructionPeriods.service";
+import ProjectOptionsService from "@/services/ProjectOptions.service";
 import { useWorkflowActions } from "./useWorkflowActions";
 
 vi.mock("@/services/ConstructionPeriods.service", () => ({
@@ -67,6 +68,21 @@ function createParams() {
 }
 
 describe("useWorkflowActions period confirmations", () => {
+    it("refreshes recurring period summaries together with project option totals", async () => {
+        const refreshedPeriod = { ...period, period_emissions_tco2e: 42, all_periods_emissions_tco2e: 84 };
+        vi.mocked(ConstructionPeriodsService.listPeriods).mockResolvedValueOnce([refreshedPeriod]);
+        const params = createParams();
+        params.activeStage = "Recurring";
+        params.activeStageInstance = { id: "recurring-stage", stage: "RECURRING" };
+        const { result } = renderHook(() => useWorkflowActions(params));
+
+        await act(async () => result.current.refreshOptionTotals());
+
+        expect(ProjectOptionsService.ensureOptions).toHaveBeenCalledWith("recurring-stage");
+        expect(ConstructionPeriodsService.listPeriods).toHaveBeenCalledWith("recurring-stage");
+        expect(params.setConstructionPeriods).toHaveBeenCalledWith([refreshedPeriod]);
+    });
+
     it("does not submit a reason-required action without a nonblank reason", async () => {
         vi.mocked(ConstructionPeriodsService.reject).mockClear();
         const { result } = renderHook(() => useWorkflowActions(createParams()));

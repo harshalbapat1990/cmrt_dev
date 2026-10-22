@@ -54,12 +54,12 @@ export function useWorkflowActions({
             console.warn("Failed to refresh option totals", e);
         }
 
-        if (activeStage === "Construction") {
+        if (activeStage === "Construction" || activeStage === "Recurring") {
             try {
                 const periods = await ConstructionPeriodsService.listPeriods(activeStageInstance.id);
                 setConstructionPeriods(Array.isArray(periods) ? periods : []);
             } catch (e) {
-                console.warn("Failed to refresh construction periods", e);
+                console.warn("Failed to refresh reporting periods", e);
             }
         }
     }, [activeStageInstance, activeStage, setProjectOptions, setConstructionPeriods]);

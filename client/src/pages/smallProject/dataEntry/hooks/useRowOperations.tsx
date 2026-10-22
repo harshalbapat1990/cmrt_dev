@@ -265,11 +265,15 @@ export function useRowOperations({
                         console.warn("Failed to auto-create componentRepl for boundary component row:", e);
                     }
                 }
+
+                // Boundary rows are created through a dedicated save path, so
+                // refresh the project totals and period summary after persistence.
+                await refreshOptionTotals();
             } catch (e) {
                 console.warn("Failed to save boundary row:", tableKey, e);
             }
         },
-        [activeStageInstance, projectId, activeOptionId, activePeriod, resolveMetricId, computeEmissionsForRow, apiRowToUiRow, updateRows]
+        [activeStageInstance, projectId, activeOptionId, activePeriod, resolveMetricId, computeEmissionsForRow, apiRowToUiRow, updateRows, refreshOptionTotals]
     );
 
     const syncComponentQtyToReplacement = useCallback(
