@@ -332,6 +332,16 @@ async def _validate_recurring(payload: ProjectCreate | ProjectUpdate):
     for f in ("construction_start_date", "construction_end_date", "commencement_of_operations", "operational_life_years"):
         if getattr(payload, f, None) is not None:
             raise HTTPException(status_code=400, detail="Construction/operation fields are not allowed for recurring/maintenance projects")
+    _validate_recurring_reporting_boundaries("RECURRING", payload.reporting_boundaries)
+
+
+def _validate_recurring_reporting_boundaries(project_class, boundaries) -> None:
+    class_value = getattr(project_class, "value", project_class)
+    if class_value == "RECURRING" and not boundaries:
+        raise HTTPException(
+            status_code=400,
+            detail="At least one reporting boundary is required for recurring projects.",
+        )
 
 
 async def _validate_postcodes(
@@ -748,6 +758,14 @@ async def _sync_project_stage_instances(
 
 async def update_project(db: AsyncSession, obj: Project, payload: ProjectUpdate) -> Project:
     data = payload.dict(exclude_unset=True)
+    effective_project_class = data.get("project_class", obj.project_class)
+    effective_boundaries = (
+        payload.reporting_boundaries
+        if payload.reporting_boundaries is not None
+        else obj.reporting_boundaries
+    )
+    _validate_recurring_reporting_boundaries(effective_project_class, effective_boundaries)
+
     nested = {"stage_configs", "org_links", "postcodes", "member_accesses", "reporting_boundaries"}
     fk_fields = {"project_type_id", "project_typecast_id"}
     for k in list(data.keys()):

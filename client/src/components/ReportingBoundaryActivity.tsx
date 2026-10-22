@@ -53,6 +53,7 @@ const toOption = (xs: MSOption[]): any[] => xs.map((x) => ({ value: x.value, lab
 /** ----- Operation panel for a selected activity type ----- */
 type RBActivityOperationPanelProps = {
   activeActivity: string;
+  projectId?: string;
   onAddManual: (row: Omit<EmissionRow, "id" | "origin">) => void;
   onUploadParsed?: (rows: EmissionRow[]) => void;
   onClose: () => void;
@@ -61,6 +62,7 @@ type RBActivityOperationPanelProps = {
 
 const RBActivityOperationPanel: React.FC<RBActivityOperationPanelProps> = ({
   activeActivity,
+  projectId,
   onAddManual,
   onUploadParsed,
   activityOptions,
@@ -96,12 +98,12 @@ const RBActivityOperationPanel: React.FC<RBActivityOperationPanelProps> = ({
     try {
       setLoadingSubcats(true);
       const categoryLabel = findLabel(categoryId, categoryOptions);
-      const subs = await LookupsService.fetchGrade3Subcategories(categoryLabel);
+      const subs = await LookupsService.fetchGrade3Subcategories(categoryLabel, projectId);
       setSubcatOptions(subs);
     } catch (e) {
       console.error(e);
       setSubcatOptions([]);
-      setErrorMessage("Failed to load Emissions sub-categories.");
+      setErrorMessage(e instanceof Error ? e.message : "Failed to load Emissions sub-categories.");
     } finally {
       setLoadingSubcats(false);
     }
@@ -119,12 +121,12 @@ const RBActivityOperationPanel: React.FC<RBActivityOperationPanelProps> = ({
     try {
       setLoadingSources(true);
       const categoryLabel = findLabel(cat, categoryOptions);
-      const sources = await LookupsService.fetchGrade3Sources(categoryLabel, subcatId);
+      const sources = await LookupsService.fetchGrade3Sources(categoryLabel, subcatId, projectId);
       setSourceOptions(sources);
     } catch (e) {
       console.error(e);
       setSourceOptions([]);
-      setErrorMessage("Failed to load Emissions sources.");
+      setErrorMessage(e instanceof Error ? e.message : "Failed to load Emissions sources.");
     } finally {
       setLoadingSources(false);
     }
@@ -206,9 +208,9 @@ const RBActivityOperationPanel: React.FC<RBActivityOperationPanelProps> = ({
         let subOptions: any[] = [];
         if (catLabel) {
           try {
-            subOptions = await LookupsService.fetchGrade3Subcategories(catLabel);
-          } catch {
-            subOptions = [];
+            subOptions = await LookupsService.fetchGrade3Subcategories(catLabel, projectId);
+          } catch (error) {
+            throw error;
           }
         }
         const subVal = matchByValueOrLabelToValue(subRaw, subOptions);
@@ -216,9 +218,9 @@ const RBActivityOperationPanel: React.FC<RBActivityOperationPanelProps> = ({
         let srcOptions: any = [];
         if (catLabel && subVal) {
           try {
-            srcOptions = await LookupsService.fetchGrade3Sources(catLabel, subVal);
-          } catch {
-            srcOptions = [];
+            srcOptions = await LookupsService.fetchGrade3Sources(catLabel, subVal, projectId);
+          } catch (error) {
+            throw error;
           }
         }
         const srcVal = matchByValueOrLabelToValue(srcRaw, srcOptions);
@@ -237,7 +239,7 @@ const RBActivityOperationPanel: React.FC<RBActivityOperationPanelProps> = ({
       setErrorMessage(null);
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(err?.message || "Failed to parse or import the uploaded file.");
+      setErrorMessage(err instanceof Error ? err.message : "Failed to parse or import the uploaded file.");
     } finally {
       e.currentTarget.value = ""; // allow re-uploading the same file
     }
@@ -342,6 +344,7 @@ const RBActivityOperationPanel: React.FC<RBActivityOperationPanelProps> = ({
 export type ReportingBoundaryActivityProps = {
   value: EmissionRow[];
   onChange: (rows: EmissionRow[]) => void;
+  projectId?: string;
   initialActivities?: string[];
   defaultExpanded?: boolean;
   activityOptions?: MSOption[];
@@ -354,6 +357,7 @@ export type ReportingBoundaryActivityProps = {
 const ReportingBoundaryActivity: React.FC<ReportingBoundaryActivityProps> = ({
   value,
   onChange,
+  projectId,
   errors,
   initialActivities = [],
   defaultExpanded = false,
@@ -378,6 +382,7 @@ const ReportingBoundaryActivity: React.FC<ReportingBoundaryActivityProps> = ({
 
   const [loadingSubcats, setLoadingSubcats] = useState(false);
   const [loadingSources, setLoadingSources] = useState(false);
+  const [lookupError, setLookupError] = useState<string | null>(null);
 
   const activityOptionsAsOption = useMemo(() => toOption(activityOptions), [activityOptions]);
 
@@ -430,8 +435,12 @@ const ReportingBoundaryActivity: React.FC<ReportingBoundaryActivityProps> = ({
     let subOptions: any[] = [];
     try {
       setLoadingSubcats(true);
-      subOptions = await LookupsService.fetchGrade3Subcategories(row.category);
+      subOptions = await LookupsService.fetchGrade3Subcategories(row.category, projectId);
       setSubcatOptions(subOptions);
+      setLookupError(null);
+    } catch (error) {
+      setLookupError(error instanceof Error ? error.message : "Failed to load Emissions sub-categories.");
+      return;
     } finally {
       setLoadingSubcats(false);
     }
@@ -444,8 +453,12 @@ const ReportingBoundaryActivity: React.FC<ReportingBoundaryActivityProps> = ({
     if (row.subCategory) {
       try {
         setLoadingSources(true);
-        srcOptions = await LookupsService.fetchGrade3Sources(row.category, row.subCategory);
+        srcOptions = await LookupsService.fetchGrade3Sources(row.category, row.subCategory, projectId);
         setSourceOptions(srcOptions);
+        setLookupError(null);
+      } catch (error) {
+        setLookupError(error instanceof Error ? error.message : "Failed to load Emissions sources.");
+        return;
       } finally {
         setLoadingSources(false);
       }
@@ -501,8 +514,11 @@ const ReportingBoundaryActivity: React.FC<ReportingBoundaryActivityProps> = ({
     try {
       setLoadingSubcats(true);
       const categoryLabel = findLabel(categoryId, categoryOptions);
-      const subs = await LookupsService.fetchGrade3Subcategories(categoryLabel);
+      const subs = await LookupsService.fetchGrade3Subcategories(categoryLabel, projectId);
       setSubcatOptions(subs);
+      setLookupError(null);
+    } catch (error) {
+      setLookupError(error instanceof Error ? error.message : "Failed to load Emissions sub-categories.");
     } finally {
       setLoadingSubcats(false);
     }
@@ -516,8 +532,11 @@ const ReportingBoundaryActivity: React.FC<ReportingBoundaryActivityProps> = ({
     try {
       setLoadingSources(true);
       const categoryLabel = findLabel(draft.categoryId, categoryOptions);
-      const srcs = await LookupsService.fetchGrade3Sources(categoryLabel, subId);
+      const srcs = await LookupsService.fetchGrade3Sources(categoryLabel, subId, projectId);
       setSourceOptions(srcs);
+      setLookupError(null);
+    } catch (error) {
+      setLookupError(error instanceof Error ? error.message : "Failed to load Emissions sources.");
     } finally {
       setLoadingSources(false);
     }
@@ -563,6 +582,10 @@ const ReportingBoundaryActivity: React.FC<ReportingBoundaryActivityProps> = ({
   </span>
 </button>
 
+      {lookupError && <p className="mb-4 text-sm text-danger" role="alert">{lookupError}</p>}
+      {errors?.required && (
+        <p className="mb-4 text-sm text-danger" role="alert">{errors.required}</p>
+      )}
 
       {expanded && (
         <div id="reporting-boundary-activity-panel" className="space-y-4 mb-7 rounded-md bg-bg-content">
@@ -604,6 +627,7 @@ const ReportingBoundaryActivity: React.FC<ReportingBoundaryActivityProps> = ({
           {activeActivity && selectedActivities.includes(activeActivity) && (
             <RBActivityOperationPanel
               activeActivity={activeActivity}
+              projectId={projectId}
               onAddManual={addManualRow}
               onUploadParsed={addUploadedRows}
               onClose={() => setActiveActivity(null)}

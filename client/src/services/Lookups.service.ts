@@ -53,6 +53,10 @@ export class LookupsService extends BaseService {
         }
     }
 
+    clearPublishedDefaultDatasetRevisionCache(): void {
+        this.defaultDatasetRevisionId = undefined;
+    }
+
     async resolveProjectDatasetRevisionId(projectId: string): Promise<string | null> {
         if (this.datasetRevisionCache.has(projectId)) {
             return this.datasetRevisionCache.get(projectId) ?? null;
@@ -93,6 +97,17 @@ export class LookupsService extends BaseService {
         if (requestedRevisionId) return requestedRevisionId;
         if (projectId) return this.resolveProjectDatasetRevisionId(projectId);
         return this.resolvePublishedDefaultDatasetRevisionId();
+    }
+
+    private async resolveRequiredGrade3RevisionId(projectId?: string): Promise<string> {
+        const projectRevisionId = projectId
+            ? await this.resolveProjectDatasetRevisionId(projectId)
+            : null;
+        const revisionId = projectRevisionId ?? await this.resolvePublishedDefaultDatasetRevisionId();
+        if (!revisionId) {
+            throw new Error("No published dataset revision is available for reporting boundary lookups.");
+        }
+        return revisionId;
     }
 
     /**
@@ -222,10 +237,11 @@ export class LookupsService extends BaseService {
         }
     }
 
-    async fetchGrade3Subcategories(categoryName: string): Promise<{ value: string, label: string }[]> {
+    async fetchGrade3Subcategories(categoryName: string, projectId?: string): Promise<{ value: string, label: string }[]> {
         try {
+            const revisionId = await this.resolveRequiredGrade3RevisionId(projectId);
             const response = await this.get(
-                `/background-grade-metrics?grade_id=3&emissions_category=${encodeURIComponent(categoryName)}&limit=500`
+                `/background-grade-metrics?grade_id=3&dataset_revision_id=${encodeURIComponent(revisionId)}&emissions_category=${encodeURIComponent(categoryName)}&limit=500`
             );
             const rawData = response.data;
             if (!Array.isArray(rawData)) return [];
@@ -245,10 +261,11 @@ export class LookupsService extends BaseService {
         }
     }
 
-    async fetchGrade3Sources(categoryName: string, subcategoryName: string): Promise<{ value: string, label: string }[]> {
+    async fetchGrade3Sources(categoryName: string, subcategoryName: string, projectId?: string): Promise<{ value: string, label: string }[]> {
         try {
+            const revisionId = await this.resolveRequiredGrade3RevisionId(projectId);
             const response = await this.get(
-                `/background-grade-metrics?grade_id=3&emissions_category=${encodeURIComponent(categoryName)}&emissions_subcategory=${encodeURIComponent(subcategoryName)}&limit=500`
+                `/background-grade-metrics?grade_id=3&dataset_revision_id=${encodeURIComponent(revisionId)}&emissions_category=${encodeURIComponent(categoryName)}&emissions_subcategory=${encodeURIComponent(subcategoryName)}&limit=500`
             );
             const rawData = response.data;
             if (!Array.isArray(rawData)) return [];

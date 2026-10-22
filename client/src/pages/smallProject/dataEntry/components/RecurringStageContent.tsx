@@ -39,6 +39,15 @@ export function RecurringStageContent({
     return (
         <>
             <PeriodEmissionSummary period={period} />
+            {activities.length === 0 ? (
+                <div className="rounded-[var(--radius-3)] border border-border-input bg-white p-5 text-sm text-text-dark">
+                    <p className="font-medium">No recurring emissions tables are configured for this project.</p>
+                    <p className="mt-1 text-text-faint">
+                        Recurring tables are created from the project’s reporting boundaries. Add at least one
+                        recurring emissions source in project setup, then return here.
+                    </p>
+                </div>
+            ) : null}
             {activities.map((activity) => {
                 const activityRows = rowsByActivity[activity] ?? [];
                 return (

@@ -578,11 +578,13 @@ const nextErrors: Step3Errors = {
   return (
     Object.keys(psErrors).length === 0 &&
     Object.keys(csErrors).length === 0 &&
-    Object.keys(dpErrors).length === 0
+    Object.keys(dpErrors).length === 0 &&
+    Object.keys(rbErrors).length === 0
   );
 }, [
   projectSummary,
   selectedCategory,
+  boundaryRows,
   operationalLife,
   capex,
   commenceOpsDate,
@@ -1120,6 +1122,7 @@ const nextErrors: Step3Errors = {
                     <ReportingBoundaryActivity
                       value={boundaryRows}
                       onChange={setBoundaryRows}
+                      projectId={isEdit ? projectId : undefined}
                       errors={step3Errors.reportingBoundary}
                     />
                   </div>
