@@ -15,8 +15,8 @@ Interpolation / extrapolation (matching Excel formulas):
   Before first anchor : flat at first anchor (carry-back to commencement year)
   Between anchors     : piecewise linear interpolation
     Formula: v = v_a + (v_b - v_a) * (Y - y_a) / (y_b - y_a)
-  After last anchor   : linear extrapolation using the same slope as the last
-                        two anchors (FORECAST.LINEAR equivalent)
+  After last anchor   : least-squares linear forecast across all anchors
+                        (Excel FORECAST.LINEAR equivalent)
 
 If only one anchor is supplied: flat value used for all years.
 
@@ -34,7 +34,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from time import perf_counter
 from typing import Optional
 from uuid import UUID
@@ -192,32 +192,6 @@ async def _get_project_reference_period(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Data-range clamp helper (same as AUS small — data only goes to 2050)
-# ─────────────────────────────────────────────────────────────────────────────
-
-async def _get_aus_year_range(db: AsyncSession, dataset_revision_id: UUID) -> tuple[int, int]:
-    """Returns (min_year, max_year) across ev_uptake_factors and electric_decarb_factors."""
-    row = (
-        await db.execute(
-            text(
-                "SELECT LEAST("
-                "    (SELECT MAX(year) FROM ev_uptake_factors WHERE dataset_revision_id = :dataset_revision_id),"
-                "    (SELECT MAX(year) FROM electric_decarb_factors WHERE dataset_revision_id = :dataset_revision_id)"
-                ") AS max_year,"
-                "GREATEST("
-                "    (SELECT MIN(year) FROM ev_uptake_factors WHERE dataset_revision_id = :dataset_revision_id),"
-                "    (SELECT MIN(year) FROM electric_decarb_factors WHERE dataset_revision_id = :dataset_revision_id)"
-                ") AS min_year"
-            ),
-            {"dataset_revision_id": str(dataset_revision_id)},
-        )
-    ).mappings().first()
-    min_y = int(row["min_year"]) if row and row["min_year"] is not None else 2020
-    max_y = int(row["max_year"]) if row and row["max_year"] is not None else 2050
-    return min_y, max_y
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Internal anchor type for interpolation
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -242,11 +216,13 @@ def _build_year_values(
     Rules (matching Excel formulas):
       Y < first anchor  : use first anchor values (flat carry-back)
       first <= Y <= last: piecewise linear interpolation between consecutive anchors
-      Y > last anchor   : linear extrapolation from the last two anchors
-                          (FORECAST.LINEAR equivalent)
+      Y > last anchor   : least-squares linear forecast across all anchors
+                          (Excel FORECAST.LINEAR equivalent)
       Only one anchor   : flat value for all years
     """
     sorted_anchors = sorted(anchors, key=lambda a: a.year)
+    if len({anchor.year for anchor in sorted_anchors}) != len(sorted_anchors):
+        raise ValueError("A vehicle can have only one anchor value per year.")
     result: dict[int, tuple[Decimal, Decimal]] = {}
 
     for Y in ref_years:
@@ -254,18 +230,29 @@ def _build_year_values(
             # Flat carry-back (or single anchor)
             result[Y] = (sorted_anchors[0].vkt, sorted_anchors[0].average_speed_kph)
 
-        elif Y >= sorted_anchors[-1].year:
-            if len(sorted_anchors) >= 2:
-                # Extrapolate from last two anchors
-                a = sorted_anchors[-2]
-                b = sorted_anchors[-1]
-                dy = Decimal(str(b.year - a.year))
-                t  = Decimal(str(Y - a.year)) / dy
-                vkt   = a.vkt   + (b.vkt   - a.vkt)   * t
-                speed = a.average_speed_kph + (b.average_speed_kph - a.average_speed_kph) * t
-                result[Y] = (vkt, speed)
-            else:
-                result[Y] = (sorted_anchors[-1].vkt, sorted_anchors[-1].average_speed_kph)
+        elif Y > sorted_anchors[-1].year:
+            if len(sorted_anchors) == 1:
+                result[Y] = (sorted_anchors[0].vkt, sorted_anchors[0].average_speed_kph)
+                continue
+
+            x_values = [Decimal(anchor.year) for anchor in sorted_anchors]
+            x_mean = sum(x_values, Decimal(0)) / Decimal(len(x_values))
+            x_variance = sum(((x - x_mean) ** 2 for x in x_values), Decimal(0))
+            forecast_x = Decimal(Y)
+
+            def forecast(values: list[Decimal]) -> Decimal:
+                y_mean = sum(values, Decimal(0)) / Decimal(len(values))
+                covariance = sum(
+                    ((x - x_mean) * (y - y_mean) for x, y in zip(x_values, values)),
+                    Decimal(0),
+                )
+                slope = covariance / x_variance
+                return y_mean + slope * (forecast_x - x_mean)
+
+            result[Y] = (
+                forecast([anchor.vkt for anchor in sorted_anchors]),
+                forecast([anchor.average_speed_kph for anchor in sorted_anchors]),
+            )
 
         else:
             # Piecewise linear interpolation between consecutive anchors
@@ -283,6 +270,16 @@ def _build_year_values(
     return result
 
 
+def _worksheet_speed(speed_kph: Decimal) -> Decimal:
+    """Round speed to an integer using Excel ROUND's half-away-from-zero rule."""
+    return speed_kph.quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+
+
+def _annual_emissions_tco2e(vkt: Decimal, intensity_gco2e_per_vkt: Decimal) -> Decimal:
+    """Convert grams of CO2e to tonnes without intermediate rounding."""
+    return vkt * intensity_gco2e_per_vkt / Decimal("1000000")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Main calculation entry point
 # ─────────────────────────────────────────────────────────────────────────────
@@ -294,8 +291,8 @@ async def calculate_and_store_aus_large_road(
     """
     1. Resolve reference period (commencement year, operational life, state).
     2. Map text road parameters to numeric values for fn_veh_emissions_intensity_aus.
-    3. For each vehicle type: interpolate / extrapolate VKT and speed for all
-       reference-period years using that vehicle's anchor data.
+    3. For each vehicle type: interpolate VKT and speed between anchors, and
+       forecast beyond them using least squares across all anchors.
     4. For each year: call fn_veh_emissions_intensity_aus once per unique speed
        (cached), look up intensity per vehicle type, compute emissions.
     5. Upsert UserEmissionsAusLargeRoadResult rows for all vehicle types.
@@ -337,11 +334,7 @@ async def calculate_and_store_aus_large_road(
             f"Valid values: {list(_IRI_MAP.keys())}"
         )
 
-    # ── 3. Data year clamp range ─────────────────────────────────────────────
-    # Confirmed: retain flat values for post-2050 (James Addis, 2026-04-24)
-    aus_min_year, aus_max_year = await _get_aus_year_range(db, dataset_revision_id)
-
-    # ── 4. Build per-vehicle anchor lists and interpolate for all years ──────
+    # ── 3. Build per-vehicle anchor lists and interpolate for all years ──────
     # Collect anchors keyed by vehicle_type.
     # A vehicle type may not appear in every anchor year — that is valid as long
     # as it appears in at least one.
@@ -362,15 +355,14 @@ async def calculate_and_store_aus_large_road(
         for vt, anchors in vehicle_anchors.items()
     }
 
-    # ── 5. Fetch required intensities in one round trip ───────────────────────
+    # ── 4. Fetch required intensities in one round trip ───────────────────────
     year_speed_inputs: set[tuple[int, float]] = set()
     for year in ref_years:
-        lookup_year = max(aus_min_year, min(aus_max_year, year))
         for year_values in vehicle_year_values.values():
             _, speed = year_values[year]
-            year_speed_inputs.add((lookup_year, float(speed)))
+            year_speed_inputs.add((year, float(_worksheet_speed(speed))))
     requested_pairs = build_aus_intensity_pairs_for_inputs(
-        year_speed_inputs, aus_min_year, aus_max_year
+        year_speed_inputs, None, None
     )
     intensity_started_at = perf_counter()
     intensity_rows = []
@@ -393,14 +385,17 @@ async def calculate_and_store_aus_large_road(
         (int(pair["assessment_year"]), float(pair["speed_kph"])): {}
         for pair in requested_pairs
     }
+    electricity_factor_presence: dict[tuple[int, float], tuple[bool, bool]] = {}
     for row in intensity_rows:
-        intensity_value = row["fleet_avg_emissions_intensity_gco2e_per_vkt"]
-        intensity_cache.setdefault(
-            (int(row["assessment_year"]), float(row["speed_kph"])), {}
-        )[row["vehicle_class"]] = (
-            Decimal(str(intensity_value)).quantize(Decimal("0.000001"))
-            if intensity_value is not None
+        row_key = (int(row["assessment_year"]), float(row["speed_kph"]))
+        intensity_cache.setdefault(row_key, {})[row["vehicle_class"]] = (
+            Decimal(str(row["fleet_avg_emissions_intensity_gco2e_per_vkt"]))
+            if row["fleet_avg_emissions_intensity_gco2e_per_vkt"] is not None
             else None
+        )
+        electricity_factor_presence[row_key] = (
+            bool(row["has_scope2_location_factor"]),
+            bool(row["has_scope3_location_factor"]),
         )
     intensity_elapsed_ms = (perf_counter() - intensity_started_at) * 1000
 
@@ -409,28 +404,51 @@ async def calculate_and_store_aus_large_road(
     }
 
     annual_upserts: list[dict[str, object]] = []
+    missing_calculations: list[str] = []
 
     for year in ref_years:
         for vt, year_vals in vehicle_year_values.items():
             vkt, speed = year_vals[year]
-            lookup_year = max(aus_min_year, min(aus_max_year, year))
-            cache_key = (lookup_year, float(speed))
+            lookup_year = year
+            lookup_speed = _worksheet_speed(speed)
+            cache_key = (lookup_year, float(lookup_speed))
 
-            intensity: Optional[Decimal] = intensity_cache[cache_key].get(vt)
+            intensity = intensity_cache[cache_key].get(vt)
 
             # emissions_tco2e = VKT × gCO2e/km / 1,000,000
             emissions: Optional[Decimal] = None
             if intensity is not None:
-                emissions = (vkt * intensity / Decimal("1000000")).quantize(Decimal("0.000001"))
+                emissions = _annual_emissions_tco2e(vkt, intensity)
+            else:
+                factor_presence = electricity_factor_presence.get(cache_key)
+                if factor_presence is None:
+                    missing_reason = "intensity function returned no result or a required dataset value is missing"
+                else:
+                    scope2_present, scope3_present = factor_presence
+                    missing_types = []
+                    if not scope2_present:
+                        missing_types.append("scope2_location")
+                    if not scope3_present:
+                        missing_types.append("scope3_location")
+                    missing_reason = (
+                        "missing revision-scoped electricity factor(s): " + ", ".join(missing_types)
+                        if missing_types
+                        else "intensity function returned no result or a required dataset value is missing"
+                    )
+                missing_calculations.append(
+                    f"{vt} {year} (lookup year {lookup_year}, speed {lookup_speed} km/h): "
+                    + missing_reason
+                )
 
-            vkt_q   = vkt.quantize(Decimal("0.000001"))
-            speed_q = speed.quantize(Decimal("0.0001"))
+            # Store the original time series values without introducing workbook-absent rounding.
+            vkt_value = vkt
+            speed_value = speed
 
             vehicle_annual_rows[vt].append(
                 AusLargeRoadAnnualRow(
                     assessment_year=year,
-                    vkt_calc=vkt_q,
-                    speed_kph_calc=speed_q,
+                    vkt_calc=vkt_value,
+                    speed_kph_calc=speed_value,
                     emissions_intensity_gco2e_vkt=intensity,
                     emissions_tco2e=emissions,
                 )
@@ -443,14 +461,28 @@ async def calculate_and_store_aus_large_road(
                 "project_option_id": req.project_option_id,
                 "vehicle_type": vt,
                 "assessment_year": year,
-                "vkt_calc": vkt_q,
-                "speed_kph_calc": speed_q,
+                "vkt_calc": vkt_value,
+                "speed_kph_calc": speed_value,
                 "gradient_m_per_km": Decimal(str(gradient_val)),
                 "curvature_deg_per_km": Decimal(str(curvature_val)),
                 "iri_m_per_km": Decimal(str(iri_val)),
                 "emissions_intensity_gco2e_vkt": intensity,
                 "emissions_tco2e": emissions,
             })
+
+    if missing_calculations:
+        preview = "; ".join(missing_calculations[:25])
+        suffix = (
+            f"; and {len(missing_calculations) - 25} more missing vehicle-year rows"
+            if len(missing_calculations) > 25
+            else ""
+        )
+        raise ValueError(
+            "Australian large road emissions could not be calculated because required "
+            "dataset factors are missing. No annual results were changed by this request. "
+            f"Dataset revision {dataset_revision_id}. "
+            f"Affected rows: {preview}{suffix}"
+        )
 
     annual_write_started_at = perf_counter()
     if annual_upserts:
@@ -486,7 +518,7 @@ async def calculate_and_store_aus_large_road(
             {"opt_id": str(req.project_option_id)},
         )
     ).mappings().first()
-    interim_total_rounded = Decimal(str(total_row["interim_total"])).quantize(Decimal("0.000001"))
+    interim_total_rounded = Decimal(str(total_row["interim_total"]))
 
     # ── 7. Fetch base case and calculate final user emissions ────────────────
     # Rules (same as NZ/AUS-small, confirmed with James Addis):
@@ -497,14 +529,12 @@ async def calculate_and_store_aus_large_road(
     base_case_option_id, base_case_interim = await _get_base_case_emissions(
         db, req.project_stage_instance_id
     )
-    base_case_interim_rounded = base_case_interim.quantize(Decimal("0.000001"))
+    base_case_interim_rounded = base_case_interim
     if base_case_interim_rounded == Decimal("0"):
         # Base case not yet calculated — difference unknown, return 0.
         final_user_emissions = Decimal("0")
     else:
-        final_user_emissions = (
-            interim_total_rounded - base_case_interim_rounded
-        ).quantize(Decimal("0.000001"))
+        final_user_emissions = interim_total_rounded - base_case_interim_rounded
 
     summary_elapsed_ms = (perf_counter() - summary_started_at) * 1000
     ledger_started_at = perf_counter()

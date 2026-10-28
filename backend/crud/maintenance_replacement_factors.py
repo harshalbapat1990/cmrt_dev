@@ -105,6 +105,7 @@ async def update_maintenance_replacement_factor(
     emissions_intensity_tco2e: Optional[Decimal],
     default_frequency_years: Optional[int],
     source_note: Optional[str],
+    jurisdiction_id: Optional[UUID] = None,
 ) -> Optional[dict]:
     mrf = MaintenanceReplacementFactor.__table__
     res = await db.execute(
@@ -121,6 +122,7 @@ async def update_maintenance_replacement_factor(
             emissions_intensity_tco2e=emissions_intensity_tco2e,
             default_frequency_years=default_frequency_years,
             source_note=source_note,
+            **({"jurisdiction_id": jurisdiction_id} if jurisdiction_id is not None else {}),
         )
     )
     await db.commit()

@@ -1,12 +1,60 @@
 """Tests for /api/project-dataset-revisions endpoints."""
 from __future__ import annotations
 
+from types import SimpleNamespace
 from uuid import uuid4
 
+from fastapi import HTTPException
 import pytest
 
 _PROJECT_ID = str(uuid4())
 _REVISION_ID = str(uuid4())
+
+
+@pytest.mark.asyncio
+async def test_org_admin_can_manage_dataset_assignment_for_project_organisation(monkeypatch):
+    import routers.project_dataset_revisions as router
+
+    target_project_id = uuid4()
+    user_id = uuid4()
+
+    async def get_project(_db, requested_project_id):
+        assert requested_project_id == target_project_id
+        return SimpleNamespace(id=target_project_id)
+
+    async def get_roles(_db, requested_user_id, project_id=None):
+        assert requested_user_id == user_id
+        assert project_id == target_project_id
+        return {router.rbac.ORG_ADMIN}
+
+    monkeypatch.setattr(router, "get_project", get_project)
+    monkeypatch.setattr(router.rbac, "get_effective_role_names", get_roles)
+
+    await router._require_dataset_assignment_manager(
+        object(), SimpleNamespace(user_id=user_id), target_project_id
+    )
+
+
+@pytest.mark.asyncio
+async def test_user_without_dataset_manager_role_is_rejected(monkeypatch):
+    import routers.project_dataset_revisions as router
+
+    project_id = uuid4()
+    async def get_project(_db, _requested_project_id):
+        return SimpleNamespace(id=project_id)
+
+    async def get_roles(_db, _user_id, project_id=None):
+        return {router.rbac.PROJECT_VIEWER}
+
+    monkeypatch.setattr(router, "get_project", get_project)
+    monkeypatch.setattr(router.rbac, "get_effective_role_names", get_roles)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await router._require_dataset_assignment_manager(
+            object(), SimpleNamespace(user_id=uuid4()), project_id
+        )
+
+    assert exc_info.value.status_code == 403
 
 
 @pytest.mark.asyncio

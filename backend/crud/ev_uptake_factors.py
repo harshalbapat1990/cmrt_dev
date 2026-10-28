@@ -79,6 +79,7 @@ async def update_ev_uptake_factor(
     db: AsyncSession,
     factor_id: UUID,
     uptake_pct: Optional[float],
+    jurisdiction_id: Optional[UUID] = None,
 ) -> Optional[dict]:
     ev = EvUptakeFactor.__table__
     res = await db.execute(select(ev.c.dataset_revision_id).where(ev.c.id == factor_id))
@@ -88,9 +89,10 @@ async def update_ev_uptake_factor(
     status = await _get_revision_status(db, row[0])
     if status != "draft":
         raise ValueError("Dataset revision is not in draft status and cannot be edited.")
-    await db.execute(
-        sa_update(ev).where(ev.c.id == factor_id).values(uptake_pct=uptake_pct)
-    )
+    await db.execute(sa_update(ev).where(ev.c.id == factor_id).values(
+        uptake_pct=uptake_pct,
+        **({"jurisdiction_id": jurisdiction_id} if jurisdiction_id is not None else {}),
+    ))
     await db.commit()
     rows = await list_ev_uptake_factors(db, dataset_revision_id=row[0], skip=0, limit=100000)
     for r in rows:

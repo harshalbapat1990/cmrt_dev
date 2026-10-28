@@ -12,6 +12,7 @@ from models.maintenance_replacement_factors import MaintenanceReplacementFactor
 from models.project import Project
 from models.project_stage_instances import ProjectStageInstance
 from services.emissions_calculator import calculate_and_store
+from services.ui_table_key_normalization import is_grade34_detailed_table_key
 from services.dataset_recalculation_labels import (
     data_entry_table_display_name,
     dataset_table_display_name,
@@ -100,6 +101,10 @@ async def recalculate_project_for_revision(
     # deriving automatic mitigation rows, so those rows inherit the new revision.
     for row in rows:
         row.dataset_revision_id = dataset_revision_id
+        if is_grade34_detailed_table_key(row.ui_table_key):
+            # Older detailed-level entries may carry an arbitrary generic metric
+            # key. The dedicated calculator uses the row's source and unit.
+            row.metric_natural_key = None
         extra = dict(row.extra_fields or {})
         mr_factor_id = extra.get("mr_factor_id")
         if mr_factor_id:

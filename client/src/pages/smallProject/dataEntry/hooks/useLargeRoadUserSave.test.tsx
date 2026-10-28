@@ -62,6 +62,28 @@ describe("useLargeRoadUserSave", () => {
     expect(persistAll).toHaveBeenCalledWith(yearData, params, currentSummary);
   });
 
+  it("does not persist stale results when calculation fails and reports the failure", async () => {
+    const error = new Error("required dataset factor is missing");
+    const calculateSummary = vi.fn(async () => { throw error; });
+    const persistAll = vi.fn(async () => undefined);
+    const onError = vi.fn();
+    const { result } = renderHook(() => useLargeRoadUserSave({
+      readOnly: false,
+      region: "AU",
+      yearData,
+      roadParams: params,
+      currentSummary,
+      calculateSummary,
+      persistAll,
+      onError,
+    }));
+
+    await act(async () => result.current());
+
+    expect(persistAll).not.toHaveBeenCalled();
+    expect(onError).toHaveBeenCalledWith(error);
+  });
+
   it("does not calculate or persist in read-only mode", async () => {
     const calculateSummary = vi.fn(async () => calculatedSummary);
     const persistAll = vi.fn(async () => undefined);

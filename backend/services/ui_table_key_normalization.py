@@ -21,3 +21,12 @@ def mitigation_base_table_key(ui_table_key: Optional[str]) -> str:
 
 def matches_base_table_key(ui_table_key: Optional[str], base_key: str) -> bool:
     return mitigation_base_table_key(ui_table_key) == base_key
+
+
+def is_grade34_detailed_table_key(ui_table_key: Optional[str]) -> bool:
+    """Whether this activity row is calculated by the Grade 3/4 detailed calculator."""
+    return mitigation_base_table_key(ui_table_key) in {
+        "bcDetailedLevel",
+        "constructionG3",
+        "recurringG3",
+    }

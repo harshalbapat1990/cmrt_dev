@@ -547,6 +547,12 @@ export interface BgmEditCtx {
   unitOpts: NamedOption[];
   metricTypeOpts: NamedOption[];
   ecOpts: NamedOption[];
+  grade34CategoryOpts?: NamedOption[];
+  grade34SubcategoryOpts?: NamedOption[];
+  grade34CategoriesLoading?: boolean;
+  grade34CategoryError?: string;
+  grade34SubcategoriesLoading?: boolean;
+  grade34SubcategoryError?: string;
   jurOpts: NamedOption[];
   mastertypeOpts: NamedOption[];
   typecasts: NamedOption[];
@@ -766,7 +772,7 @@ export interface ConcreteMixBundle {
 export interface DirectSubstitutionRow {
   id: string;
   dataset_revision_id: string;
-  jurisdiction_id: string;
+  jurisdiction_id: string | null;
   jurisdiction_name: string | null;
   user_emissions_source: string;
   user_unit: string;

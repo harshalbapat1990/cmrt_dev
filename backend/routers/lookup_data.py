@@ -98,6 +98,7 @@ async def list_units_for_typecast(
         select(distinct(u.id))
         .join(bgm, bgm.unit_id == u.id)
         .where(bgm.typecast_id == id)
+        .where(bgm.is_active.is_(True))
     )
     if dataset_revision_id is not None:
         stmt = stmt.where(bgm.dataset_revision_id == dataset_revision_id)
@@ -130,6 +131,7 @@ async def list_bgm_categories(
         select(distinct(ec.id), ec.name)
         .join(bgm, bgm.emissions_category_id == ec.id)
         .where(bgm.grade_id.in_(grade_id_list))
+        .where(bgm.is_active.is_(True))
         .where(ec.parent_category_id.is_(None))
         .order_by(ec.name)
     )
@@ -190,6 +192,7 @@ async def list_bgm_subcategories(
         select(distinct(ec.id), ec.name)
         .join(bgm, bgm.emissions_subcategory_id == ec.id)
         .where(bgm.grade_id.in_(grade_id_list))
+        .where(bgm.is_active.is_(True))
         .where(bgm.emissions_category_id == category_id)
         .order_by(ec.name)
     )
@@ -258,6 +261,7 @@ async def list_bgm_sources(
     stmt = (
         select(distinct(bgm.emissions_source))
         .where(bgm.grade_id.in_(grade_id_list))
+        .where(bgm.is_active.is_(True))
         .where(bgm.emissions_subcategory_id == subcategory_id)
         .where(bgm.emissions_source.isnot(None))
         .order_by(bgm.emissions_source)
@@ -341,6 +345,7 @@ async def list_bgm_source_units(
         .where(bgm.emissions_subcategory_id == subcategory_id)
         .where(bgm.emissions_source == source)
         .where(bgm.unit_id.isnot(None))
+        .where(bgm.is_active.is_(True))
     )
     if dataset_revision_id is not None:
         stmt = stmt.where(bgm.dataset_revision_id == dataset_revision_id)

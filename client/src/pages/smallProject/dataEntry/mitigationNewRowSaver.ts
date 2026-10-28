@@ -191,9 +191,8 @@ export function createMitigationNewRowSaver({
         });
         const baseApiRow = apiRowToUiRow(saved);
 
-        const shownEmissions = isValidEmission(finalEmissionsNum)
-            ? finalEmissionsNum
-            : (baseApiRow.total_emissions_tco2e ?? baseApiRow.emissions_tco2e ?? null);
+        const serverEmissions = baseApiRow.total_emissions_tco2e ?? baseApiRow.emissions_tco2e ?? null;
+        const shownEmissions = isValidEmission(serverEmissions) ? serverEmissions : null;
 
         const apiRow =
             isElectricityTable(tableKey)

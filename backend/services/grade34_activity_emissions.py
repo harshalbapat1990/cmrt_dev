@@ -23,12 +23,9 @@ from services.grade34_detailed_level_construction_calcs import (
     calculator as grade34_construction_calculator,
 )
 from services.project_context_helper import ProjectContextHelper
-from services.ui_table_key_normalization import mitigation_base_table_key
+from services.ui_table_key_normalization import is_grade34_detailed_table_key
 
 logger = logging.getLogger(__name__)
-
-_BASE_GRADE34_CONSTRUCTION_KEYS = frozenset({"bcDetailedLevel", "constructionG3", "recurringG3"})
-
 
 def _pick_extra_label(raw: Any) -> str:
     if raw is None:
@@ -42,8 +39,7 @@ def _pick_extra_label(raw: Any) -> str:
 
 def is_grade34_detailed_construction_activity_row(activity_row: ActivityData) -> bool:
     """True for Detailed Level / construction substitution legs that use Grade34ConstructionCalculator."""
-    base = mitigation_base_table_key(activity_row.ui_table_key)
-    return base in _BASE_GRADE34_CONSTRUCTION_KEYS
+    return is_grade34_detailed_table_key(activity_row.ui_table_key)
 
 
 async def recalc_grade34_construction_activity_row(
@@ -65,7 +61,7 @@ async def recalc_grade34_construction_activity_row(
     unit = _pick_extra_label(extra.get("unit_code")).strip()
 
     try:
-        qty_f = float(activity_row.quantity)
+        qty_f = float(getattr(activity_row, "quantity", None))
     except (TypeError, ValueError):
         qty_f = float("nan")
 
@@ -87,7 +83,7 @@ async def recalc_grade34_construction_activity_row(
         except Exception as _conv_err:
             logger.warning(
                 "grade34 unit conversion failed activity_data=%s: %s",
-                activity_row.id,
+                getattr(activity_row, "id", None),
                 _conv_err,
             )
 
@@ -101,7 +97,7 @@ async def recalc_grade34_construction_activity_row(
     ):
         logger.debug(
             "grade34 activity skip: insufficient inputs activity_data=%s key=%s",
-            activity_row.id,
+            getattr(activity_row, "id", None),
             activity_row.ui_table_key,
         )
         return None
@@ -126,7 +122,7 @@ async def recalc_grade34_construction_activity_row(
             raise MissingDatasetDataError("Grade 3/4 detailed level factors", str(exc)) from exc
         logger.warning(
             "grade34 calculate failed activity_data=%s key=%s: %s",
-            activity_row.id,
+            getattr(activity_row, "id", None),
             activity_row.ui_table_key,
             exc,
         )
@@ -136,7 +132,7 @@ async def recalc_grade34_construction_activity_row(
             raise
         logger.exception(
             "grade34 calculate unexpected error activity_data=%s",
-            activity_row.id,
+            getattr(activity_row, "id", None),
         )
         return None
 

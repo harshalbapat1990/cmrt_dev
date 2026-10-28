@@ -113,6 +113,11 @@ async def test_delete_background_grade_metric(client):
     mid = create_resp.json()["id"]
     assert (await client.delete(f"/api/background-grade-metrics/{mid}")).status_code == 204
     assert (await client.get(f"/api/background-grade-metrics/{mid}")).status_code == 404
+    listed = await client.get(
+        f"/api/background-grade-metrics?dataset_revision_id={dataset_revision_id}"
+    )
+    assert listed.status_code == 200
+    assert all(row["id"] != mid for row in listed.json())
 
 
 @pytest.mark.asyncio

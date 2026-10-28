@@ -11,6 +11,109 @@ vi.mock("@/services/ActivityData.service", () => ({
 vi.mock("../refurbishmentTableConfig", () => ({ fetchAllActiveMrFactors: vi.fn() }));
 
 describe("useDataEntryRowMutations synchronized component deletion", () => {
+  it("shows the server calculation after an inline asset edit", async () => {
+    const row: DataEntryRow = { id: "asset-1", quantity: 150000000, _fromApi: true };
+    const updateRows = vi.fn();
+    const setRows = vi.fn();
+    vi.mocked(ActivityDataService.updateRow).mockResolvedValue({
+      id: "asset-1",
+      emissions_tco2e: "24322.5",
+    } as never);
+    const config: CalcConfig = {
+      grade: 1,
+      requiredKeys: ["quantity"],
+      triggerKeys: ["quantity"],
+      buildPayload: () => ({}),
+      calculate: async () => null,
+      mapResultToRow: () => ({}),
+    };
+    const { result } = renderHook(() => useDataEntryRowMutations({
+      projectId: "project-1",
+      user: null,
+      fugitiveList: [],
+      getRows: () => [row],
+      updateRows,
+      setErrorForKey: vi.fn(),
+      getCalcConfig: () => config,
+      computeEmissionsForRow: async () => ({ total_emissions_tco2e: 68550 }),
+      refreshOptionTotals: vi.fn(async () => undefined),
+      recalcElectricitySiblings: async () => undefined,
+      validateElectricityYear: () => null,
+      validateComponentReplLife: () => null,
+      handleSaveBoundaryRow: async () => undefined,
+      syncComponentQtyToReplacement: async () => undefined,
+      deleteTarget: null,
+      setDeleteTarget: vi.fn(),
+    }));
+
+    await act(async () => result.current.onCellChange("asset", setRows)({
+      id: "asset-1",
+      key: "quantity",
+      value: 150000000,
+      item: row,
+    }));
+
+    expect(ActivityDataService.updateRow).toHaveBeenCalledOnce();
+    const finalStateUpdate = setRows.mock.calls.at(-1)?.[0] as (rows: DataEntryRow[]) => DataEntryRow[];
+    expect(finalStateUpdate([row])[0]).toMatchObject({
+      emissions_tco2e: 24322.5,
+      total_emissions_tco2e: 24322.5,
+    });
+  });
+
+  it("shows the backend emissions result after saving a Grade 3 detailed-level edit", async () => {
+    const row: DataEntryRow = { id: "detail-1", quantity: 2000, _fromApi: true };
+    const updateRows = vi.fn();
+    const setRows = vi.fn();
+    const refreshOptionTotals = vi.fn(async () => undefined);
+    const config: CalcConfig = {
+      grade: 3,
+      requiredKeys: ["quantity"],
+      triggerKeys: ["quantity"],
+      buildPayload: () => ({}),
+      calculate: async () => null,
+      mapResultToRow: () => ({}),
+    };
+    vi.mocked(ActivityDataService.updateRow).mockResolvedValue({
+      id: "detail-1",
+      emissions_tco2e: "9.230379",
+    } as never);
+
+    const { result } = renderHook(() => useDataEntryRowMutations({
+      projectId: "project-1",
+      user: null,
+      fugitiveList: [],
+      getRows: () => [row],
+      updateRows,
+      setErrorForKey: vi.fn(),
+      getCalcConfig: () => config,
+      computeEmissionsForRow: async () => ({ total_emissions_tco2e: 0 }),
+      refreshOptionTotals,
+      recalcElectricitySiblings: async () => undefined,
+      validateElectricityYear: () => null,
+      validateComponentReplLife: () => null,
+      handleSaveBoundaryRow: async () => undefined,
+      syncComponentQtyToReplacement: async () => undefined,
+      deleteTarget: null,
+      setDeleteTarget: vi.fn(),
+    }));
+
+    await act(async () => result.current.onCellChange("bcDetailedLevel", setRows)({
+      id: "detail-1",
+      key: "quantity",
+      value: 2000,
+      item: row,
+    }));
+
+    const serverStateUpdate = setRows.mock.calls.at(-1)?.[0] as (rows: DataEntryRow[]) => DataEntryRow[];
+    expect(serverStateUpdate([row])[0]).toMatchObject({
+      emissions_tco2e: 9.230379,
+      total_emissions_tco2e: 9.230379,
+    });
+    expect(ActivityDataService.updateRow).toHaveBeenCalledOnce();
+    expect(refreshOptionTotals).toHaveBeenCalledOnce();
+  });
+
   it("deletes the linked replacement row before removing the component", async () => {
     const component: DataEntryRow = { id: "component-1" };
     const replacement: DataEntryRow = {

@@ -285,6 +285,7 @@ async def compute_blended_ef(
             q = select(BackgroundGradeMetric).where(
                 BackgroundGradeMetric.factor_set_id == factor_set_id,
                 BackgroundGradeMetric.metric_type_code == metric_type_code,
+                BackgroundGradeMetric.is_active.is_(True),
             )
             if cat_id is not None:
                 q = q.where(BackgroundGradeMetric.emissions_category_id == cat_id)

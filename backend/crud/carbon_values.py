@@ -67,6 +67,7 @@ async def update_carbon_value(
     value: Optional[float],
     currency: Optional[str],
     source: Optional[str],
+    jurisdiction_id: Optional[UUID] = None,
 ) -> Optional[dict]:
     cv = CarbonValue.__table__
     res = await db.execute(select(cv.c.dataset_revision_id).where(cv.c.id == value_id))
@@ -78,7 +79,10 @@ async def update_carbon_value(
         raise ValueError("Dataset revision is not in draft status and cannot be edited.")
     await db.execute(
         sa_update(cv).where(cv.c.id == value_id).values(
-            value=value, currency=currency, source=source
+            value=value,
+            currency=currency,
+            source=source,
+            **({"jurisdiction_id": jurisdiction_id} if jurisdiction_id is not None else {}),
         )
     )
     await db.commit()

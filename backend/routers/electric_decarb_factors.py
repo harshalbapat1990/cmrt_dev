@@ -68,7 +68,7 @@ async def update_decarb_factor(
 
     try:
         result = await update_electric_decarb_factor(
-            db, factor_id, body.value, body.value_qualifier
+            db, factor_id, body.value, body.value_qualifier, body.jurisdiction_id
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))

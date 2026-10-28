@@ -1,7 +1,7 @@
 import http from "@/http";
 import LookupsService from "@/services/Lookups.service";
 import type { DataEntryRow } from "./dataEntryTypes";
-import type { UploadKey } from "./stageConstants";
+import { isGrade34DetailedTable, type UploadKey } from "./stageConstants";
 
 export type MetricLookupDraft = Pick<
   DataEntryRow,
@@ -15,13 +15,10 @@ export type MetricLookupDraft = Pick<
 
 const CATEGORY_SUBCATEGORY_TABLES: readonly UploadKey[] = [
   "constructionG2",
-  "constructionG3",
-  "bcDetailedLevel",
   "useB1G2",
   "useB1G3",
   "opEnergyDetailed",
   "replDetailed",
-  "recurringG3",
 ];
 
 /** Builds the existing background-metric query for one supported activity table. */
@@ -30,6 +27,9 @@ export function buildMetricLookupParams(
   tableKey: UploadKey,
   datasetRevisionId?: string | null,
 ): URLSearchParams | null {
+  // These rows are calculated by the Grade 3/4 detailed-level service, whose
+  // lookup includes source and unit. Category/sub-category alone is ambiguous.
+  if (isGrade34DetailedTable(tableKey)) return null;
   const params = new URLSearchParams({ limit: "1" });
   if (datasetRevisionId) params.set("dataset_revision_id", datasetRevisionId);
   if (tableKey === "asset") {

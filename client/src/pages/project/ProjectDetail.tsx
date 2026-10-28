@@ -8,6 +8,8 @@ import { SelectListbox } from "@/components/common/Select";
 import LookupsService from "@/services/Lookups.service";
 import ActivityDataService from "@/services/ActivityData.service";
 import type { StageAccess } from "@/types/authorization";
+import { ProjectAccessSummary } from "./ProjectAccessSummary";
+import { buildProjectAccessSummaryStages, getProjectRoleSummary } from "./projectAccessSummaryUtils";
 
 type DatasetRevisionInfo = {
   id: string;
@@ -40,6 +42,7 @@ interface StageInstance {
   id: string;
   project_id: string;
   stage: "BUSINESS_CASE" | "DESIGN" | "CONSTRUCTION" | "RECURRING";
+  sequence?: number;
   approval_status: "open" | "tech_approved" | "final_approved" | "submitted" | "rejected" | "pending_reopen";
   num_reports_required: number | null;
   approved_by: string | null;
@@ -176,6 +179,8 @@ export default function ProjectDetail() {
   const [actioning, setActioning] = useState(false);
   const [projectRoles, setProjectRoles] = useState<string[]>([]);
   const [stageAccess, setStageAccess] = useState<StageAccess[]>([]);
+  const [accessLoading, setAccessLoading] = useState(true);
+  const [accessError, setAccessError] = useState<string | null>(null);
 
   const [activeRevision, setActiveRevision] = useState<DatasetRevisionInfo | null>(null);
   const [bindableRevisions, setBindableRevisions] = useState<DatasetRevisionInfo[]>([]);
@@ -213,20 +218,22 @@ export default function ProjectDetail() {
   useEffect(() => {
     if (!projectId) return;
 
+    let cancelled = false;
     setLoading(true);
     setError(null);
+    setAccessLoading(true);
+    setAccessError(null);
+    setProjectRoles([]);
+    setStageAccess([]);
 
-    Promise.all([
-      http.get<ProjectDetail>(`/api/projects/${projectId}`),
-      http.get(`/api/me/access?project_id=${projectId}`),
-    ])
-      .then(([projRes, accessRes]) => {
-        setProject(projRes.data);
-        setProjectHeader(projRes.data.project_name, false, projectId);
-        setProjectRoles(accessRes.data.effective_roles ?? []);
-        setStageAccess(accessRes.data.stage_access ?? []);
+    http.get<ProjectDetail>(`/api/projects/${projectId}`)
+      .then(({ data }) => {
+        if (cancelled) return;
+        setProject(data);
+        setProjectHeader(data.project_name, false, projectId);
       })
       .catch((err) => {
+        if (cancelled) return;
         console.error("ProjectDetail load failed:", err);
         console.error("ProjectDetail response:", err?.response?.data);
         console.error("ProjectDetail status:", err?.response?.status);
@@ -239,7 +246,31 @@ export default function ProjectDetail() {
           "Failed to load project. Please try again."
         );
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    http.get<{ effective_roles?: string[]; stage_access?: StageAccess[] }>(
+      `/api/me/access?project_id=${encodeURIComponent(projectId)}`,
+    )
+      .then(({ data }) => {
+        if (cancelled) return;
+        setProjectRoles(data.effective_roles ?? []);
+        setStageAccess(data.stage_access ?? []);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        const responseError = err as { response?: { data?: { detail?: unknown; message?: unknown } }; message?: string };
+        const detail = responseError.response?.data?.detail ?? responseError.response?.data?.message;
+        setAccessError(
+          typeof detail === "string" ? detail : responseError.message ?? "Please refresh the page and try again.",
+        );
+        setProjectRoles([]);
+        setStageAccess([]);
+      })
+      .finally(() => {
+        if (!cancelled) setAccessLoading(false);
+      });
 
     Promise.all([
       http.get(`/api/project-dataset-revisions/by-project/${projectId}`),
@@ -268,8 +299,11 @@ export default function ProjectDetail() {
       }
     });
 
-    return () => clearProjectHeader();
-  }, [projectId]);
+    return () => {
+      cancelled = true;
+      clearProjectHeader();
+    };
+  }, [projectId, clearProjectHeader, setProjectHeader]);
 
   if (loading) {
     return <div className="p-8 text-slate-400">Loading…</div>;
@@ -285,6 +319,13 @@ export default function ProjectDetail() {
 
   const stageAccessById = new Map(
     stageAccess.map((item) => [item.stage_instance_id, item.access]),
+  );
+
+  const accessSummaryStages = buildProjectAccessSummaryStages(
+    project.project_class,
+    project.stage_instances ?? [],
+    project.stage_configs ?? [],
+    stageAccess,
   );
 
   const sortedInstances = [...(project.stage_instances ?? [])]
@@ -497,6 +538,13 @@ export default function ProjectDetail() {
                 </div>
               )}
             </div>
+
+            <ProjectAccessSummary
+              loading={accessLoading}
+              error={accessError}
+              roleSummary={getProjectRoleSummary(projectRoles)}
+              stages={accessSummaryStages}
+            />
           </section>
 
           {/* Dataset revision selector */}
@@ -602,7 +650,11 @@ export default function ProjectDetail() {
               Reporting Stages
             </h2>
 
-            {sortedInstances.length === 0 ? (
+            {accessLoading ? (
+              <p role="status" className="text-sm text-gray-400">Loading reporting stage access…</p>
+            ) : accessError ? (
+              <p role="alert" className="text-sm text-red-600">Unable to load reporting stages because your project access could not be checked.</p>
+            ) : sortedInstances.length === 0 ? (
               <p className="text-sm text-gray-400 italic">No stage instances found for this project.</p>
             ) : (
               <div className="divide-y divide-gray-100">

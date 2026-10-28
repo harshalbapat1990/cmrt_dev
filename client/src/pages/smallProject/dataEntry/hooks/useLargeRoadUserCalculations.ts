@@ -54,7 +54,7 @@ export function useLargeRoadUserCalculations({
           : "Failed to calculate large road user emissions:",
         error,
       );
-      return null;
+      throw error;
     } finally {
       setLoading(false);
     }

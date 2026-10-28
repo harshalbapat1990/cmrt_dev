@@ -12,7 +12,11 @@ function createOperations(overrides: Partial<Parameters<typeof createRowUploadOp
   const updateRows = vi.fn();
   const setErrorForKey = vi.fn();
   const refreshOptionTotals = vi.fn(async () => undefined);
-  const apiRowToUiRow = (row: ActivityDataOut) => ({ id: row.id } as DataEntryRow);
+  const apiRowToUiRow = (row: ActivityDataOut) => ({
+    id: row.id,
+    emissions_tco2e: row.emissions_tco2e,
+    total_emissions_tco2e: row.emissions_tco2e,
+  } as DataEntryRow);
   const operations = createRowUploadOperations({
     activeStageInstance: { id: "stage-1", stage: "DESIGN" },
     projectId: "project-1",
@@ -34,9 +38,11 @@ function createOperations(overrides: Partial<Parameters<typeof createRowUploadOp
 describe("createRowUploadOperations", () => {
   it("calculates and persists uploaded rows, then replaces optimistic rows with saved rows", async () => {
     bulkUpsert.mockResolvedValueOnce([
-      { id: "saved-row", project_id: "project-1", project_stage_instance_id: "stage-1", quantity: 4, ui_table_key: "asset" },
+      { id: "saved-row", project_id: "project-1", project_stage_instance_id: "stage-1", quantity: 4, ui_table_key: "asset", emissions_tco2e: "24322.5" },
     ]);
-    const { operations, updateRows, refreshOptionTotals } = createOperations();
+    const { operations, updateRows, refreshOptionTotals } = createOperations({
+      computeEmissionsForRow: async () => ({ total_emissions_tco2e: 68550 }),
+    });
     const rows: DataEntryRow[] = [{ quantity: 4, notes: "uploaded" }];
 
     await operations.onUploadSuccess(rows, "asset");
@@ -48,10 +54,14 @@ describe("createRowUploadOperations", () => {
       metric_id: "metric-1",
       quantity: 4,
       ui_table_key: "asset",
-      emissions_tco2e: 2,
-      extra_fields: expect.objectContaining({ notes: "uploaded", total_emissions_tco2e: 2 }),
+      emissions_tco2e: 68550,
+      extra_fields: expect.objectContaining({ notes: "uploaded", total_emissions_tco2e: 68550 }),
     })]);
-    expect(updateRows).toHaveBeenLastCalledWith("asset", [{ id: "saved-row" }]);
+    expect(updateRows).toHaveBeenLastCalledWith("asset", [{
+      id: "saved-row",
+      emissions_tco2e: "24322.5",
+      total_emissions_tco2e: "24322.5",
+    }]);
     expect(refreshOptionTotals).toHaveBeenCalledOnce();
   });
 

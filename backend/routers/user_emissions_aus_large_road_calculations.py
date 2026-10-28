@@ -8,7 +8,7 @@ Endpoints:
       — Interpolate/extrapolate VKT + speed from anchor years, call
         fn_veh_emissions_intensity_aus for every reference-period year,
         store per-year results, return interim + final user emissions.
-        One call per vehicle type.
+        Requests may include several vehicle types.
 
   GET    /api/user-emissions/aus/large/roads/results
       — List per-year result rows for a project option + vehicle type.
@@ -62,7 +62,8 @@ router = APIRouter(
         "for one or more vehicle types in one project option. "
         "Each anchor year contains a 'vehicles' list so multiple vehicle types can be "
         "submitted in a single call. "
-        "Interpolates between anchors and extrapolates beyond the last anchor to fill "
+        "Interpolates between anchors and uses a least-squares linear forecast beyond "
+        "the last anchor to fill "
         "all reference-period years, then calls fn_veh_emissions_intensity_aus for "
         "each year using the supplied road parameters (gradient / curvature / roughness). "
         "Stores per-year results and returns per-vehicle annual breakdown + interim total.\n\n"

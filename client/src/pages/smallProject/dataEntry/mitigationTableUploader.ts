@@ -166,9 +166,10 @@ export function createMitigationTableUploader({
                     if (isElectricityTable(baseKey)) {
                         return { _fromApi: true, ...(savedRow.extra_fields ?? {}), id: savedRow.id, metric_id: savedRow.metric_id, quantity: savedRow.quantity, unit_id: savedRow.unit_id, emissions_tco2e: baseApiRow.emissions_tco2e, location_based_tco2e: savedRow.extra_fields?.location_based_tco2e ?? draftRow.location_based_tco2e ?? null, market_based_tco2e: savedRow.extra_fields?.market_based_tco2e ?? draftRow.market_based_tco2e ?? null };
                     }
-                    const rawEm = draftRow.total_emissions_tco2e ?? draftRow.emissions_tco2e;
-                    const finalEmissionsNum = (rawEm === "-" || rawEm === "" || rawEm == null || Number.isNaN(Number(rawEm))) ? null : Number(rawEm);
-                    const shownEmissions = (finalEmissionsNum != null && !Number.isNaN(Number(finalEmissionsNum))) ? finalEmissionsNum : (baseApiRow.total_emissions_tco2e ?? baseApiRow.emissions_tco2e ?? null);
+                    const serverEmissions = baseApiRow.total_emissions_tco2e ?? baseApiRow.emissions_tco2e ?? null;
+                    const shownEmissions = serverEmissions != null && Number.isFinite(Number(serverEmissions))
+                        ? serverEmissions
+                        : null;
                     return { ...baseApiRow, emissions_tco2e: shownEmissions, total_emissions_tco2e: shownEmissions };
                 }) : [];
 

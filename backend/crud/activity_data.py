@@ -16,6 +16,7 @@ from models.emissions_results import EmissionsResult
 from models.project_reporting_submission import ProjectReportingSubmission
 from schemas.activity_data import ActivityDataCreate, ActivityDataOut, ActivityDataUpdate
 from services.project_context_helper import ProjectContextHelper
+from services.ui_table_key_normalization import is_grade34_detailed_table_key
 
 
 async def _activity_data_model_kwargs(
@@ -27,6 +28,11 @@ async def _activity_data_model_kwargs(
     data["dataset_revision_id"] = await ProjectContextHelper.fetch_project_dataset_revision(
         db, payload.project_id
     )
+    if is_grade34_detailed_table_key(data.get("ui_table_key")):
+        # These rows are calculated from their detailed-level fields and view,
+        # not from a generic background metric selected by category alone.
+        data["metric_natural_key"] = None
+        return data
     legacy_metric_id = payload.metric_id
 
     if data.get("metric_natural_key") is None and legacy_metric_id is not None:
@@ -48,6 +54,9 @@ async def _activity_data_update_kwargs(
     data["dataset_revision_id"] = await ProjectContextHelper.fetch_project_dataset_revision(
         db, obj.project_id
     )
+    if is_grade34_detailed_table_key(obj.ui_table_key):
+        data["metric_natural_key"] = None
+        return data
     legacy_metric_id = patch.metric_id
 
     if data.get("metric_natural_key") is None and legacy_metric_id is not None:
@@ -239,7 +248,10 @@ async def copy_option_data(
             project_stage_instance_id=row.project_stage_instance_id,
             project_option_id=target_option_id,
             dataset_revision_id=row.dataset_revision_id,
-            metric_natural_key=row.metric_natural_key,
+            metric_natural_key=(
+                None if is_grade34_detailed_table_key(row.ui_table_key)
+                else row.metric_natural_key
+            ),
             quantity=row.quantity,
             unit_id=row.unit_id,
             ui_table_key=row.ui_table_key,

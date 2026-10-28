@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import http from '@/http';
 import type { DirectSubstitutionRow, NamedOption } from '../types';
 import { TH, TD } from './TablePrimitives';
+import { withJurisdictionBackfill } from '../jurisdictionDefaults';
 
 interface Props {
   rows: DirectSubstitutionRow[];
   canEdit: boolean;
   revisionId: string;
   jurisdictions: NamedOption[];
+  defaultJurisdictionId?: string | null;
   onSaved: () => void;
 }
 
@@ -31,7 +33,7 @@ const emptyDraft = (jurisdiction_id = ''): Draft => ({
 
 function toDraft(row: DirectSubstitutionRow): Draft {
   return {
-    jurisdiction_id: row.jurisdiction_id,
+    jurisdiction_id: row.jurisdiction_id ?? '',
     user_emissions_source: row.user_emissions_source,
     user_unit: row.user_unit,
     bau_equivalent_emission_source: row.bau_equivalent_emission_source,
@@ -46,12 +48,17 @@ function formatQty(v: string | number): string {
   return Number.isFinite(n) ? String(n) : String(v);
 }
 
-export default function DirectSubstitutionsTable({ rows, canEdit, revisionId, jurisdictions, onSaved }: Props) {
+export default function DirectSubstitutionsTable({ rows, canEdit, revisionId, jurisdictions, defaultJurisdictionId, onSaved }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft());
   const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!adding || !defaultJurisdictionId) return;
+    setDraft(current => current.jurisdiction_id ? current : { ...current, jurisdiction_id: defaultJurisdictionId });
+  }, [adding, defaultJurisdictionId]);
 
   const startEdit = (row: DirectSubstitutionRow) => {
     setError('');
@@ -63,7 +70,16 @@ export default function DirectSubstitutionsTable({ rows, canEdit, revisionId, ju
   const setField = (key: keyof Draft, value: string) => setDraft(current => ({ ...current, [key]: value }));
 
   const save = async () => {
-    if (!draft.jurisdiction_id || !draft.user_emissions_source.trim() || !draft.user_unit.trim() ||
+    const existingJurisdictionId = editingId
+      ? rows.find(row => row.id === editingId)?.jurisdiction_id
+      : null;
+    const payload = withJurisdictionBackfill(
+      { ...draft, bau_quantity_per_user_unit: Number(draft.bau_quantity_per_user_unit), jurisdiction_id: draft.jurisdiction_id || null },
+      existingJurisdictionId,
+      defaultJurisdictionId ?? null,
+    );
+    const jurisdictionId = payload.jurisdiction_id ?? '';
+    if (!jurisdictionId || !draft.user_emissions_source.trim() || !draft.user_unit.trim() ||
         !draft.bau_equivalent_emission_source.trim() || !draft.bau_equivalent_unit.trim() ||
         draft.bau_quantity_per_user_unit.trim() === '' || !Number.isFinite(Number(draft.bau_quantity_per_user_unit))) {
       setError('Complete all fields with a valid quantity.');
@@ -71,7 +87,6 @@ export default function DirectSubstitutionsTable({ rows, canEdit, revisionId, ju
     }
     setSaving(true);
     setError('');
-    const payload = { ...draft, bau_quantity_per_user_unit: Number(draft.bau_quantity_per_user_unit) };
     try {
       if (adding) {
         await http.post('/api/direct-substitutions/upsert', { ...payload, dataset_revision_id: revisionId });
@@ -99,6 +114,9 @@ export default function DirectSubstitutionsTable({ rows, canEdit, revisionId, ju
       {jurisdictions.map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
     </select>
   );
+  const addJurisdictionId = defaultJurisdictionId !== undefined
+    ? defaultJurisdictionId ?? ''
+    : jurisdictions[0]?.id ?? '';
   const editorRow = (key: string) => (
     <tr key={key} className="bg-blue-50">
       <TD>{input('user_emissions_source', 'Source')}</TD>
@@ -113,7 +131,7 @@ export default function DirectSubstitutionsTable({ rows, canEdit, revisionId, ju
 
   return (
     <div className="h-full overflow-auto">
-      {canEdit && <div className="sticky top-0 z-10 flex justify-end bg-white p-2"><button type="button" disabled={adding || !!editingId} onClick={() => { setDraft(emptyDraft(jurisdictions[0]?.id)); setAdding(true); setError(''); }} className="rounded bg-primary px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">Add direct substitution</button></div>}
+      {canEdit && <div className="sticky top-0 z-10 flex justify-end bg-white p-2"><button type="button" disabled={adding || !!editingId} onClick={() => { setDraft(emptyDraft(addJurisdictionId)); setAdding(true); setError(''); }} className="rounded bg-primary px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">Add direct substitution</button></div>}
       <table className="w-full border-collapse text-xs">
         <thead className="sticky top-10 z-10 bg-neutral-90"><tr><TH>User emissions source</TH><TH>User unit</TH><TH>BAU equivalent emission source</TH><TH>BAU equivalent unit</TH><TH right>BAU quantity per user unit</TH><TH>Jurisdiction</TH>{canEdit && <TH>Actions</TH>}</tr></thead>
         <tbody>

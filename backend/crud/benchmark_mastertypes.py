@@ -16,7 +16,8 @@ async def list_benchmark_mastertypes(
 ) -> List[BenchmarkMastertype]:
     if jurisdiction_name or dataset_revision_id is not None:
         stmt = select(distinct(BackgroundGradeMetric.mastertype_id)).where(
-            BackgroundGradeMetric.mastertype_id.isnot(None)
+            BackgroundGradeMetric.mastertype_id.isnot(None),
+            BackgroundGradeMetric.is_active.is_(True),
         )
         if dataset_revision_id is not None:
             stmt = stmt.where(BackgroundGradeMetric.dataset_revision_id == dataset_revision_id)

@@ -23,6 +23,7 @@ class EvUptakeFactorOut(BaseModel):
 
 
 class EvUptakeFactorUpdate(BaseModel):
+    jurisdiction_id: Optional[UUID] = None
     uptake_pct: Optional[float] = None
 
 

@@ -214,7 +214,10 @@ async def create_background_grade_metric(
 async def get_background_grade_metric(
     db: AsyncSession, metric_id: UUID
 ) -> Optional[Dict[str, Any]]:
-    q = _joined_query().where(BackgroundGradeMetric.id == metric_id)
+    q = _joined_query().where(
+        BackgroundGradeMetric.id == metric_id,
+        BackgroundGradeMetric.is_active.is_(True),
+    )
     result = await db.execute(q)
     row = result.first()
     return _row_to_dict(row) if row is not None else None
@@ -224,7 +227,10 @@ async def get_background_grade_metric_orm(
     db: AsyncSession, metric_id: UUID
 ) -> Optional[BackgroundGradeMetric]:
     result = await db.execute(
-        select(BackgroundGradeMetric).where(BackgroundGradeMetric.id == metric_id)
+        select(BackgroundGradeMetric).where(
+            BackgroundGradeMetric.id == metric_id,
+            BackgroundGradeMetric.is_active.is_(True),
+        )
     )
     return result.scalars().first()
 

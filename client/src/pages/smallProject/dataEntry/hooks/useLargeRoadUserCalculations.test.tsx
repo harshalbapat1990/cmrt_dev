@@ -77,7 +77,7 @@ describe("useLargeRoadUserCalculations", () => {
     expect(result.current.loading).toBe(false);
   });
 
-  it("returns no summary and clears loading when the large calculation fails", async () => {
+  it("propagates calculation failures and clears loading", async () => {
     const error = new Error("large calculation failed");
     calculateRoadUserSummary.mockRejectedValueOnce(error);
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
@@ -88,12 +88,9 @@ describe("useLargeRoadUserCalculations", () => {
       setSummary: vi.fn(),
     }));
 
-    let summaryResult: UserCalculationSummary | null = summary;
-    await act(async () => {
-      summaryResult = await result.current.calculateSummary(yearData, "NZ", yearData[2030].params);
-    });
-
-    expect(summaryResult).toBeNull();
+    await expect(act(async () => {
+      await result.current.calculateSummary(yearData, "NZ", yearData[2030].params);
+    })).rejects.toThrow("large calculation failed");
     expect(result.current.loading).toBe(false);
     expect(errorSpy).toHaveBeenCalledWith("NZ road calculation failed:", error);
     errorSpy.mockRestore();

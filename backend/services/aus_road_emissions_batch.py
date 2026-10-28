@@ -9,7 +9,27 @@ AUS_INTENSITY_BATCH_SQL = text("""
     SELECT requested.assessment_year,
            requested.speed_kph,
            intensity.vehicle_class,
-           intensity.fleet_avg_emissions_intensity_gco2e_per_vkt
+           intensity.fleet_avg_emissions_intensity_gco2e_per_vkt,
+           EXISTS (
+               SELECT 1
+               FROM electric_decarb_factors edf
+               JOIN grid_regions gr ON gr.id = edf.region_id
+               WHERE edf.dataset_revision_id = CAST(:p_dataset_revision_id AS uuid)
+                 AND edf.year = requested.assessment_year
+                 AND edf.factor_type_code = 'scope2_location'
+                 AND edf.value IS NOT NULL
+                 AND gr.name = :p_state
+           ) AS has_scope2_location_factor,
+           EXISTS (
+               SELECT 1
+               FROM electric_decarb_factors edf
+               JOIN grid_regions gr ON gr.id = edf.region_id
+               WHERE edf.dataset_revision_id = CAST(:p_dataset_revision_id AS uuid)
+                 AND edf.year = requested.assessment_year
+                 AND edf.factor_type_code = 'scope3_location'
+                 AND edf.value IS NOT NULL
+                 AND gr.name = :p_state
+           ) AS has_scope3_location_factor
     FROM jsonb_to_recordset(CAST(:requested_pairs AS jsonb))
          AS requested(assessment_year integer, speed_kph numeric)
     CROSS JOIN LATERAL fn_veh_emissions_intensity_aus(

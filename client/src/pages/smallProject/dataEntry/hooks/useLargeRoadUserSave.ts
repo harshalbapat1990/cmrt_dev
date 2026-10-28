@@ -19,6 +19,7 @@ interface Params {
     params: RoadParams,
     summary: UserCalculationSummary,
   ) => Promise<void>;
+  onError?: (error: unknown) => void;
 }
 
 export function useLargeRoadUserSave({
@@ -29,6 +30,7 @@ export function useLargeRoadUserSave({
   currentSummary,
   calculateSummary,
   persistAll,
+  onError,
 }: Params) {
   const save = useCallback(async () => {
     if (readOnly) return;
@@ -51,6 +53,7 @@ export function useLargeRoadUserSave({
       }
     } catch (error) {
       console.error("Failed to save large road users data:", error);
+      onError?.(error);
       if (import.meta.env.DEV) {
         console.debug("[large road users save timing] failed", {
           calculationMs: Math.round(calculationMs),
@@ -59,7 +62,7 @@ export function useLargeRoadUserSave({
         });
       }
     }
-  }, [readOnly, yearData, region, roadParams, currentSummary, calculateSummary, persistAll]);
+  }, [readOnly, yearData, region, roadParams, currentSummary, calculateSummary, persistAll, onError]);
 
   return save;
 }

@@ -30,8 +30,8 @@ export function useExecSummary({
     const [execSummaryDate, setExecSummaryDate] = useState<string | null>(null);
 
     useEffect(() => {
-        const isConstructionStage = activeStage === "Construction";
-        if (isConstructionStage) {
+        const isPeriodStage = activeStage === "Construction" || activeStage === "Recurring";
+        if (isPeriodStage) {
             setExecSummary(activePeriod?.exec_summary ?? "");
             setExecSummaryAuthor(activePeriod?.exec_summary_author ?? null);
             setExecSummaryDate(activePeriod?.exec_summary_date ?? null);
@@ -44,8 +44,7 @@ export function useExecSummary({
     }, [activeOption?.id, activePeriod?.id, activeStage]);
 
     const saveExecSummary = async () => {
-        const isConstructionStage = activeStage === "Construction";
-        const isRecurringStage = activeStage === "Recurring";
+        const isPeriodStage = activeStage === "Construction" || activeStage === "Recurring";
         try {
             const authorName =
                 [user?.first_name, user?.last_name].filter(Boolean).join(" ") ||
@@ -53,7 +52,7 @@ export function useExecSummary({
                 "";
             const nowIso = new Date().toISOString();
 
-            if (isConstructionStage || isRecurringStage) {
+            if (isPeriodStage) {
                 if (!activePeriod) return;
                 const updated = await ConstructionPeriodsService.saveExecSummary(
                     activePeriod.id,

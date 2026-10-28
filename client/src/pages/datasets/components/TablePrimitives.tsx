@@ -13,13 +13,14 @@ export const TD = ({ children, right, muted }: { children: ReactNode; right?: bo
   </td>
 );
 
-export function InlineSelect({ value, options, onChange, placeholder }: {
-  value: string; options: NamedOption[]; onChange: (v: string) => void; placeholder?: string;
+export function InlineSelect({ value, options, onChange, placeholder, disabled }: {
+  value: string; options: NamedOption[]; onChange: (v: string) => void; placeholder?: string; disabled?: boolean;
 }) {
   return (
     <select
       value={value}
       onChange={e => onChange(e.target.value)}
+      disabled={disabled}
       className="w-full min-w-0 rounded border border-primary px-1 py-0.5 text-xs bg-white focus:outline-none"
     >
       {placeholder && <option value="">{placeholder}</option>}

@@ -58,10 +58,10 @@ async def _require_dataset_assignment_manager(
         principal.user_id,
         project_id=project_id,
     )
-    if not set(roles).intersection({rbac.PROJECT_ADMIN, rbac.PROJECT_EDITOR}):
+    if not set(roles).intersection({rbac.PROJECT_ADMIN, rbac.PROJECT_EDITOR, rbac.ORG_ADMIN}):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only Project Admins and Project Editors may change a project's dataset revision",
+            detail="Only Organisation Admins, Project Admins, and Project Editors may change a project's dataset revision",
         )
 
 

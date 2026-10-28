@@ -29,6 +29,7 @@ class BackgroundGradeMetricCreate(BackgroundGradeMetricBase):
 
 
 class BackgroundGradeMetricUpdate(BaseModel):
+    jurisdiction_id: Optional[UUID] = None
     value: Optional[Decimal] = None
     assumed_quantity_default: Optional[Decimal] = None
     source: Optional[str] = None

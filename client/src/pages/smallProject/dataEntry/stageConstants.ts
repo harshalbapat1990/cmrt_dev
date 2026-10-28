@@ -57,6 +57,15 @@ export const electricityBaseTableKey = (tableKey: string): UploadKey | null => {
 export const isElectricityTable = (tableKey: string): boolean =>
     electricityBaseTableKey(tableKey) !== null;
 
+const GRADE34_DETAILED_TABLE_KEYS = new Set([
+    "bcDetailedLevel",
+    "constructionG3",
+    "recurringG3",
+]);
+
+export const isGrade34DetailedTable = (tableKey: string): boolean =>
+    GRADE34_DETAILED_TABLE_KEYS.has(tableKey.split("-mitigation", 1)[0]);
+
 export const MITIGATION_SUBMISSION_PERIOD_KEYS: UploadKey[] = [
     "constructionG2",
     "constructionG3",

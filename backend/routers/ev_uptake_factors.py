@@ -70,7 +70,7 @@ async def update_ev_uptake(
     )
 
     try:
-        result = await update_ev_uptake_factor(db, factor_id, body.uptake_pct)
+        result = await update_ev_uptake_factor(db, factor_id, body.uptake_pct, body.jurisdiction_id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     if result is None:

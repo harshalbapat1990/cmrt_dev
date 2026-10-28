@@ -5,16 +5,16 @@ Pydantic schemas for the AUS large-project road user-emissions (B8) calculation.
 
 Large-project difference vs. small:
   - User supplies VKT + average speed for SPECIFIC modelled years (anchor points).
-  - The backend interpolates (between anchors) and extrapolates (beyond last anchor)
-    to fill all years in the reference period.
+  - The backend interpolates between anchors and uses a least-squares forecast
+    across all anchors beyond the final anchor.
   - User selects road parameters (gradient / curvature / roughness) explicitly.
-  - All 20 ATAP vehicle classes are supported; one API call per vehicle type.
+  - All 20 ATAP vehicle classes are supported; each request may include multiple classes.
   - EV scenario is always "Step Change" (same as small projects).
 
 Interpolation / extrapolation rules (matching Excel formulas):
   Before first anchor year : flat at first anchor values (carry-back)
   Between two anchors      : piecewise linear interpolation
-  After last anchor year   : linear extrapolation from the last two anchors
+  After last anchor year   : least-squares forecast across all supplied anchors
 
 If only one anchor year is supplied: flat value used for all reference period years.
 

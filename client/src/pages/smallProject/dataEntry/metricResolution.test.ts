@@ -32,14 +32,18 @@ describe("metricResolution", () => {
         }, "asset", "revision-1")?.get("dataset_revision_id")).toBe("revision-1");
     });
 
-    it("uses the detailed-table subcategory fallback used by existing rows", () => {
-        const params = buildMetricLookupParams({
+    it("does not select an ambiguous generic metric for Grade 3/4 detailed tables", async () => {
+        const draft = {
             emissions_category_id: "category-1",
             emission_subcategory_id: "subcategory-1",
-        }, "bcDetailedLevel");
+        };
 
-        expect(params?.get("emissions_category_id")).toBe("category-1");
-        expect(params?.get("emissions_subcategory_id")).toBe("subcategory-1");
+        expect(buildMetricLookupParams(draft, "bcDetailedLevel")).toBeNull();
+        expect(buildMetricLookupParams(draft, "constructionG3")).toBeNull();
+        expect(buildMetricLookupParams(draft, "recurringG3")).toBeNull();
+        await expect(resolveMetricId(draft, "bcDetailedLevel", "project-1")).resolves.toBeNull();
+        expect(LookupsService.resolveProjectDatasetRevisionId).not.toHaveBeenCalled();
+        expect(http.get).not.toHaveBeenCalled();
     });
 
     it("does not request metrics for unsupported table keys", async () => {

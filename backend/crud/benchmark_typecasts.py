@@ -41,6 +41,7 @@ async def list_benchmark_typecasts(
                 select(distinct(BackgroundGradeMetric.typecast_id)).where(
                     BackgroundGradeMetric.dataset_revision_id == dataset_revision_id,
                     BackgroundGradeMetric.typecast_id.isnot(None),
+                    BackgroundGradeMetric.is_active.is_(True),
                 )
             )
         )
@@ -56,6 +57,7 @@ async def list_benchmark_typecasts(
                 select(distinct(BackgroundGradeMetric.typecast_id))
                 .where(BackgroundGradeMetric.jurisdiction_id == jurisdiction_id)
                 .where(BackgroundGradeMetric.typecast_id.isnot(None))
+                .where(BackgroundGradeMetric.is_active.is_(True))
             )
             if dataset_revision_id is not None:
                 tc_ids_query = tc_ids_query.where(

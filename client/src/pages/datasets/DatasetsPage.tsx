@@ -28,6 +28,9 @@ import {
   GRADE_OPTIONS, TABS, TAB_GROUPS, INIT_G1, INIT_G234, INIT_RC, INIT_TR, INIT_DECARB, INIT_CARBON_VALUES, INIT_EV_UPTAKE, INIT_DENSITY, INIT_FUGITIVE, INIT_WASTAGE_RATES, INIT_CONTENT_RECYCLED,
 } from './constants';
 import { distinct, LABEL_TO_METRIC_CODE } from './utils';
+import { useGrade34CategoryOptions } from './hooks/useGrade34CategoryOptions';
+import { useDatasetScopeJurisdiction } from './hooks/useDatasetScopeJurisdiction';
+import { withDefaultJurisdiction, withJurisdictionBackfill } from './jurisdictionDefaults';
 import { pivotGrade1, pivotGrade2, pivotGrade34 } from './pivot';
 import { StatusBadge } from './components/Badges';
 import { MultiSelect, TextFilter } from './components/FilterControls';
@@ -117,6 +120,11 @@ const TAB_ENDPOINT: Partial<Record<PageTab, string>> = {
   electricity_recycling_assumptions: '/api/electricity-recycling-assumptions',
 };
 
+const JURISDICTION_ID_UPLOAD_TABS = new Set<PageTab>([
+  'recycled', 'content_recycled', 'transport', 'waste', 'decarb', 'carbon_values',
+  'ev_uptake', 'maintenance_replacement', 'fugitives', 'wastage_rates', 'direct_substitutions',
+]);
+
 const SUPERADMIN_ONLY_TABS: PageTab[] = [
   'densities',
   'decarb',
@@ -150,6 +158,7 @@ function isScopeAllowedForTab(tab: PageTab, scopeType: string): boolean {
 export default function DatasetsPage({ scope = { type: 'DEFAULT' } }: { scope?: DatasetScope }) {
   const today = new Date().toISOString().slice(0, 10);
   const { roles } = useUser();
+  const scopeJurisdictionId = useDatasetScopeJurisdiction(scope);
   const [projectRoles, setProjectRoles] = useState<string[]>([]);
   const projectScopeId = scope.type === 'PROJECT' ? scope.projectId : undefined;
   useEffect(() => {
@@ -238,6 +247,10 @@ export default function DatasetsPage({ scope = { type: 'DEFAULT' } }: { scope?: 
   const [bgmSaving,    setBgmSaving]    = useState(false);
   const [bgmSaveError, setBgmSaveError] = useState('');
   const [bgmRawRows,   setBgmRawRows]   = useState<BgmRow[]>([]);
+  const grade34Options = useGrade34CategoryOptions(
+    bgmAddDraft.emissions_category_id ?? '',
+    bgmAdding && activeGrade !== '' && activeGrade !== '1' && activeGrade !== '2',
+  );
   const [auditRows, setAuditRows]           = useState<AuditLogRow[]>([]);
   const [auditFetching, setAuditFetching]   = useState(false);
   const [auditError, setAuditError]         = useState('');
@@ -463,6 +476,28 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
   const [cvAddSaving, setCvAddSaving]       = useState(false);
   const [cvAddError, setCvAddError]         = useState('');
   const [_rangeOpts, setRangeOpts]           = useState<NamedOption[]>([]);
+
+  useEffect(() => {
+    if (!scopeJurisdictionId) return;
+    if (bgmAdding) {
+      setBgmAddDraft(current => current.jurisdiction_id ? current : { ...current, jurisdiction_id: scopeJurisdictionId });
+    }
+    if (addingTab) {
+      setAddDraft(current => current.jurisdiction_id ? current : { ...current, jurisdiction_id: scopeJurisdictionId });
+    }
+    if (crfAdding) {
+      setCrfAddDraft(current => current.jurisdiction_id ? current : { ...current, jurisdiction_id: scopeJurisdictionId });
+    }
+    if (decarbAdding) {
+      setDecarbSeriesDraft(current => current.jurisdictionId ? current : { ...current, jurisdictionId: scopeJurisdictionId });
+    }
+    if (cvAdding) {
+      setCvSeriesDraft(current => current.jurisdictionId ? current : { ...current, jurisdictionId: scopeJurisdictionId });
+    }
+    if (evUptakeAdding) {
+      setEvUptakeSeriesDraft(current => current.jurisdictionId ? current : { ...current, jurisdictionId: scopeJurisdictionId });
+    }
+  }, [scopeJurisdictionId, bgmAdding, addingTab, crfAdding, decarbAdding, cvAdding, evUptakeAdding]);
 
   const activeGradeRef    = useRef(activeGrade);
   const gradeRef          = useRef(selectedGrade);
@@ -779,18 +814,31 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
       value = activeRow?.unit?.code === '%' ? num / 100 : num;
     }
     try {
-      await http.put(`/api/electric-decarb-factors/${decarbEditCellId}`, { value, value_qualifier: qualifier });
+      const activeRow = decarbRows.find(r => r.id === decarbEditCellId);
+      const payload = withJurisdictionBackfill(
+        { value, value_qualifier: qualifier, jurisdiction_id: null },
+        activeRow?.jurisdiction_id,
+        scopeJurisdictionId,
+      );
+      await http.put(`/api/electric-decarb-factors/${decarbEditCellId}`, payload);
       setDecarbRows(prev => prev.map(r =>
-        r.id === decarbEditCellId ? { ...r, value, value_qualifier: qualifier } : r,
+        r.id === decarbEditCellId ? {
+          ...r,
+          value,
+          value_qualifier: qualifier,
+          jurisdiction_id: payload.jurisdiction_id ?? r.jurisdiction_id,
+          jurisdiction_name: jurOpts.find(option => option.id === payload.jurisdiction_id)?.name ?? r.jurisdiction_name,
+        } : r,
       ));
       setDecarbEditCellId(null); setDecarbCellDraft('');
     } catch (e: any) {
       setDecarbCellError(extractApiError(e, 'Save failed'));
     } finally { setDecarbCellSaving(false); }
-  }, [decarbEditCellId, decarbCellDraft, decarbRows]);
+  }, [decarbEditCellId, decarbCellDraft, decarbRows, scopeJurisdictionId, jurOpts]);
 
   const doAddDecarbSeries = useCallback(async () => {
-    if (!selectedRevisionId || !decarbSeriesDraft.jurisdictionId) {
+    const jurisdictionId = decarbSeriesDraft.jurisdictionId || scopeJurisdictionId || '';
+    if (!selectedRevisionId || !jurisdictionId) {
       setDecarbAddError('Please select a jurisdiction'); return;
     }
     setDecarbAddSaving(true); setDecarbAddError('');
@@ -798,7 +846,7 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
       const res = await http.post<DecarbRow[]>('/api/electric-decarb-factors/bulk', {
         dataset_revision_id: selectedRevisionId,
         factor_type_code:    decarbActiveFt,
-        jurisdiction_id:     decarbSeriesDraft.jurisdictionId,
+        jurisdiction_id:     jurisdictionId,
         region_id:           decarbSeriesDraft.regionId || null,
         year_from:           decarbYearFrom,
         year_to:             decarbYearTo,
@@ -813,7 +861,7 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
     } catch (e: any) {
       setDecarbAddError(extractApiError(e, 'Save failed'));
     } finally { setDecarbAddSaving(false); }
-  }, [selectedRevisionId, decarbActiveFt, decarbSeriesDraft, decarbYearFrom, decarbYearTo]);
+  }, [selectedRevisionId, decarbActiveFt, decarbSeriesDraft, decarbYearFrom, decarbYearTo, scopeJurisdictionId]);
 
   const doSaveCvCell = useCallback(async () => {
     if (!cvEditCellId) return;
@@ -828,19 +876,31 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
       value = num;
     }
     try {
-      await http.put(`/api/carbon-values/${cvEditCellId}`, { value, currency: null, source_comments: null });
+      const activeRow = cvRows.find(r => r.id === cvEditCellId);
+      const payload = withJurisdictionBackfill(
+        { value, currency: null, jurisdiction_id: null },
+        activeRow?.jurisdiction_id,
+        scopeJurisdictionId,
+      );
+      await http.put(`/api/carbon-values/${cvEditCellId}`, payload);
       setCvRows(prev => prev.map(r =>
-        r.id === cvEditCellId ? { ...r, value } : r,
+        r.id === cvEditCellId ? {
+          ...r,
+          value,
+          jurisdiction_id: payload.jurisdiction_id ?? r.jurisdiction_id,
+          jurisdiction_name: jurOpts.find(option => option.id === payload.jurisdiction_id)?.name ?? r.jurisdiction_name,
+        } : r,
       ));
       setCvEditCellId(null);
       setCvCellDraft('');
     } catch (e: any) {
       setCvCellError(extractApiError(e, 'Save failed'));
     } finally { setCvCellSaving(false); }
-  }, [cvEditCellId, cvCellDraft]);
+  }, [cvEditCellId, cvCellDraft, cvRows, scopeJurisdictionId, jurOpts]);
 
   const doAddCvSeries = useCallback(async () => {
-    if (!selectedRevisionId || !cvSeriesDraft.jurisdictionId || !cvSeriesDraft.rangeCode) {
+    const jurisdictionId = cvSeriesDraft.jurisdictionId || scopeJurisdictionId || '';
+    if (!selectedRevisionId || !jurisdictionId || !cvSeriesDraft.rangeCode) {
       setCvAddError('Please select a jurisdiction and range'); return;
     }
     setCvAddSaving(true);
@@ -848,7 +908,7 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
     try {
       await http.post('/api/carbon-values/bulk', {
         dataset_revision_id: selectedRevisionId,
-        jurisdiction_id: cvSeriesDraft.jurisdictionId,
+        jurisdiction_id: jurisdictionId,
         range_code: cvSeriesDraft.rangeCode,
         year_from: cvYearFrom,
         year_to: cvYearTo,
@@ -860,7 +920,7 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
     } catch (e: any) {
       setCvAddError(extractApiError(e, 'Save failed'));
     } finally { setCvAddSaving(false); }
-  }, [selectedRevisionId, cvSeriesDraft, cvYearFrom, cvYearTo, fetchCarbonValues]);
+  }, [selectedRevisionId, cvSeriesDraft, cvYearFrom, cvYearTo, fetchCarbonValues, scopeJurisdictionId]);
 
   const fetchEvUptakeFactors = useCallback(async (resetFilter = true) => {
     if (!selectedRevisionId) return;
@@ -945,18 +1005,30 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
       uptake_pct = num / 100;
     }
     try {
-      await http.put(`/api/ev-uptake-factors/${evUptakeEditCellId}`, { uptake_pct });
+      const activeRow = evUptakeRows.find(r => r.id === evUptakeEditCellId);
+      const payload = withJurisdictionBackfill(
+        { uptake_pct, jurisdiction_id: null },
+        activeRow?.jurisdiction_id,
+        scopeJurisdictionId,
+      );
+      await http.put(`/api/ev-uptake-factors/${evUptakeEditCellId}`, payload);
       setEvUptakeRows(prev => prev.map(r =>
-        r.id === evUptakeEditCellId ? { ...r, uptake_pct } : r,
+        r.id === evUptakeEditCellId ? {
+          ...r,
+          uptake_pct,
+          jurisdiction_id: payload.jurisdiction_id ?? r.jurisdiction_id,
+          jurisdiction_name: jurOpts.find(option => option.id === payload.jurisdiction_id)?.name ?? r.jurisdiction_name,
+        } : r,
       ));
       setEvUptakeEditCellId(null); setEvUptakeCellDraft('');
     } catch (e: any) {
       setEvUptakeCellError(extractApiError(e, 'Save failed'));
     } finally { setEvUptakeCellSaving(false); }
-  }, [evUptakeEditCellId, evUptakeCellDraft]);
+  }, [evUptakeEditCellId, evUptakeCellDraft, evUptakeRows, scopeJurisdictionId, jurOpts]);
 
   const doAddEvUptakeSeries = useCallback(async () => {
-    if (!selectedRevisionId || !evUptakeSeriesDraft.jurisdictionId ||
+    const jurisdictionId = evUptakeSeriesDraft.jurisdictionId || scopeJurisdictionId || '';
+    if (!selectedRevisionId || !jurisdictionId ||
         !evUptakeSeriesDraft.scenarioCode || !evUptakeSeriesDraft.vehicleCategoryCode ||
         !evUptakeSeriesDraft.energyTypeCode) {
       setEvUptakeAddError('Please fill in all fields'); return;
@@ -965,7 +1037,7 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
     try {
       const res = await http.post<EvUptakeRow[]>('/api/ev-uptake-factors/bulk', {
         dataset_revision_id:   selectedRevisionId,
-        jurisdiction_id:       evUptakeSeriesDraft.jurisdictionId,
+        jurisdiction_id:       jurisdictionId,
         scenario_code:         evUptakeSeriesDraft.scenarioCode,
         vehicle_category_code: evUptakeSeriesDraft.vehicleCategoryCode,
         energy_type_code:      evUptakeSeriesDraft.energyTypeCode,
@@ -982,7 +1054,7 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
     } catch (e: any) {
       setEvUptakeAddError(extractApiError(e, 'Save failed'));
     } finally { setEvUptakeAddSaving(false); }
-  }, [selectedRevisionId, evUptakeSeriesDraft, evUptakeYearFrom, evUptakeYearTo]);
+  }, [selectedRevisionId, evUptakeSeriesDraft, evUptakeYearFrom, evUptakeYearTo, scopeJurisdictionId]);
 
   const doSaveVepmRow = useCallback(async () => {
     if (!vepmEditingId) return;
@@ -1037,11 +1109,13 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
     if (rawFreq !== '' && isNaN(freqVal as number)) {
       setMrSaveError('Invalid frequency value'); setMrSaving(false); return;
     }
-    const payload = {
+    const row = mrRows.find(r => r.id === mrEditingId);
+    const payload = withJurisdictionBackfill({
       emissions_intensity_tco2e: intensityVal,
       default_frequency_years: freqVal,
       source_note: mrEditDraft.source_note?.trim() || null,
-    };
+      jurisdiction_id: null,
+    }, row?.jurisdiction_id, scopeJurisdictionId);
     try {
       await http.put(`/api/maintenance-replacement-factors/${mrEditingId}`, payload);
       setMrRows(prev => prev.map(r => r.id === mrEditingId ? { ...r, ...payload } : r));
@@ -1049,7 +1123,7 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
     } catch (e: any) {
       setMrSaveError(extractApiError(e, 'Save failed'));
     } finally { setMrSaving(false); }
-  }, [mrEditingId, mrEditDraft]);
+  }, [mrEditingId, mrEditDraft, mrRows, scopeJurisdictionId]);
 
   const doSaveUcRow = useCallback(async () => {
     if (!ucEditingId) return;
@@ -1088,17 +1162,19 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
         return;
       }
 
-      const payload = {
+      const row = fcRows.find(r => r.id === fcEditingId);
+      const payload = withJurisdictionBackfill({
         equipment_type: fcEditDraft.equipment_type || '',
         default_annual_leakage_rate: rateVal,
         source_comments: fcEditDraft.source_comments || '',
-      };
+        jurisdiction_id: null,
+      }, row?.jurisdiction_id, scopeJurisdictionId);
       await http.patch(`/api/fugitives/${fcEditingId}`, payload);
       setFcRows(prev => prev.map(r =>
-        r.id === fcEditingId ? { ...r, equipment_type: payload.equipment_type, default_annual_leakage_rate: payload.default_annual_leakage_rate, source_comments: payload.source_comments } : r
+        r.id === fcEditingId ? { ...r, equipment_type: payload.equipment_type, default_annual_leakage_rate: payload.default_annual_leakage_rate, source_comments: payload.source_comments, jurisdiction_id: payload.jurisdiction_id ?? r.jurisdiction_id } : r
       ));
       setFcFiltered(prev => prev.map(r =>
-        r.id === fcEditingId ? { ...r, equipment_type: payload.equipment_type, default_annual_leakage_rate: payload.default_annual_leakage_rate, source_comments: payload.source_comments } : r
+        r.id === fcEditingId ? { ...r, equipment_type: payload.equipment_type, default_annual_leakage_rate: payload.default_annual_leakage_rate, source_comments: payload.source_comments, jurisdiction_id: payload.jurisdiction_id ?? r.jurisdiction_id } : r
       ));
       setFcEditingId(null);
       setFcEditDraft({});
@@ -1107,7 +1183,7 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
     } finally {
       setFcSaving(false);
     }
-  }, [fcEditingId, fcEditDraft]);
+  }, [fcEditingId, fcEditDraft, fcRows, scopeJurisdictionId]);
 
   const doSaveWastageRateRow = useCallback(async () => {
     if (!wgEditingId) return;
@@ -1128,15 +1204,17 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
         return;
       }
 
-      const payload = {
+      const row = wgRows.find(r => r.id === wgEditingId);
+      const payload = withJurisdictionBackfill({
         construction_wastage_rate: wastageNum,
         recycling_rate: recyclingNum,
         landfill_rate: landfillNum,
         source: wgEditDraft.source || '',
-      };
+        jurisdiction_id: null,
+      }, row?.jurisdiction_id, scopeJurisdictionId);
       await http.patch(`/api/wastage-rates/${wgEditingId}`, payload);
       setWgRows(prev => prev.map(r =>
-        r.id === wgEditingId ? { ...r, construction_wastage_rate: payload.construction_wastage_rate, recycling_rate: payload.recycling_rate, landfill_rate: payload.landfill_rate, source: payload.source } : r
+        r.id === wgEditingId ? { ...r, construction_wastage_rate: payload.construction_wastage_rate, recycling_rate: payload.recycling_rate, landfill_rate: payload.landfill_rate, source: payload.source, jurisdiction_id: payload.jurisdiction_id ?? r.jurisdiction_id } : r
       ));
       setWgFiltered(prev => prev.map(r =>
         r.id === wgEditingId ? { ...r, construction_wastage_rate: payload.construction_wastage_rate, recycling_rate: payload.recycling_rate, landfill_rate: payload.landfill_rate, source: payload.source } : r
@@ -1148,7 +1226,7 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
     } finally {
       setWgSaving(false);
     }
-  }, [wgEditingId, wgEditDraft]);
+  }, [wgEditingId, wgEditDraft, wgRows, scopeJurisdictionId]);
 
 const parseContentRecycledPct = (uiVal: string): number | null | undefined => {
     const trimmed = uiVal.trim();
@@ -1181,12 +1259,22 @@ const parseContentRecycledPct = (uiVal: string): number | null | undefined => {
         payload = { [field]: num != null ? String(num) : null };
       }
 
-      await http.patch(`/api/recycled-content-factors/${rowId}`, payload);
+      const existingRow = crfRows.find(r => r.id === rowId);
+      const scopedPayload = withJurisdictionBackfill(
+        { ...payload, jurisdiction_id: null },
+        existingRow?.jurisdiction_id,
+        scopeJurisdictionId,
+      );
+      await http.patch(`/api/recycled-content-factors/${rowId}`, scopedPayload);
       setCrfRows(prev =>
         prev.map(r => {
           if (r.id !== rowId) return r;
-          if (field === 'notes') return { ...r, notes: payload.notes as string | null };
-          return { ...r, [field]: payload[field] as string | null };
+          const jurisdictionId = scopedPayload.jurisdiction_id as string | null | undefined;
+          const withJurisdiction = jurisdictionId
+            ? { ...r, jurisdiction_id: jurisdictionId, jurisdiction_name: jurOpts.find(option => option.id === jurisdictionId)?.name ?? r.jurisdiction_name }
+            : r;
+          if (field === 'notes') return { ...withJurisdiction, notes: payload.notes as string | null };
+          return { ...withJurisdiction, [field]: payload[field] as string | null };
         }),
       );
       setCrfEditCellKey(null);
@@ -1196,7 +1284,7 @@ const parseContentRecycledPct = (uiVal: string): number | null | undefined => {
     } finally {
       setCrfSaving(false);
     }
-  }, [crfEditCellKey, crfCellDraft]);
+  }, [crfEditCellKey, crfCellDraft, crfRows, scopeJurisdictionId, jurOpts]);
 
   const doSaveEnergyDensityConversionRow = useCallback(async () => {
     if (!edcEditingId) return;
@@ -1373,7 +1461,7 @@ const enrichContentRecycledRows = useCallback((rows: ContentRecycledRow[]): Cont
         setCrfSaving(false);
         return;
       }
-      let jurisdictionId = crfAddDraft.jurisdiction_id?.trim() || '';
+      let jurisdictionId = crfAddDraft.jurisdiction_id?.trim() || scopeJurisdictionId || '';
       if (!jurisdictionId && crfFilter.jurisdictions.length === 1) {
         jurisdictionId = jurOpts.find(j => j.name === crfFilter.jurisdictions[0])?.id ?? '';
       }
@@ -1409,7 +1497,7 @@ const enrichContentRecycledRows = useCallback((rows: ContentRecycledRow[]): Cont
     } finally {
       setCrfSaving(false);
     }
-  }, [selectedRevisionId, crfAddDraft, crfFilter.jurisdictions, jurOpts, fetchContentRecycled]);
+  }, [selectedRevisionId, crfAddDraft, crfFilter.jurisdictions, jurOpts, fetchContentRecycled, scopeJurisdictionId]);
 
     useEffect(() => {
     if (activeTab === 'densities') {
@@ -2427,10 +2515,13 @@ useMemo(() => {
   }, []);
 
   const doStartAdd = useCallback((tab: PageTab) => {
-    setAddingTab(tab); setAddDraft({ effective_from: today });
+    setAddingTab(tab); setAddDraft({
+      effective_from: today,
+      ...(scopeJurisdictionId ? { jurisdiction_id: scopeJurisdictionId } : {}),
+    });
     setEditingId(null); setEditDraft({});
     setSaveError('');
-  }, [today]);
+  }, [today, scopeJurisdictionId]);
 
   const doCancelAdd = useCallback(() => {
     setAddingTab(null); setAddDraft({}); setSaveError('');
@@ -2452,7 +2543,14 @@ useMemo(() => {
       }
       Object.keys(payload).forEach(k => { if (payload[k] === '') payload[k] = null; });
 
-      await http.post(endpoint, payload);
+      const existingJurisdictionId = activeTab === 'recycled'
+        ? rcRows.find(row => row.id === editingId)?.jurisdiction_id
+        : activeTab === 'transport'
+          ? trRows.find(row => row.id === editingId)?.jurisdiction_id
+          : wrRows.find(row => row.id === editingId)?.jurisdiction_id;
+      const scopedPayload = withJurisdictionBackfill(payload, existingJurisdictionId, scopeJurisdictionId);
+
+      await http.post(endpoint, scopedPayload);
       setEditingId(null); setEditDraft({});
       if (activeTab === 'recycled')        await fetchRecycledContent(false);
       else if (activeTab === 'transport')  await fetchTransport(false);
@@ -2461,7 +2559,7 @@ useMemo(() => {
       const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
       setSaveError(typeof detail === 'string' ? detail : 'Failed to save changes.');
     } finally { setSavingOp(false); }
-  }, [editingId, editDraft, activeTab, fetchRecycledContent, fetchTransport, fetchWasteRates]);
+  }, [editingId, editDraft, activeTab, fetchRecycledContent, fetchTransport, fetchWasteRates, rcRows, trRows, wrRows, scopeJurisdictionId]);
 
   const doSaveAdd = useCallback(async () => {
     setSavingOp(true); setSaveError('');
@@ -2472,20 +2570,25 @@ useMemo(() => {
       else if (addingTab === 'waste')      endpoint = '/api/default-waste-rates';
       else return;
 
-      const payload: Record<string, unknown> = { ...addDraft };
+      let payload: Record<string, unknown> = { ...addDraft };
       if (addingTab === 'recycled' && addDraft.percent !== undefined) {
         payload.percent = addDraft.percent !== '' ? String(parseFloat(addDraft.percent) / 100) : null;
       }
       // Auto-inject jurisdiction from filter when no jurisdiction was selected in the (hidden) column
-      if (addingTab === 'recycled' && !payload.jurisdiction_id && rcFilter.jurisdictions.length === 1) {
-        const autoJur = jurOpts.find(j => j.name === rcFilter.jurisdictions[0]);
-        if (autoJur) payload.jurisdiction_id = autoJur.id;
+      if (addingTab === 'recycled' && !payload.jurisdiction_id) {
+        if (scopeJurisdictionId) payload.jurisdiction_id = scopeJurisdictionId;
+        else if (rcFilter.jurisdictions.length === 1) {
+          const autoJur = jurOpts.find(j => j.name === rcFilter.jurisdictions[0]);
+          if (autoJur) payload.jurisdiction_id = autoJur.id;
+        }
       }
       if (addingTab === 'transport') {
         const keyType = addDraft.__tr_key_type ?? 'material';
-        if (!addDraft.jurisdiction_id) {
+        const jurisdictionId = addDraft.jurisdiction_id || scopeJurisdictionId || '';
+        if (!jurisdictionId) {
           setSaveError('Jurisdiction is required.'); setSavingOp(false); return;
         }
+        payload.jurisdiction_id = jurisdictionId;
         if (keyType === 'material' && !addDraft.material_id) {
           setSaveError('Material is required.'); setSavingOp(false); return;
         }
@@ -2495,6 +2598,9 @@ useMemo(() => {
         if (keyType === 'material') delete payload.emissions_category_id;
         else delete payload.material_id;
         delete payload.__tr_key_type;
+      }
+      if (addingTab === 'recycled' || addingTab === 'transport' || addingTab === 'waste') {
+        payload = withDefaultJurisdiction(payload, scopeJurisdictionId);
       }
       Object.keys(payload).forEach(k => { if (payload[k] === '') payload[k] = null; });
 
@@ -2507,7 +2613,7 @@ useMemo(() => {
       const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
       setSaveError(typeof detail === 'string' ? detail : 'Failed to create record.');
     } finally { setSavingOp(false); }
-  }, [addingTab, addDraft, fetchRecycledContent, fetchTransport, fetchWasteRates]);
+  }, [addingTab, addDraft, fetchRecycledContent, fetchTransport, fetchWasteRates, scopeJurisdictionId]);
 
   const doStartBgmEdit = useCallback((key: string, draft: Record<string, string>) => {
     setBgmEditKey(key); setBgmEditDraft(draft);
@@ -2520,10 +2626,10 @@ useMemo(() => {
   }, []);
 
   const doStartBgmAdd = useCallback(() => {
-    setBgmAdding(true); setBgmAddDraft({});
+    setBgmAdding(true); setBgmAddDraft(scopeJurisdictionId ? { jurisdiction_id: scopeJurisdictionId } : {});
     setBgmEditKey(null); setBgmEditDraft({});
     setBgmSaveError('');
-  }, []);
+  }, [scopeJurisdictionId]);
 
   const doCancelBgmAdd = useCallback(() => {
     setBgmAdding(false); setBgmAddDraft({}); setBgmSaveError('');
@@ -2542,6 +2648,7 @@ useMemo(() => {
         );
         if (!row) throw new Error('Row not found');
         const source = bgmEditDraft.source !== '' ? bgmEditDraft.source : null;
+        const jurisdictionId = row._jurisdiction_id || scopeJurisdictionId;
 
         const bands = [
           ['Low', 'low', '_low_id'],
@@ -2557,6 +2664,7 @@ useMemo(() => {
               value: val !== '' ? val : null,
               source,
               band_code: band,
+              ...(jurisdictionId ? { jurisdiction_id: jurisdictionId } : {}),
             }));
           } else if (val && val !== '') {
             patches.push(http.post('/api/background-grade-metrics', {
@@ -2569,6 +2677,7 @@ useMemo(() => {
               band_code: band,
               value: val,
               source,
+              jurisdiction_id: jurisdictionId,
             }));
           }
         }
@@ -2578,6 +2687,7 @@ useMemo(() => {
         );
         if (!row) throw new Error('Row not found');
         const source = bgmEditDraft.source !== '' ? bgmEditDraft.source : null;
+        const jurisdictionId = row._jurisdiction_id || scopeJurisdictionId;
         const qty = bgmEditDraft.quantity !== '' ? bgmEditDraft.quantity : null;
         const metricTypeMap = new Map(bgmRawRows.map(r => [r.metric_type_code, r.metric_type_id]));
 
@@ -2594,6 +2704,7 @@ useMemo(() => {
               value: val !== '' ? val : null,
               assumed_quantity_default: qty,
               source,
+              ...(jurisdictionId ? { jurisdiction_id: jurisdictionId } : {}),
             }));
           } else if (val && val !== '') {
             patches.push(http.post('/api/background-grade-metrics', {
@@ -2607,6 +2718,7 @@ useMemo(() => {
               value: val,
               assumed_quantity_default: qty,
               source,
+              jurisdiction_id: jurisdictionId,
             }));
           }
         }
@@ -2616,6 +2728,7 @@ useMemo(() => {
         );
         if (!row) throw new Error('Row not found');
         const source = bgmEditDraft.source !== '' ? bgmEditDraft.source : null;
+        const jurisdictionId = row._jurisdiction_id || scopeJurisdictionId;
         const metricTypeMap = new Map(bgmRawRows.map(r => [r.metric_type_code, r.metric_type_id]));
 
         const g34Specs: [string, string, string | null][] = [
@@ -2630,6 +2743,7 @@ useMemo(() => {
             patches.push(http.patch(`/api/background-grade-metrics/${existingId}`, {
               value: val !== '' ? val : null,
               source,
+              ...(jurisdictionId ? { jurisdiction_id: jurisdictionId } : {}),
             }));
           } else if (val && val !== '') {
             patches.push(http.post('/api/background-grade-metrics', {
@@ -2642,6 +2756,7 @@ useMemo(() => {
               metric_type_id: metricTypeMap.get(mtCode),
               value: val,
               source,
+              jurisdiction_id: jurisdictionId,
             }));
           }
         }
@@ -2654,7 +2769,7 @@ useMemo(() => {
       const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
       setBgmSaveError(typeof detail === 'string' ? detail : 'Failed to save changes.');
     } finally { setBgmSaving(false); }
-  }, [bgmEditKey, bgmEditDraft, activeGrade, displayData, bgmRawRows, fetchData]);
+  }, [bgmEditKey, bgmEditDraft, activeGrade, displayData, bgmRawRows, fetchData, scopeJurisdictionId]);
 
   const doSaveBgmAdd = useCallback(async () => {
     setBgmSaving(true); setBgmSaveError('');
@@ -2664,6 +2779,7 @@ useMemo(() => {
         dataset_revision_id: selectedRevisionId,
         grade_id: parseInt(grade, 10),
       };
+      const jurisdictionId = bgmAddDraft.jurisdiction_id || scopeJurisdictionId || null;
       const posts: Promise<unknown>[] = [];
 
       if (grade === '1') {
@@ -2672,7 +2788,7 @@ useMemo(() => {
           if (!val || val === '') continue;
           posts.push(http.post('/api/background-grade-metrics', {
             ...base,
-            jurisdiction_id: bgmAddDraft.jurisdiction_id || null,
+            jurisdiction_id: jurisdictionId,
             metric_type_id: bgmAddDraft.metric_type_id || undefined,
             unit_id: bgmAddDraft.unit_id || undefined,
             mastertype_id: bgmAddDraft.mastertype_id || null,
@@ -2700,7 +2816,7 @@ useMemo(() => {
           const mtId = metricTypeMap.get(mtCode) ?? metricTypeOpts.find(m => m.name.startsWith(mtCode))?.id;
           posts.push(http.post('/api/background-grade-metrics', {
             ...base,
-            jurisdiction_id: bgmAddDraft.jurisdiction_id || null,
+            jurisdiction_id: jurisdictionId,
             emissions_category_id: bgmAddDraft.emissions_category_id || null,
             emissions_subcategory_id: bgmAddDraft.emissions_subcategory_id || null,
             emissions_source: bgmAddDraft.emissions_source || null,
@@ -2729,7 +2845,7 @@ useMemo(() => {
           const mtId = metricTypeMap.get(mtCode) ?? metricTypeOpts.find(m => m.name.startsWith(mtCode))?.id;
           posts.push(http.post('/api/background-grade-metrics', {
             ...base,
-            jurisdiction_id: bgmAddDraft.jurisdiction_id || null,
+            jurisdiction_id: jurisdictionId,
             emissions_category_id: bgmAddDraft.emissions_category_id || null,
             emissions_subcategory_id: bgmAddDraft.emissions_subcategory_id || null,
             emissions_source: bgmAddDraft.emissions_source || null,
@@ -2752,7 +2868,7 @@ useMemo(() => {
       const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
       setBgmSaveError(typeof detail === 'string' ? detail : 'Failed to create record.');
     } finally { setBgmSaving(false); }
-  }, [bgmAddDraft, activeGrade, selectedRevisionId, bgmRawRows, metricTypeOpts, fetchData]);
+  }, [bgmAddDraft, activeGrade, selectedRevisionId, bgmRawRows, metricTypeOpts, fetchData, scopeJurisdictionId]);
 
   const revisionOptions  = revisions.map(r  => ({ label: r.name, value: r.id }));
 
@@ -3685,7 +3801,7 @@ useMemo(() => {
               {canEditTab && !decarbRevisionLocked && !decarbAdding && !decarbEditCellId && (
                 <button
                   type="button"
-                  onClick={() => { setDecarbAdding(true); setDecarbSeriesDraft({ jurisdictionId: '', regionId: '' }); setDecarbAddError(''); }}
+                  onClick={() => { setDecarbAdding(true); setDecarbSeriesDraft({ jurisdictionId: scopeJurisdictionId ?? '', regionId: '' }); setDecarbAddError(''); }}
                   className=" cursor-pointer rounded border border-primary px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10"
                 >
                   + Add Series
@@ -3736,7 +3852,7 @@ useMemo(() => {
               {canEditTab && !cvAdding && !cvEditCellId && (
                 <button
                   type="button"
-                  onClick={() => { setCvAdding(true); setCvSeriesDraft({ jurisdictionId: '', rangeCode: '' }); setCvAddError(''); }}
+                  onClick={() => { setCvAdding(true); setCvSeriesDraft({ jurisdictionId: scopeJurisdictionId ?? '', rangeCode: '' }); setCvAddError(''); }}
                   className="rounded border cursor-pointer border-primary px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10"
                 >
                   + Add Series
@@ -3802,7 +3918,7 @@ useMemo(() => {
               {canEditTab && !evUptakeRevisionLocked && !evUptakeAdding && !evUptakeEditCellId && (
                 <button
                   type="button"
-                  onClick={() => { setEvUptakeAdding(true); setEvUptakeSeriesDraft({ jurisdictionId: '', scenarioCode: '', vehicleCategoryCode: '', energyTypeCode: '' }); setEvUptakeAddError(''); }}
+                  onClick={() => { setEvUptakeAdding(true); setEvUptakeSeriesDraft({ jurisdictionId: scopeJurisdictionId ?? '', scenarioCode: '', vehicleCategoryCode: '', energyTypeCode: '' }); setEvUptakeAddError(''); }}
                   className="rounded cursor-pointer border border-primary px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10"
                 >
                   + Add Series
@@ -3911,6 +4027,12 @@ useMemo(() => {
             ) : (
               <Grade34Table rows={displayRows as unknown as G34Row[]} ec={canEditTab ? {
                 unitOpts, metricTypeOpts, ecOpts, jurOpts,
+                grade34CategoryOpts: grade34Options.categoryOptions,
+                grade34SubcategoryOpts: grade34Options.subcategoryOptions,
+                grade34CategoriesLoading: grade34Options.categoriesLoading,
+                grade34CategoryError: grade34Options.categoryError,
+                grade34SubcategoriesLoading: grade34Options.subcategoriesLoading,
+                grade34SubcategoryError: grade34Options.subcategoryError,
                 mastertypeOpts,
                 typecasts: allTypecastsRaw,
                 editKey: bgmEditKey,
@@ -3921,7 +4043,9 @@ useMemo(() => {
                 onEditField: (f, v) => setBgmEditDraft(p => ({ ...p, [f]: v })),
                 onSaveEdit: doSaveBgmEdit,
                 onCancelEdit: doCancelBgmEdit,
-                onAddField: (f, v) => setBgmAddDraft(p => ({ ...p, [f]: v })),
+                onAddField: (f, v) => setBgmAddDraft(p => f === 'emissions_category_id'
+                  ? { ...p, emissions_category_id: v, emissions_subcategory_id: '' }
+                  : { ...p, [f]: v }),
                 onSaveAdd: doSaveBgmAdd,
                 onCancelAdd: doCancelBgmAdd,
                 saving: bgmSaving,
@@ -4647,8 +4771,10 @@ useMemo(() => {
                       type="button"
                       onClick={() => {
                         setCrfAdding(true);
-                        const draft: Record<string, string> = {};
-                        if (crfFilter.jurisdictions.length === 1) {
+                        const draft: Record<string, string> = scopeJurisdictionId
+                          ? { jurisdiction_id: scopeJurisdictionId }
+                          : {};
+                        if (!draft.jurisdiction_id && crfFilter.jurisdictions.length === 1) {
                           const j = jurOpts.find(x => x.name === crfFilter.jurisdictions[0]);
                           if (j) draft.jurisdiction_id = j.id;
                         }
@@ -4678,7 +4804,7 @@ useMemo(() => {
                     onCellChange: setCrfCellDraft,
                     onSaveCell: doSaveContentRecycledCell,
                     onCancelCell: () => { setCrfEditCellKey(null); setCrfCellDraft(''); setCrfSaveError(''); },
-                    onStartAdd: () => { setCrfAdding(true); setCrfAddDraft({}); setCrfSaveError(''); },
+                    onStartAdd: () => { setCrfAdding(true); setCrfAddDraft(scopeJurisdictionId ? { jurisdiction_id: scopeJurisdictionId } : {}); setCrfSaveError(''); },
                     onAddField: (f, v) => setCrfAddDraft(prev => ({ ...prev, [f]: v })),
                     onSaveAdd: doAddContentRecycled,
                     onCancelAdd: () => { setCrfAdding(false); setCrfAddDraft({}); setCrfSaveError(''); },
@@ -4934,6 +5060,7 @@ useMemo(() => {
                 canEdit={canEditTab}
                 revisionId={selectedRevisionId}
                 jurisdictions={jurOpts}
+                defaultJurisdictionId={scope.type === 'DEFAULT' ? undefined : scopeJurisdictionId}
                 onSaved={() => { void fetchDirectSubstitutions(); }}
               />
             )
@@ -5082,7 +5209,7 @@ useMemo(() => {
               rows.forEach((row, idx) => {
                 const r = row as Record<string, string>;
                 const parsed = parseContentRecycledUploadRow(r);
-                if (!parsed.jurisdiction) {
+                if (!parsed.jurisdiction && !scopeJurisdictionId) {
                   errors.push(`Row ${idx + 2}: Jurisdiction is required`);
                   return;
                 }
@@ -5112,12 +5239,32 @@ useMemo(() => {
             const tabAtStart = uploadTarget;
             setUploadRunning(true);
             try {
+              const existingJurisdictionForUpload = (tab: PageTab, id: string): string | null => {
+                const rowsByTab: Partial<Record<PageTab, Array<{ id: string; jurisdiction_id?: string | null }>>> = {
+                  recycled: rcRows,
+                  content_recycled: crfRows,
+                  transport: trRows,
+                  waste: wrRows,
+                  decarb: decarbRows,
+                  carbon_values: cvRows,
+                  ev_uptake: evUptakeRows,
+                  maintenance_replacement: mrRows,
+                  fugitives: fcRows,
+                  wastage_rates: wgRows,
+                  direct_substitutions: directSubRows,
+                };
+                return rowsByTab[tab]?.find(row => row.id === id)?.jurisdiction_id ?? null;
+              };
               if (tabAtStart === 'direct_substitutions') {
                 if (!selectedRevisionId) return;
                 for (const row of rows) {
                   const payload = { ...(row as Record<string, unknown>) };
+                  const id = typeof payload.id === 'string' ? payload.id : '';
                   delete payload.id;
-                  await http.post('/api/direct-substitutions/upsert', { ...payload, dataset_revision_id: selectedRevisionId });
+                  const scopedPayload = id
+                    ? withJurisdictionBackfill(payload, existingJurisdictionForUpload(tabAtStart, id), scopeJurisdictionId)
+                    : withDefaultJurisdiction(payload, scopeJurisdictionId);
+                  await http.post('/api/direct-substitutions/upsert', { ...scopedPayload, dataset_revision_id: selectedRevisionId });
                 }
                  } else if (tabAtStart === 'electricity_recycling_assumptions') {
                 if (!selectedRevisionId) return;
@@ -5125,9 +5272,10 @@ useMemo(() => {
                   const r = row as Record<string, string>;
                   const { jurisdiction, metric, pctRaw } = parseEraUploadRow(r);
                   const pct = parseFloat(pctRaw) / 100;
+                  const jurisdictionName = jurisdiction || jurOpts.find(option => option.id === scopeJurisdictionId)?.name || '';
                   await http.post('/api/electricity-recycling-assumptions/upsert', {
                     dataset_revision_id: selectedRevisionId,
-                    jurisdiction_name: jurisdiction,
+                    jurisdiction_name: jurisdictionName,
                     metric_label: metric,
                     default_bau_pct: pct,
                   });
@@ -5138,7 +5286,10 @@ useMemo(() => {
                   const r = row as Record<string, string>;
                   const parsed = parseContentRecycledUploadRow(r);
                   if (!parsed.source) continue;
-                  const jurisdictionId = jurOpts.find(j => j.name === parsed.jurisdiction)?.id ?? null;
+                  const explicitJurisdiction = parsed.jurisdiction?.trim() ?? '';
+                  const jurisdictionId = explicitJurisdiction
+                    ? jurOpts.find(j => j.name === explicitJurisdiction)?.id ?? null
+                    : scopeJurisdictionId;
                   const subCategoryId = ecOpts.find(c => c.name === parsed.category)?.id ?? null;
                   const recycledNum = parseContentRecycledPctUpload(parsed.recycledRaw);
                   const reusedNum = parseContentRecycledPctUpload(parsed.reusedRaw);
@@ -5156,9 +5307,15 @@ useMemo(() => {
                 for (const row of rows) {
                   const { id, ...rest } = row as Record<string, string>;
                   if (id) {
-                    await http.patch(`${endpoint}/${id}`, rest);
+                    const payload = JURISDICTION_ID_UPLOAD_TABS.has(tabAtStart)
+                      ? withJurisdictionBackfill(rest, existingJurisdictionForUpload(tabAtStart, id), scopeJurisdictionId)
+                      : rest;
+                    await http.patch(`${endpoint}/${id}`, payload);
                   } else {
-                    await http.post(endpoint, rest);
+                    const payload = JURISDICTION_ID_UPLOAD_TABS.has(tabAtStart)
+                      ? withDefaultJurisdiction(rest, scopeJurisdictionId)
+                      : rest;
+                    await http.post(endpoint, payload);
                   }
                 }
               }

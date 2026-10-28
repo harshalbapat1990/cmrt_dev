@@ -47,6 +47,20 @@ const NZ_ROAD_VEHICLE_TYPES = [
     "Bus",
 ];
 
+function largeRoadErrorMessage(error: unknown): string {
+    if (typeof error === "object" && error !== null) {
+        const apiError = error as {
+            response?: { data?: { detail?: unknown } };
+            message?: unknown;
+        };
+        if (typeof apiError.response?.data?.detail === "string") {
+            return apiError.response.data.detail;
+        }
+        if (typeof apiError.message === "string") return apiError.message;
+    }
+    return "Could not calculate and save road user emissions. Please check the dataset factors and try again.";
+}
+
 
 const ROUGHNESS_OPTIONS = [
     { label: "Very smooth (IRI = 1 m/km)", value: "Very smooth" },
@@ -146,6 +160,7 @@ const LargeRoadUsersSubStage = ({
 
     const [yearData, setYearData] = useState<Record<number, YearData>>({});
     const [expanded, setExpanded] = useState(true);
+    const [calculationError, setCalculationError] = useState<string | null>(null);
 
     const [emissionSummary, setEmissionSummary] = useState<UserCalculationSummary>(emptySummary);
     const [globalParams, setGlobalParams] = useState<RoadParams>(DEFAULT_ROAD_PARAMS);
@@ -247,7 +262,7 @@ const LargeRoadUsersSubStage = ({
         setSummary: setEmissionSummary,
     });
 
-    const handleSaveLargeRoadUsers = useLargeRoadUserSave({
+    const saveLargeRoadUsers = useLargeRoadUserSave({
         readOnly,
         region: isNZ ? "NZ" : "AU",
         yearData,
@@ -255,7 +270,12 @@ const LargeRoadUsersSubStage = ({
         currentSummary: emissionSummary,
         calculateSummary,
         persistAll,
+        onError: (error) => setCalculationError(largeRoadErrorMessage(error)),
     });
+    const handleSaveLargeRoadUsers = useCallback(async () => {
+        setCalculationError(null);
+        await saveLargeRoadUsers();
+    }, [saveLargeRoadUsers]);
     const editorDisabled = readOnly || saveState === "saving" || emissionLoading;
 
     return (
@@ -279,7 +299,7 @@ const LargeRoadUsersSubStage = ({
                     {saveState === "saving" && (
                         <span className="text-xs text-text-faint animate-pulse">Saving…</span>
                     )}
-                    {saveState === "saved" && (
+                    {saveState === "saved" && !calculationError && (
                         <span className="text-xs text-success">Saved</span>
                     )}
                     <button
@@ -300,6 +320,12 @@ const LargeRoadUsersSubStage = ({
                 summary={emissionSummary}
                 loading={emissionLoading}
             />
+            {calculationError && (
+                <div role="alert" className="mb-4 rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-800">
+                    <strong className="block">Emissions calculation failed. The displayed summary may be out of date.</strong>
+                    {calculationError}
+                </div>
+            )}
 
             {expanded && (
                 <>

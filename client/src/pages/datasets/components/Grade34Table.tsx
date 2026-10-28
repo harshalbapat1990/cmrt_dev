@@ -36,8 +36,29 @@ export default function Grade34Table({ rows, ec }: { rows: G34Row[]; ec?: BgmEdi
       <tbody>
         {ec?.adding && (
           <tr className="bg-blue-50">
-            <TD><InlineSelect value={ec.addDraft.emissions_category_id ?? ''} options={ec.ecOpts} onChange={v => ec.onAddField('emissions_category_id', v)} placeholder="— cat —" /></TD>
-            <TD><InlineSelect value={ec.addDraft.emissions_subcategory_id ?? ''} options={ec.ecOpts} onChange={v => ec.onAddField('emissions_subcategory_id', v)} placeholder="— subcat —" /></TD>
+            <TD>
+              <InlineSelect
+                value={ec.addDraft.emissions_category_id ?? ''}
+                options={ec.grade34CategoryOpts ?? []}
+                onChange={v => ec.onAddField('emissions_category_id', v)}
+                placeholder={ec.grade34CategoriesLoading ? 'Loading…' : '— category —'}
+                disabled={ec.grade34CategoriesLoading || !!ec.grade34CategoryError}
+              />
+              {ec.grade34CategoryError && <span role="alert" className="text-[10px] text-red-600">{ec.grade34CategoryError}</span>}
+            </TD>
+            <TD>
+              <InlineSelect
+                value={ec.addDraft.emissions_subcategory_id ?? ''}
+                options={ec.grade34SubcategoryOpts ?? []}
+                onChange={v => ec.onAddField('emissions_subcategory_id', v)}
+                placeholder={ec.grade34SubcategoriesLoading ? 'Loading…' : ec.grade34SubcategoryError ? 'Unavailable' : ec.addDraft.emissions_category_id ? '— subcategory —' : 'Select category first'}
+                disabled={!ec.addDraft.emissions_category_id || ec.grade34SubcategoriesLoading || !!ec.grade34SubcategoryError}
+              />
+              {ec.grade34SubcategoryError && <span role="alert" className="text-[10px] text-red-600">{ec.grade34SubcategoryError}</span>}
+              {ec.addDraft.emissions_category_id && !ec.grade34SubcategoriesLoading && !ec.grade34SubcategoryError && (ec.grade34SubcategoryOpts ?? []).length === 0 && (
+                <span className="text-[10px] text-text-base">No subcategories available.</span>
+              )}
+            </TD>
             <TD><InlineInput value={ec.addDraft.emissions_source ?? ''} onChange={v => ec.onAddField('emissions_source', v)} /></TD>
             <TD><InlineSelect value={ec.addDraft.unit_id ?? ''} options={ec.unitOpts} onChange={v => ec.onAddField('unit_id', v)} placeholder="— unit —" /></TD>
             <TD right><InlineInput value={ec.addDraft.carbon_storage ?? ''} onChange={v => ec.onAddField('carbon_storage', v)} type="number" /></TD>

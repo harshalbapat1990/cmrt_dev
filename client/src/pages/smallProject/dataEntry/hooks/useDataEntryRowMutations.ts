@@ -30,6 +30,12 @@ interface UseDataEntryRowMutationsParams {
     setDeleteTarget: React.Dispatch<React.SetStateAction<{ id: string; tableKey: UploadKey } | null>>;
 }
 
+function readServerEmission(value: string | null | undefined): number | null {
+    if (value == null || value === "" || value === "-") return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+}
+
 export function useDataEntryRowMutations({
     projectId,
     user,
@@ -178,7 +184,13 @@ export function useDataEntryRowMutations({
                         ...(finalRow.unit_id != null ? { unit_id: finalRow.unit_id } : {}),
                         extra_fields: buildExtraFields(finalRow, { keepEmissions: true, tableKey }),
                     };
-                    await ActivityDataService.updateRow(String(id), apiPatch);
+                    const saved = await ActivityDataService.updateRow(String(id), apiPatch);
+                    if (saved && Object.prototype.hasOwnProperty.call(saved, "emissions_tco2e")) {
+                        const serverEmissions = readServerEmission(saved.emissions_tco2e);
+                        setRows((prev) => prev.map((row) => row.id === id
+                            ? { ...row, emissions_tco2e: serverEmissions, total_emissions_tco2e: serverEmissions }
+                            : row));
+                    }
                     await refreshOptionTotals();
                 }
 
@@ -329,7 +341,13 @@ export function useDataEntryRowMutations({
                             if (topLevelKeys.has(k)) apiPatch[k] = v;
                         }
                         apiPatch.extra_fields = buildExtraFields(finalRow, { keepEmissions: true, tableKey: _tableKey });
-                        await ActivityDataService.updateRow(String(id), apiPatch);
+                        const saved = await ActivityDataService.updateRow(String(id), apiPatch);
+                        if (saved && Object.prototype.hasOwnProperty.call(saved, "emissions_tco2e")) {
+                            const serverEmissions = readServerEmission(saved.emissions_tco2e);
+                            setRows((prev) => prev.map((row) => row.id === id
+                                ? { ...row, emissions_tco2e: serverEmissions, total_emissions_tco2e: serverEmissions }
+                                : row));
+                        }
                         didUpdate = true;
                     } catch (e) {
                         console.warn("Failed to patch row:", e);
@@ -342,7 +360,13 @@ export function useDataEntryRowMutations({
                             ...(finalRow.quantity != null ? { quantity: Number(finalRow.quantity) } : {}),
                             extra_fields: buildExtraFields(finalRow, { keepEmissions: true, tableKey: _tableKey }),
                         };
-                        await ActivityDataService.updateRow(String(id), apiPatch);
+                        const saved = await ActivityDataService.updateRow(String(id), apiPatch);
+                        if (saved && Object.prototype.hasOwnProperty.call(saved, "emissions_tco2e")) {
+                            const serverEmissions = readServerEmission(saved.emissions_tco2e);
+                            setRows((prev) => prev.map((row) => row.id === id
+                                ? { ...row, emissions_tco2e: serverEmissions, total_emissions_tco2e: serverEmissions }
+                                : row));
+                        }
                         didUpdate = true;
                     } catch (e) {
                         console.warn("Failed to persist select-triggered emission update:", e);
@@ -425,7 +449,7 @@ export function useDataEntryRowMutations({
                 (updater) => updateRows(deleteTarget.tableKey, updater),
             );
         }
-    }, [deleteTarget, updateRows, getRows, refreshOptionTotals, recalcElectricitySiblings]);
+    }, [deleteTarget, setDeleteTarget, updateRows, getRows, refreshOptionTotals, recalcElectricitySiblings]);
 
 
     return { onCellChange, onRowPatch, doDeleteRow };

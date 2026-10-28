@@ -78,7 +78,7 @@ async def update_carbon_value_endpoint(
 
     try:
         result = await update_carbon_value(
-            db, value_id, body.value, body.currency, body.source
+            db, value_id, body.value, body.currency, body.source, body.jurisdiction_id
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))

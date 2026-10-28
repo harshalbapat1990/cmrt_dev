@@ -113,6 +113,7 @@ async def update_maintenance_replacement(
             body.emissions_intensity_tco2e,
             body.default_frequency_years,
             body.source_note,
+            body.jurisdiction_id,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))

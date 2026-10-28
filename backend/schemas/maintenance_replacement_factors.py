@@ -30,6 +30,7 @@ class MaintenanceReplacementFactorOut(BaseModel):
 
 
 class MaintenanceReplacementFactorUpdate(BaseModel):
+    jurisdiction_id: Optional[UUID] = None
     emissions_intensity_tco2e: Optional[Decimal] = None
     default_frequency_years: Optional[int] = None
     source_note: Optional[str] = None

@@ -32,6 +32,7 @@ class ElectricDecarbFactorOut(BaseModel):
 
 
 class ElectricDecarbFactorUpdate(BaseModel):
+    jurisdiction_id: Optional[UUID] = None
     value: Optional[float] = None
     value_qualifier: Optional[str] = None
 

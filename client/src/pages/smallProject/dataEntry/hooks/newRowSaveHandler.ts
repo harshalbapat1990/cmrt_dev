@@ -174,9 +174,10 @@ export function createNewRowSaveHandler({
                         : {}),
                 });
                 const baseApiRow = apiRowToUiRow(saved);
-                const shownEmissions = isValidEmission(finalEmissionsNum)
-                    ? finalEmissionsNum
-                    : (baseApiRow.total_emissions_tco2e ?? baseApiRow.emissions_tco2e ?? null);
+                const serverEmissions = baseApiRow.total_emissions_tco2e ?? baseApiRow.emissions_tco2e ?? null;
+                // A saved row is rendered from the server's calculation result.
+                // A null result stays blank instead of showing a browser preview.
+                const shownEmissions = isValidEmission(serverEmissions) ? serverEmissions : null;
 
                 const apiRow = isElectricityTable(tableKey)
                     ? {

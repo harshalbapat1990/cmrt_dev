@@ -25,6 +25,7 @@ from typing import Optional
 from uuid import UUID
 
 import logging
+from collections.abc import Awaitable, Callable
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -40,7 +41,10 @@ from crud.background_grade_metrics import (
     get_background_grade_metric_orm,
 )
 from crud.unit_conversions import get_conversion_factor
-from services.grade34_activity_emissions import recalc_grade34_construction_activity_row
+from services.grade34_activity_emissions import (
+    is_grade34_detailed_construction_activity_row,
+    recalc_grade34_construction_activity_row,
+)
 from services.electricity_activity_emissions import recalc_electricity_activity_row
 from services.grade2_b4_replacement_activity_emissions import recalc_grade2_b4_replacement_row
 from services.detailed_level_b2b5_activity_emissions import recalc_detailed_b2b5_row
@@ -60,6 +64,137 @@ from services.maintenance_replacement_component_level_calcs import (
 
 logger = logging.getLogger(__name__)
 
+_SPECIALIZED_CALCULATORS: dict[
+    str, Callable[[AsyncSession, ActivityData], Awaitable[Optional[Decimal]]]
+] = {
+    "component": recalc_grade2_component_row,
+    "constructionG2": recalc_grade2_component_row,
+    "componentRepl": recalc_grade2_b4_replacement_row,
+    "replDetailed": recalc_detailed_b2b5_row,
+    "opEnergy": recalc_operational_row,
+    "opEnergyDetailed": recalc_operational_fuel_water_row,
+    "shortcutIsMaterials": recalc_shortcut_is_materials_row,
+    "useB1G2": recalc_inuse_gases_row,
+    "useB1G3": recalc_use_b1g3_row,
+    "concreteRegSimplified": recalc_concrete_row,
+    "concreteRegDetailed": recalc_concrete_row,
+    "electricity": recalc_electricity_activity_row,
+    "opEnergyElectricity": recalc_electricity_activity_row,
+}
+
+# These rows are calculated by the road-user year workflow (or contain only
+# road-user parameters). Their reportable values are synchronized from their
+# dedicated activity/annual-result records by result_ledger, so they must not
+# be interpreted as generic quantity × background-factor rows.
+_INDEPENDENT_CALCULATION_TABLES = frozenset({
+    "roadUsers",
+    "largeRoadUsers",
+    "largeRoadParams",
+})
+
+
+def _has_dedicated_calculator(activity_row: ActivityData) -> bool:
+    base_key = mitigation_base_table_key(activity_row.ui_table_key)
+    return (
+        is_grade34_detailed_construction_activity_row(activity_row)
+        or base_key in {"asset", "railUsers", "largeRailUsers", "refurbishment"}
+        or base_key in _SPECIALIZED_CALCULATORS
+    )
+
+
+async def _recalc_refurbishment_row(
+    db: AsyncSession,
+    activity_row: ActivityData,
+) -> Optional[Decimal]:
+    extra = activity_row.extra_fields or {}
+    mr_factor_id = extra.get("mr_factor_id")
+    if not mr_factor_id:
+        return None
+
+    factor_q = await db.execute(
+        select(MaintenanceReplacementFactor).where(
+            MaintenanceReplacementFactor.id == mr_factor_id
+        )
+    )
+    factor = factor_q.scalars().first()
+    if factor is None:
+        return None
+
+    jur_q = await db.execute(
+        select(Jurisdiction).where(Jurisdiction.id == factor.jurisdiction_id)
+    ) if factor.jurisdiction_id else None
+    jur = jur_q.scalars().first() if jur_q else None
+    jurisdiction_name = jur.name if jur else "Australia"
+
+    project_q = await db.execute(
+        select(Project).where(Project.id == activity_row.project_id)
+    )
+    project = project_q.scalars().first()
+    reference_period = (
+        float(project.operational_life_years)
+        if project and project.operational_life_years
+        else None
+    )
+    frequency_years = float(extra.get("frequency", 0) or 0)
+    if not reference_period or frequency_years <= 0:
+        return None
+
+    calc_quantity = float(activity_row.quantity)
+    if (
+        activity_row.unit_id is not None
+        and factor.unit_id is not None
+        and activity_row.unit_id != factor.unit_id
+    ):
+        conv = await get_conversion_factor(
+            db,
+            activity_row.unit_id,
+            factor.unit_id,
+            activity_row.dataset_revision_id,
+        )
+        if conv is not None:
+            calc_quantity *= float(conv)
+        else:
+            logger.warning(
+                "calculate_and_store: no unit conversion from %s to factor unit %s "
+                "for refurbishment activity_data %s; using raw quantity",
+                activity_row.unit_id,
+                factor.unit_id,
+                activity_row.id,
+            )
+
+    req = MaintenanceCalcRequest(
+        jurisdiction=jurisdiction_name,
+        activity_type=factor.activity_type,
+        item=factor.item,
+        unit=factor.unit.code if factor.unit else "",
+        quantity=calc_quantity,
+        reference_period=reference_period,
+        frequency_years=frequency_years,
+    )
+    calc_result = await maintenance_calculator.calculate(db, req)
+    tco2e = Decimal(str(calc_result.total_emissions_tco2e))
+    common = dict(
+        db=db,
+        project_id=activity_row.project_id,
+        project_stage_instance_id=activity_row.project_stage_instance_id,
+        activity_data_id=activity_row.id,
+        unit_id=activity_row.unit_id,
+    )
+    await upsert_result(
+        **common,
+        value_key="B2-5",
+        lifecycle_module_code="B2-5",
+        value=tco2e,
+    )
+    await upsert_result(
+        **common,
+        value_key="scope3",
+        lifecycle_module_code=None,
+        is_supplementary=True,
+        value=tco2e,
+    )
+    return tco2e
+
 
 async def _calculate_and_store_impl(
     db: AsyncSession,
@@ -78,11 +213,36 @@ async def _calculate_and_store_impl(
         if activity_row.ui_table_key == "completeness":
             return None
 
+        # Grade 3/4 rows use a source/category/sub-category/unit lookup in the
+        # detailed-level calculator. Their legacy metric natural keys were
+        # resolved using only category/sub-category and may point at a different
+        # material (and unit), so never let those keys select the factor here.
+        if is_grade34_detailed_construction_activity_row(activity_row):
+            activity_row.metric_natural_key = None
+            grade34_total = await recalc_grade34_construction_activity_row(db, activity_row)
+            if grade34_total is None and getattr(activity_row, "_strict_dataset_recalculation", False):
+                from services.project_dataset_recalculation import MissingDatasetDataError
+
+                raise MissingDatasetDataError(
+                    "Grade 3/4 detailed level factors",
+                    "The entry is missing the category, sub-category, source, unit, or quantity required for recalculation.",
+                )
+            return grade34_total
+
+        # Grade 1 assets have a multi-stage CAPEX calculation (material share
+        # plus A1-A3/A4/A5 intensities). A resolved background metric is only a
+        # legacy identity for these rows; applying its value directly to the
+        # full quantity bypasses the Grade 1 formula and produces an inflated
+        # ledger result. Always route asset rows through their dedicated
+        # calculator before considering the generic metric path.
+        if matches_base_table_key(activity_row.ui_table_key, "asset"):
+            return await recalc_asset_row(db, activity_row)
+
         if mitigation_base_table_key(activity_row.ui_table_key) in {"railUsers", "largeRailUsers"}:
             extra = dict(activity_row.extra_fields or {})
             rail_type = str(extra.get("vehicle_type") or "").strip()
             terrain = str(extra.get("terrain") or "").strip()
-            freight_raw = extra.get("freight") or activity_row.quantity
+            freight_raw = extra.get("freight") or getattr(activity_row, "quantity", None)
             if not rail_type or not terrain or freight_raw in (None, ""):
                 return None
             from schemas.user_emissions_rail import RailEmissionsCalculateRequest
@@ -112,6 +272,18 @@ async def _calculate_and_store_impl(
             activity_row.extra_fields = extra
             return rail_result.emissions_total_ref_period_tco2e
 
+        # Tables with their own calculation contract must not fall back to
+        # generic quantity × metric multiplication merely because a legacy
+        # metric natural key happens to resolve.
+        base_table_key = mitigation_base_table_key(activity_row.ui_table_key)
+        if base_table_key == "refurbishment":
+            return await _recalc_refurbishment_row(db, activity_row)
+        if base_table_key in _INDEPENDENT_CALCULATION_TABLES:
+            return None
+        specialized_calculator = _SPECIALIZED_CALCULATORS.get(base_table_key)
+        if specialized_calculator is not None:
+            return await specialized_calculator(db, activity_row)
+
         # 1. Resolve the emission factor metric. ActivityData stores the stable
         # natural key; metric_id is retained only as a legacy compatibility path.
         metric_natural_key = getattr(activity_row, "metric_natural_key", None)
@@ -128,137 +300,6 @@ async def _calculate_and_store_impl(
                 metric = await get_background_grade_metric_orm(db, legacy_metric_id)
 
         if metric is None:
-            # Refurbishment rows: delegate entirely to MaintenanceReplacementCalculator
-            if matches_base_table_key(activity_row.ui_table_key, "refurbishment"):
-                extra = activity_row.extra_fields or {}
-                mr_factor_id = extra.get("mr_factor_id")
-                if mr_factor_id:
-                    factor_q = await db.execute(
-                        select(MaintenanceReplacementFactor).where(
-                            MaintenanceReplacementFactor.id == mr_factor_id
-                        )
-                    )
-                    factor = factor_q.scalars().first()
-
-                    jur_q = await db.execute(
-                        select(Jurisdiction).where(Jurisdiction.id == factor.jurisdiction_id)
-                    ) if factor and factor.jurisdiction_id else None
-                    jur = jur_q.scalars().first() if jur_q else None
-                    jurisdiction_name = jur.name if jur else "Australia"
-
-                    project_q = await db.execute(
-                        select(Project).where(Project.id == activity_row.project_id)
-                    )
-                    project = project_q.scalars().first()
-                    reference_period = float(project.operational_life_years) if project and project.operational_life_years else None
-                    frequency_years = float(extra.get("frequency", 0) or 0)
-
-                    if factor and reference_period and frequency_years > 0:
-                        calc_quantity = float(activity_row.quantity)
-                        if (
-                            activity_row.unit_id is not None
-                            and factor.unit_id is not None
-                            and activity_row.unit_id != factor.unit_id
-                        ):
-                            conv = await get_conversion_factor(
-                                db,
-                                activity_row.unit_id,
-                                factor.unit_id,
-                                activity_row.dataset_revision_id,
-                            )
-                            if conv is not None:
-                                calc_quantity = calc_quantity * float(conv)
-                            else:
-                                logger.warning(
-                                    "calculate_and_store: no unit conversion from %s to factor unit %s "
-                                    "for refurbishment activity_data %s; using raw quantity",
-                                    activity_row.unit_id,
-                                    factor.unit_id,
-                                    activity_row.id,
-                                )
-
-                        req = MaintenanceCalcRequest(
-                            jurisdiction=jurisdiction_name,
-                            activity_type=factor.activity_type,
-                            item=factor.item,
-                            unit=factor.unit.code if factor.unit else "",
-                            quantity=calc_quantity,
-                            reference_period=reference_period,
-                            frequency_years=frequency_years,
-                        )
-                        calc_result = await maintenance_calculator.calculate(db, req)
-                        tco2e = Decimal(str(calc_result.total_emissions_tco2e))
-                        await upsert_result(
-                            db,
-                            project_id=activity_row.project_id,
-                            project_stage_instance_id=activity_row.project_stage_instance_id,
-                            activity_data_id=activity_row.id,
-                            value_key="B2-5",
-                            lifecycle_module_code="B2-5",
-                            value=tco2e,
-                            unit_id=activity_row.unit_id,
-                        )
-                        await upsert_result(
-                            db,
-                            project_id=activity_row.project_id,
-                            project_stage_instance_id=activity_row.project_stage_instance_id,
-                            activity_data_id=activity_row.id,
-                            value_key="scope3",
-                            lifecycle_module_code=None,
-                            is_supplementary=True,
-                            value=tco2e,
-                            unit_id=activity_row.unit_id,
-                        )
-                        return tco2e
-                    
-            asset_total = await recalc_asset_row(db, activity_row)
-            if asset_total is not None:
-                return asset_total
-
-            grade2_component_total = await recalc_grade2_component_row(db, activity_row)
-            if grade2_component_total is not None:
-                return grade2_component_total
-
-            grade2_b4_total = await recalc_grade2_b4_replacement_row(db, activity_row)
-            if grade2_b4_total is not None:
-                return grade2_b4_total
-
-            repl_detailed_total = await recalc_detailed_b2b5_row(db, activity_row)
-            if repl_detailed_total is not None:
-                return repl_detailed_total
-
-            op_total = await recalc_operational_row(db, activity_row)
-            if op_total is not None:
-                return op_total
-
-            op_fw_total = await recalc_operational_fuel_water_row(db, activity_row)
-            if op_fw_total is not None:
-                return op_fw_total
-
-            shortcut_total = await recalc_shortcut_is_materials_row(db, activity_row)
-            if shortcut_total is not None:
-                return shortcut_total
-
-            inuse_gases_total = await recalc_inuse_gases_row(db, activity_row)
-            if inuse_gases_total is not None:
-                return inuse_gases_total
-
-            use_b1g3_total = await recalc_use_b1g3_row(db, activity_row)
-            if use_b1g3_total is not None:
-                return use_b1g3_total
-
-            concrete_total = await recalc_concrete_row(db, activity_row)
-            if concrete_total is not None:
-                return concrete_total
-
-            grade34_total = await recalc_grade34_construction_activity_row(db, activity_row)
-            if grade34_total is not None:
-                return grade34_total
-
-            electricity_total = await recalc_electricity_activity_row(db, activity_row)
-            if electricity_total is not None:
-                return electricity_total
-
             logger.warning(
                 "calculate_and_store: no BackgroundGradeMetric resolved for activity_data %s "
                 "(natural_key=%r, legacy_metric_id=%r)",
@@ -337,7 +378,9 @@ async def _calculate_and_store_impl(
 
     except Exception as exc:
         logger.exception(
-            "calculate_and_store failed for activity_data %s: %s", activity_row.id, exc
+            "calculate_and_store failed for activity_data %s: %s",
+            getattr(activity_row, "id", None),
+            exc,
         )
         if raise_errors:
             raise
@@ -371,6 +414,11 @@ async def calculate_and_store(
             activity_row_id,
         )
         return result
+    if result is None and _has_dedicated_calculator(activity_row):
+        # A dedicated calculator returning no result means its required inputs
+        # or factors were unavailable. Do not mirror stale client-provided
+        # extra_fields into the ledger as though they were calculated values.
+        return None
     try:
         from services.result_ledger import persist_legacy_outputs
 

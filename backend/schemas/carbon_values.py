@@ -21,6 +21,7 @@ class CarbonValueOut(BaseModel):
 
 
 class CarbonValueUpdate(BaseModel):
+    jurisdiction_id: Optional[UUID] = None
     value: Optional[float] = None
     currency: Optional[str] = None
     source: Optional[str] = None

@@ -49,8 +49,8 @@ class UserEmissionsAusLargeRoadResult(Base):
     assessment_year = Column(Integer, nullable=False)
 
     # Interpolated / extrapolated inputs for this year
-    vkt_calc            = Column(Numeric(20, 6), nullable=True)
-    speed_kph_calc      = Column(Numeric(10, 4), nullable=True)
+    vkt_calc            = Column(Numeric(), nullable=True)
+    speed_kph_calc      = Column(Numeric(), nullable=True)
 
     # Road parameters (stored for audit; same across all years for one vehicle type)
     gradient_m_per_km     = Column(Numeric(10, 4), nullable=True)
@@ -58,8 +58,8 @@ class UserEmissionsAusLargeRoadResult(Base):
     iri_m_per_km          = Column(Numeric(10, 4), nullable=True)
 
     # Results
-    emissions_intensity_gco2e_vkt = Column(Numeric(20, 6), nullable=True)
-    emissions_tco2e               = Column(Numeric(20, 10), nullable=True)
+    emissions_intensity_gco2e_vkt = Column(Numeric(), nullable=True)
+    emissions_tco2e               = Column(Numeric(), nullable=True)
 
     created_at = Column(
         DateTime(timezone=False),

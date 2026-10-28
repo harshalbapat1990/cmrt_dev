@@ -61,4 +61,42 @@ describe("createMitigationNewRowSaver", () => {
     expect(setError).toHaveBeenCalledWith("Please enter required fields");
     expect(ActivityDataService.createRow).not.toHaveBeenCalled();
   });
+
+  it("displays the saved server calculation instead of the optimistic preview", async () => {
+    vi.mocked(resolveTableConfig).mockReturnValue({ rules: [] } as never);
+    vi.mocked(ActivityDataService.createRow).mockResolvedValue({
+      id: "saved-asset",
+      emissions_tco2e: "24322.5",
+      extra_fields: {},
+    } as never);
+    const saver = createMitigationNewRowSaver({
+      projectId: "project-1",
+      mitigationStageInstance: { id: "stage-1", stage: "CONSTRUCTION" },
+      mitigationOptionId: "option-1",
+      activePeriod: null,
+      user: null,
+      resolveMetricId: vi.fn().mockResolvedValue("metric-1"),
+      computeEmissionsForRow: vi.fn().mockResolvedValue({ total_emissions_tco2e: 68550 }),
+      apiRowToUiRow: vi.fn((row: { id: string; emissions_tco2e?: string }) => ({
+        id: row.id,
+        emissions_tco2e: row.emissions_tco2e,
+      })),
+      refreshOptionTotals: vi.fn().mockResolvedValue(undefined),
+      mitigationActivityUsesSubmissionPeriod: () => false,
+      constructionStartDate: null,
+      constructionEndDate: null,
+      opsStartYear: null,
+      operationalLifeYears: null,
+    });
+    const appendRow = vi.fn();
+
+    await expect(saver("asset", "mitigation-1", { quantity: 150000000 }, appendRow, vi.fn()))
+      .resolves.toBe(true);
+
+    expect(appendRow).toHaveBeenCalledWith("asset", expect.objectContaining({
+      id: "saved-asset",
+      emissions_tco2e: "24322.5",
+      total_emissions_tco2e: "24322.5",
+    }));
+  });
 });

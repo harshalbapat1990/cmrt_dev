@@ -85,6 +85,7 @@ async def update_electric_decarb_factor(
     factor_id: UUID,
     value: Optional[float],
     value_qualifier: Optional[str],
+    jurisdiction_id: Optional[UUID] = None,
 ) -> Optional[dict]:
     edf = ElectricDecarbFactor.__table__
     res = await db.execute(select(edf.c.dataset_revision_id).where(edf.c.id == factor_id))
@@ -96,7 +97,9 @@ async def update_electric_decarb_factor(
         raise ValueError("Dataset revision is not in draft status and cannot be edited.")
     await db.execute(
         sa_update(edf).where(edf.c.id == factor_id).values(
-            value=value, value_qualifier=value_qualifier
+            value=value,
+            value_qualifier=value_qualifier,
+            **({"jurisdiction_id": jurisdiction_id} if jurisdiction_id is not None else {}),
         )
     )
     await db.commit()

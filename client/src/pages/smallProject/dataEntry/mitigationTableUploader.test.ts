@@ -76,4 +76,41 @@ describe("createMitigationTableUploader", () => {
       .rejects.toThrow("Row 1: Life (years) must be less than or equal to the operational life of project (40 years).");
     expect(ActivityDataService.bulkUpsert).not.toHaveBeenCalled();
   });
+
+  it("uses the saved server result instead of an optimistic mitigation upload value", async () => {
+    // Use an API mapper that exposes the saved calculation and a preview that
+    // intentionally differs, matching the reported bulk upload regression.
+    const configuredUploader = createMitigationTableUploader({
+      projectId: "project-1",
+      mitigationStageInstance: { id: "stage-1", stage: "CONSTRUCTION" },
+      mitigationOptionId: "option-1",
+      activePeriod: { id: "period-1" } as never,
+      user: null,
+      operationalLifeYears: 40,
+      mitigationActivityUsesSubmissionPeriod: () => false,
+      resolveMetricId: vi.fn().mockResolvedValue("metric-1"),
+      computeEmissionsForRow: vi.fn().mockResolvedValue({ total_emissions_tco2e: 68550 }),
+      apiRowToUiRow: vi.fn((row: { id: string; emissions_tco2e?: string }) => ({
+        id: row.id,
+        emissions_tco2e: row.emissions_tco2e,
+      })),
+      refreshOptionTotals: vi.fn().mockResolvedValue(undefined),
+      constructionStartDate: null,
+      constructionEndDate: null,
+      opsStartYear: null,
+    });
+    vi.mocked(ActivityDataService.bulkUpsert).mockResolvedValueOnce([{
+      id: "saved-asset",
+      emissions_tco2e: "24322.5",
+      extra_fields: {},
+    }] as never);
+
+    const result = await configuredUploader("asset", "mitigation-1", [{ quantity: 150000000 }]);
+
+    expect(result.rows).toEqual([expect.objectContaining({
+      id: "saved-asset",
+      emissions_tco2e: "24322.5",
+      total_emissions_tco2e: "24322.5",
+    })]);
+  });
 });
