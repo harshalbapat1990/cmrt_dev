@@ -22,6 +22,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from services._calc_utils import round_result
+from services.calculation_errors import DatasetLookupError
 from services.project_context_helper import ProjectContextHelper
 
 from models.project import Project
@@ -144,7 +145,7 @@ class Grade2B4ReplacementCalculator:
         )
 
         if not lookup:
-            raise ValueError(
+            raise DatasetLookupError(
                 f"No Grade 2 data found for: "
                 f"Jurisdiction='{jurisdiction}', "
                 f"Emissions Category='{request.emissions_category}', "

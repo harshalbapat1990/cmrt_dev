@@ -149,6 +149,8 @@ async def recalc_use_b1g3_row(
     try:
         resp = await grade34_maintenance_calculator.calculate(db, req)
     except ValueError as exc:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            raise
         logger.warning(
             "useB1G3 calculate failed activity_data=%s: %s",
             activity_row.id,
@@ -161,6 +163,8 @@ async def recalc_use_b1g3_row(
             activity_row.id,
         )
         return None
+
+    activity_row._dataset_data_warnings = list(resp.data_warnings or [])
 
     total = Decimal(str(resp.total_emissions_tco2e))
     common = dict(

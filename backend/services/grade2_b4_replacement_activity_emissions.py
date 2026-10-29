@@ -13,6 +13,7 @@ from services.grade2_b4_replacement_calculations import (
     Grade2B4ReplacementCalculator,
     Grade2B4ReplacementRequest,
 )
+from services.calculation_errors import DatasetLookupError
 from services.ui_table_key_normalization import matches_base_table_key
 
 logger = logging.getLogger(__name__)
@@ -92,7 +93,7 @@ async def recalc_grade2_b4_replacement_row(
 
     try:
         resp = await _calculator.calculate(db, req)
-    except ValueError as exc:
+    except DatasetLookupError as exc:
         if getattr(activity_row, "_strict_dataset_recalculation", False):
             from services.project_dataset_recalculation import MissingDatasetDataError
 
@@ -102,6 +103,11 @@ async def recalc_grade2_b4_replacement_row(
             activity_row.id,
             exc,
         )
+        return None
+    except ValueError:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            raise
+        logger.exception("grade2_b4_replacement invalid project inputs activity_data=%s", activity_row.id)
         return None
     except Exception:
         if getattr(activity_row, "_strict_dataset_recalculation", False):

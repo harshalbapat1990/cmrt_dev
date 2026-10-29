@@ -44,7 +44,14 @@ async def recalc_detailed_b2b5_row(
     unit = _pick_label(extra.get("unit_code")).strip()
     period = _pick_label(extra.get("period")).strip()
 
-    if not emissions_category or not emissions_sub_category or not emissions_source or not unit or not period:
+    if (
+        not emissions_category or not emissions_sub_category or not emissions_source
+        or not unit or not period
+        or period.casefold() not in {
+            "annual", "annual average", "average annual life",
+            "total operational life", "total",
+        }
+    ):
         logger.debug(
             "replDetailed skip: missing inputs activity_data=%s",
             activity_row.id,
@@ -90,9 +97,7 @@ async def recalc_detailed_b2b5_row(
         resp = await _calculator.calculate(db, req)
     except ValueError as exc:
         if getattr(activity_row, "_strict_dataset_recalculation", False):
-            from services.project_dataset_recalculation import MissingDatasetDataError
-
-            raise MissingDatasetDataError("Detailed level maintenance factors", str(exc)) from exc
+            raise
         logger.warning(
             "replDetailed calculation lookup failed activity_data=%s: %s",
             activity_row.id,
@@ -108,6 +113,7 @@ async def recalc_detailed_b2b5_row(
         )
         return None
 
+    activity_row._dataset_data_warnings = list(resp.data_warnings or [])
     if resp.total_emissions_tco2e is None:
         return None
 

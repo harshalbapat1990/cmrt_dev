@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from sqlalchemy import select
+
 from models.project_stage_instances import ProjectStageInstance
 
 
@@ -84,9 +86,14 @@ async def data_entry_table_display_name(db: Any, activity_row: Any) -> str:
     stage_label = "Stage"
     stage_instance_id = getattr(activity_row, "project_stage_instance_id", None)
     if stage_instance_id is not None:
-        stage_instance = await db.get(ProjectStageInstance, stage_instance_id)
-        if stage_instance is not None:
-            stage_value = getattr(stage_instance.stage, "value", stage_instance.stage)
+        # Select the scalar column directly. Accessing stage_instance.stage
+        # may trigger an async lazy load through a synchronous ORM attribute
+        # access, which raises MissingGreenlet during recalculation reporting.
+        stage_value = (await db.execute(
+            select(ProjectStageInstance.stage).where(ProjectStageInstance.id == stage_instance_id)
+        )).scalar_one_or_none()
+        if stage_value is not None:
+            stage_value = getattr(stage_value, "value", stage_value)
             stage_label = _STAGE_LABELS.get(str(stage_value), str(stage_value).replace("_", " ").title())
 
     suffix = raw_key[len(base_key):]

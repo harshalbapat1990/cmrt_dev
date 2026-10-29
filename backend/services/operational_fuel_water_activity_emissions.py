@@ -97,9 +97,7 @@ async def recalc_operational_fuel_water_row(
         resp = await _calculator.calculate(db, req)
     except ValueError as exc:
         if getattr(activity_row, "_strict_dataset_recalculation", False):
-            from services.project_dataset_recalculation import MissingDatasetDataError
-
-            raise MissingDatasetDataError("Operational fuel and water factors", str(exc)) from exc
+            raise
         logger.warning(
             "opEnergyDetailed lookup failed activity_data=%s: %s",
             activity_row.id,
@@ -114,6 +112,17 @@ async def recalc_operational_fuel_water_row(
             activity_row.id,
         )
         return None
+
+    if emissions_category.casefold() in {"fuels", "electricity"}:
+        missing_scopes = [
+            scope for scope, value in (
+                ("Scope 1", resp.scope1_factor_tco2e_per_uom),
+                ("Scope 3", resp.scope3_factor_tco2e_per_uom),
+            ) if value is None
+        ]
+        activity_row._dataset_data_warnings = [
+            f"Missing {' and '.join(missing_scopes)} operational fuel/water factor for '{emissions_source}'."
+        ] if missing_scopes else []
 
     tco2e = Decimal(str(resp.total_emissions_tco2e))
     lifecycle_module = "B7" if emissions_category == "Water" else "B6"

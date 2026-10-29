@@ -112,6 +112,27 @@ async def test_specialized_missing_result_does_not_fall_through_to_resolved_metr
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("base_key", SPECIALIZED_KEYS)
+async def test_incomplete_specialized_rows_are_not_reclassified_as_dataset_gaps(monkeypatch, base_key):
+    handler = AsyncMock(return_value=None)
+    monkeypatch.setitem(calculator._SPECIALIZED_CALCULATORS, base_key, handler)
+    metric_lookup = AsyncMock(side_effect=AssertionError("specialized rows do not use the generic metric"))
+    monkeypatch.setattr(calculator, "get_background_grade_metric_by_natural_key", metric_lookup)
+
+    row = SimpleNamespace(
+        id=uuid4(),
+        ui_table_key=base_key,
+        metric_natural_key={"grade_id": 2, "unit_id": str(uuid4())},
+        metric_id=None,
+        quantity=None,
+    )
+
+    assert await calculator._calculate_and_store_impl(object(), row, raise_errors=True) is None
+    handler.assert_awaited_once()
+    metric_lookup.assert_not_awaited()
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize("table_key", ["roadUsers", "largeRoadUsers", "largeRoadParams"])
 async def test_road_user_workflow_rows_never_enter_generic_metric_path(monkeypatch, table_key):
     metric_lookup = AsyncMock(side_effect=AssertionError("road users have an independent calculation flow"))
@@ -221,4 +242,69 @@ async def test_generic_metric_table_keeps_quantity_times_factor_behavior(monkeyp
     assert result == Decimal("68550.000000000")
     upsert.assert_awaited_once()
     assert upsert.await_args.kwargs["value"] == result
+
+
+@pytest.mark.asyncio
+async def test_generic_metric_with_missing_factor_value_is_reported_as_dataset_gap(monkeypatch):
+    from services.project_dataset_recalculation import MissingDatasetDataError
+
+    metric = SimpleNamespace(id=uuid4(), value=None, unit_id=None, lifecycle_module_code="A1-A3")
+    monkeypatch.setattr(calculator, "get_background_grade_metric_by_natural_key", AsyncMock(return_value=metric))
+    row = SimpleNamespace(
+        id=uuid4(),
+        ui_table_key="genericMetricTable",
+        metric_natural_key={"grade_id": 1},
+        metric_id=None,
+        quantity=Decimal("10"),
+        unit_id=None,
+        dataset_revision_id=uuid4(),
+        _strict_dataset_recalculation=True,
+    )
+
+    with pytest.raises(MissingDatasetDataError, match="emission factor value is missing"):
+        await calculator._calculate_and_store_impl(object(), row, raise_errors=True)
+
+
+@pytest.mark.asyncio
+async def test_generic_row_missing_quantity_is_not_reported_as_a_dataset_gap(monkeypatch):
+    metric_lookup = AsyncMock(side_effect=AssertionError("incomplete rows should skip factor lookup"))
+    monkeypatch.setattr(calculator, "get_background_grade_metric_by_natural_key", metric_lookup)
+    row = SimpleNamespace(
+        id=uuid4(),
+        ui_table_key="genericMetricTable",
+        metric_natural_key={"grade_id": 1},
+        metric_id=None,
+        quantity=None,
+        _strict_dataset_recalculation=True,
+    )
+
+    assert await calculator._calculate_and_store_impl(object(), row, raise_errors=True) is None
+    metric_lookup.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_incomplete_generic_row_does_not_restore_stale_legacy_emissions(monkeypatch):
+    import services.result_ledger as result_ledger
+
+    metric_lookup = AsyncMock(side_effect=AssertionError("incomplete rows skip factor lookup"))
+    persist_legacy = AsyncMock(side_effect=AssertionError("must not persist stale emissions"))
+    monkeypatch.setattr(calculator, "get_background_grade_metric_by_natural_key", metric_lookup)
+    monkeypatch.setattr(result_ledger, "persist_legacy_outputs", persist_legacy)
+    db = SimpleNamespace(execute=AsyncMock(), in_transaction=lambda: True)
+    row = SimpleNamespace(
+        id=uuid4(),
+        ui_table_key="genericMetricTable",
+        metric_natural_key={"grade_id": 1},
+        metric_id=None,
+        quantity=None,
+        extra_fields={"total_emissions_tco2e": "123.45"},
+        _strict_dataset_recalculation=True,
+    )
+
+    result = await calculator.calculate_and_store(db, row, raise_errors=True)
+
+    assert result is None
+    assert row._activity_inputs_incomplete is True
+    metric_lookup.assert_not_awaited()
+    persist_legacy.assert_not_awaited()
 

@@ -117,9 +117,7 @@ async def recalc_grade34_construction_activity_row(
         resp = await grade34_construction_calculator.calculate(db, req)
     except ValueError as exc:
         if getattr(activity_row, "_strict_dataset_recalculation", False):
-            from services.project_dataset_recalculation import MissingDatasetDataError
-
-            raise MissingDatasetDataError("Grade 3/4 detailed level factors", str(exc)) from exc
+            raise
         logger.warning(
             "grade34 calculate failed activity_data=%s key=%s: %s",
             getattr(activity_row, "id", None),
@@ -136,11 +134,10 @@ async def recalc_grade34_construction_activity_row(
         )
         return None
 
-    total_float = float(resp.total_emissions_tco2e)
-
     # Keep source lookup gaps on the in-memory row for the revision-switch
     # report without exposing internal calculation metadata to data-entry APIs.
     activity_row._dataset_data_warnings = list(resp.data_warnings)
+    total_float = float(resp.total_emissions_tco2e)
 
     common = dict(
         db=db,

@@ -55,6 +55,7 @@ from services.grade2_component_activity_emissions import recalc_grade2_component
 from services.concrete_activity_emissions import recalc_concrete_row
 from services.shortcut_activity_emissions import recalc_shortcut_is_materials_row, recalc_use_b1g3_row
 from services.inuse_gases_activity_emissions import recalc_inuse_gases_row
+from services.calculation_errors import DatasetLookupError
 from services.ui_table_key_normalization import mitigation_base_table_key
 from services.ui_table_key_normalization import matches_base_table_key
 from services.maintenance_replacement_component_level_calcs import (
@@ -153,6 +154,13 @@ async def _recalc_refurbishment_row(
         )
         if conv is not None:
             calc_quantity *= float(conv)
+        elif getattr(activity_row, "_strict_dataset_recalculation", False):
+            from services.project_dataset_recalculation import MissingDatasetDataError
+
+            raise MissingDatasetDataError(
+                "Unit conversions",
+                "No conversion exists between the entered unit and the selected maintenance factor unit.",
+            )
         else:
             logger.warning(
                 "calculate_and_store: no unit conversion from %s to factor unit %s "
@@ -172,6 +180,7 @@ async def _recalc_refurbishment_row(
         frequency_years=frequency_years,
     )
     calc_result = await maintenance_calculator.calculate(db, req)
+    activity_row._dataset_data_warnings = list(calc_result.data_warnings or [])
     tco2e = Decimal(str(calc_result.total_emissions_tco2e))
     common = dict(
         db=db,
@@ -220,13 +229,6 @@ async def _calculate_and_store_impl(
         if is_grade34_detailed_construction_activity_row(activity_row):
             activity_row.metric_natural_key = None
             grade34_total = await recalc_grade34_construction_activity_row(db, activity_row)
-            if grade34_total is None and getattr(activity_row, "_strict_dataset_recalculation", False):
-                from services.project_dataset_recalculation import MissingDatasetDataError
-
-                raise MissingDatasetDataError(
-                    "Grade 3/4 detailed level factors",
-                    "The entry is missing the category, sub-category, source, unit, or quantity required for recalculation.",
-                )
             return grade34_total
 
         # Grade 1 assets have a multi-stage CAPEX calculation (material share
@@ -258,12 +260,10 @@ async def _calculate_and_store_impl(
                         freight_quantity_gtk_per_year=Decimal(str(freight_raw)),
                     ),
                 )
-            except ValueError as exc:
-                if "No emissions factor found" in str(exc) or "No fuel consumption data" in str(exc):
-                    from services.project_dataset_recalculation import MissingDatasetDataError
+            except DatasetLookupError as exc:
+                from services.project_dataset_recalculation import MissingDatasetDataError
 
-                    raise MissingDatasetDataError("Rail user-emissions factors", str(exc)) from exc
-                raise
+                raise MissingDatasetDataError("Rail user-emissions factors", str(exc)) from exc
             extra.update({
                 "emissions_intensity_tco2e_kl": str(rail_result.emissions_intensity_tco2e_kl),
                 "emissions_annual_tco2e": str(rail_result.emissions_annual_tco2e),
@@ -283,6 +283,17 @@ async def _calculate_and_store_impl(
         specialized_calculator = _SPECIALIZED_CALCULATORS.get(base_table_key)
         if specialized_calculator is not None:
             return await specialized_calculator(db, activity_row)
+
+        try:
+            qty = Decimal(str(activity_row.quantity))
+        except Exception:
+            # Validate the user-entered quantity before interpreting an
+            # unresolved metric as a dataset gap.
+            activity_row._activity_inputs_incomplete = True
+            return None
+        if not qty.is_finite():
+            activity_row._activity_inputs_incomplete = True
+            return None
 
         # 1. Resolve the emission factor metric. ActivityData stores the stable
         # natural key; metric_id is retained only as a legacy compatibility path.
@@ -307,7 +318,7 @@ async def _calculate_and_store_impl(
                 metric_natural_key,
                 getattr(activity_row, "metric_id", None),
             )
-            if metric_natural_key:
+            if metric_natural_key or getattr(activity_row, "metric_id", None) is not None:
                 from services.project_dataset_recalculation import MissingDatasetDataError
 
                 raise MissingDatasetDataError(
@@ -321,11 +332,17 @@ async def _calculate_and_store_impl(
                 "calculate_and_store: metric %s has no emission factor value; skipping calculation",
                 metric.id,
             )
+            if raise_errors and getattr(activity_row, "_strict_dataset_recalculation", False):
+                from services.project_dataset_recalculation import MissingDatasetDataError
+
+                raise MissingDatasetDataError(
+                    "Background grade metrics",
+                    "The selected revision contains the matching metric but its emission factor value is missing.",
+                )
             return None
 
         # 2. Calculate
         ef = Decimal(str(metric.value))
-        qty = Decimal(str(activity_row.quantity))
 
         if (
             activity_row.unit_id is not None
@@ -399,6 +416,7 @@ async def calculate_and_store(
 ) -> Optional[Decimal]:
     """Calculate a row and synchronize its reportable facts into the result ledger."""
     activity_row_id = activity_row.id
+    activity_row._activity_inputs_incomplete = False
     # Replace the row's facts on every recalculation. This prevents result keys
     # from an earlier calculator path from remaining in dashboard totals.
     from models.emissions_results import EmissionsResult
@@ -414,7 +432,10 @@ async def calculate_and_store(
             activity_row_id,
         )
         return result
-    if result is None and _has_dedicated_calculator(activity_row):
+    if result is None and (
+        _has_dedicated_calculator(activity_row)
+        or getattr(activity_row, "_activity_inputs_incomplete", False)
+    ):
         # A dedicated calculator returning no result means its required inputs
         # or factors were unavailable. Do not mirror stale client-provided
         # extra_fields into the ledger as though they were calculated values.

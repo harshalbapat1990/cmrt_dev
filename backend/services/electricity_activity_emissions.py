@@ -114,9 +114,7 @@ async def recalc_electricity_activity_row(
         resp = await _calculator.calculate(db, ElectricityDetailedRequest(**req_kwargs))
     except ValueError as exc:
         if getattr(activity_row, "_strict_dataset_recalculation", False):
-            from services.project_dataset_recalculation import MissingDatasetDataError
-
-            raise MissingDatasetDataError("Electricity detailed factors", str(exc)) from exc
+            raise
         logger.warning(
             "electricity calculate failed activity_data=%s key=%s: %s",
             activity_row.id,
@@ -132,6 +130,16 @@ async def recalc_electricity_activity_row(
             activity_row.id,
         )
         return None
+
+    missing_outputs = [
+        label for label, value in (
+            ("location-based", resp.location_based_total_tco2e),
+            ("market-based", resp.market_based_total_tco2e),
+        ) if value is None
+    ]
+    activity_row._dataset_data_warnings = [
+        f"Missing {' and '.join(missing_outputs)} electricity factors for '{source}' in {year}."
+    ] if missing_outputs else []
 
     lb = resp.location_based_total_tco2e
     mb = resp.market_based_total_tco2e

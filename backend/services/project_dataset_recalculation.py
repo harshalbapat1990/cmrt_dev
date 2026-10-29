@@ -37,6 +37,8 @@ class ProjectDatasetRecalculationError(Exception):
 
 _DATASET_TABLE_BY_ACTIVITY = {
     "asset": "Background grade metrics / asset factors",
+    "opEnergy": "Operational equipment factors",
+    "opEnergyDetailed": "Operational fuel and water factors",
     "component": "Grade 2 component factors",
     "constructionG2": "Grade 2 construction factors",
     "constructionG3": "Grade 3 construction factors",
@@ -148,19 +150,23 @@ async def recalculate_project_for_revision(
     for row in rows:
         if row.project_mitigation_id is not None:
             continue
+        row_id = row.id
+        row_entry = _entry_label(row)
+        row_table_label = await data_entry_table_display_name(db, row)
+        row_table_key = row.ui_table_key
         try:
             stage_instance = await db.get(ProjectStageInstance, row.project_stage_instance_id)
             if stage_instance is None:
                 continue
             async with db.begin_nested():
-                if row.ui_table_key in AUTO_SUBSTITUTION_TABLE_KEYS:
+                if row_table_key in AUTO_SUBSTITUTION_TABLE_KEYS:
                     await sync_auto_substitution_for_source_row(
                         db, row, stage_instance, project=project
                     )
-                if row.ui_table_key in AUTO_ELECTRICITY_TABLE_KEYS:
+                if row_table_key in AUTO_ELECTRICITY_TABLE_KEYS:
                     bucket = (
                         stage_instance.id,
-                        row.ui_table_key,
+                        row_table_key,
                         row.project_option_id,
                         row.submission_period_id,
                     )
@@ -168,7 +174,7 @@ async def recalculate_project_for_revision(
                         await sync_auto_electricity_for_table(
                             db,
                             stage_instance,
-                            row.ui_table_key,
+                            row_table_key,
                             row.project_option_id,
                             row.submission_period_id,
                             project=project,
@@ -176,9 +182,9 @@ async def recalculate_project_for_revision(
                         synced_electricity_buckets.add(bucket)
         except Exception as exc:
             errors.append({
-                "activity_data_id": str(row.id),
-                "entry": _entry_label(row),
-                "data_entry_table": await data_entry_table_display_name(db, row),
+                "activity_data_id": str(row_id),
+                "entry": row_entry,
+                "data_entry_table": row_table_label,
                 "message": f"Could not rebuild automatic mitigation: {exc}",
             })
 
@@ -193,6 +199,17 @@ async def recalculate_project_for_revision(
         row.dataset_revision_id = dataset_revision_id
         if row.ui_table_key == "completeness":
             continue
+        # A failed nested transaction can expire ORM attributes. Preserve the
+        # values needed to build the response before entering the savepoint so
+        # error reporting never triggers an implicit async refresh.
+        row_id = row.id
+        row_project_id = row.project_id
+        row_stage_instance_id = row.project_stage_instance_id
+        row_lifecycle_module_code = row.lifecycle_module_code
+        row_unit_id = row.unit_id
+        row_table_key = row.ui_table_key
+        row_entry = _entry_label(row)
+        row_table_label = await data_entry_table_display_name(db, row)
         row._dataset_data_warnings = []
         row._strict_dataset_recalculation = True
         try:
@@ -213,9 +230,6 @@ async def recalculate_project_for_revision(
                 await db.execute(delete(EmissionsResult).where(EmissionsResult.activity_data_id == row.id))
                 await db.flush()
                 await calculate_and_store(db, row, raise_errors=True)
-                emitted = (await db.execute(
-                    select(EmissionsResult.id).where(EmissionsResult.activity_data_id == row.id).limit(1)
-                )).scalar_one_or_none()
                 warnings = getattr(row, "_dataset_data_warnings", []) or []
                 if warnings:
                     warning_text = "; ".join(map(str, warnings))
@@ -223,15 +237,17 @@ async def recalculate_project_for_revision(
                         _warning_dataset_table(list(map(str, warnings)), row),
                         warning_text,
                     )
-                if emitted is None and getattr(row, "metric_natural_key", None):
-                    raise MissingDatasetDataError(_missing_dataset_table(row))
         except MissingDatasetDataError as exc:
-            await db.execute(delete(EmissionsResult).where(EmissionsResult.activity_data_id == row.id))
-            if (row.ui_table_key or "").split("-mitigation", 1)[0] in {"railUsers", "largeRailUsers"}:
+            await db.execute(delete(EmissionsResult).where(EmissionsResult.activity_data_id == row_id))
+            if (row_table_key or "").split("-mitigation", 1)[0] in {"railUsers", "largeRailUsers"}:
+                # calculate_and_store may have rolled back its row savepoint,
+                # expiring ORM attributes. Refresh explicitly before passing
+                # the row to the annual rail ledger synchronizer.
+                await db.refresh(row)
                 await db.execute(delete(EmissionsResult).where(
                     EmissionsResult.activity_data_id.is_(None),
                     EmissionsResult.assessment_year.is_not(None),
-                    EmissionsResult.value_key.like(f"b8_rail_{row.id.hex}_%"),
+                    EmissionsResult.value_key.like(f"b8_rail_{row_id.hex}_%"),
                 ))
                 extra.update({
                     "emissions_intensity_tco2e_kl": "0",
@@ -244,26 +260,26 @@ async def recalculate_project_for_revision(
                 await _persist_annual_rail_results(db, row, extra)
             await upsert_result(
                 db,
-                project_id=row.project_id,
-                project_stage_instance_id=row.project_stage_instance_id,
-                activity_data_id=row.id,
+                project_id=row_project_id,
+                project_stage_instance_id=row_stage_instance_id,
+                activity_data_id=row_id,
                 value_key="total",
-                lifecycle_module_code=row.lifecycle_module_code,
+                lifecycle_module_code=row_lifecycle_module_code,
                 value=0,
-                unit_id=row.unit_id,
+                unit_id=row_unit_id,
             )
             missing.append({
-                "activity_data_id": str(row.id),
-                "entry": _entry_label(row),
-                "data_entry_table": await data_entry_table_display_name(db, row),
+                "activity_data_id": str(row_id),
+                "entry": row_entry,
+                "data_entry_table": row_table_label,
                 "dataset_table": exc.dataset_table,
                 "message": str(exc),
             })
         except Exception as exc:
             errors.append({
-                "activity_data_id": str(row.id),
-                "entry": _entry_label(row),
-                "data_entry_table": await data_entry_table_display_name(db, row),
+                "activity_data_id": str(row_id),
+                "entry": row_entry,
+                "data_entry_table": row_table_label,
                 "message": str(exc),
             })
     try:

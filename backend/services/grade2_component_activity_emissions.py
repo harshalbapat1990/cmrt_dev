@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from crud.emissions_results import upsert_result
 from models.activity_data import ActivityData
 from services.grade2_component_calculations import Grade2CalculationRequest, calculator
+from services.calculation_errors import DatasetLookupError
 from services.project_context_helper import ProjectContextHelper
 from services.ui_table_key_normalization import mitigation_base_table_key
 
@@ -83,7 +84,7 @@ async def recalc_grade2_component_row(
 
     try:
         resp = await calculator.calculate(db, req)
-    except ValueError as exc:
+    except DatasetLookupError as exc:
         if getattr(activity_row, "_strict_dataset_recalculation", False):
             from services.project_dataset_recalculation import MissingDatasetDataError
 
@@ -93,6 +94,11 @@ async def recalc_grade2_component_row(
             activity_row.id,
             exc,
         )
+        return None
+    except ValueError:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            raise
+        logger.exception("grade2_component invalid calculation inputs activity_data=%s", activity_row.id)
         return None
 
     a1a3  = Decimal(str(resp.product_stage_a1_a3_tco2e))

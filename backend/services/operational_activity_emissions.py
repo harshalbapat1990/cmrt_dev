@@ -97,9 +97,7 @@ async def recalc_operational_row(
         resp = await _calculator.calculate(db, req)
     except ValueError as exc:
         if getattr(activity_row, "_strict_dataset_recalculation", False):
-            from services.project_dataset_recalculation import MissingDatasetDataError
-
-            raise MissingDatasetDataError("Operational equipment factors", str(exc)) from exc
+            raise
         logger.warning(
             "opEnergy calculate failed activity_data=%s: %s",
             activity_row.id,
@@ -114,6 +112,16 @@ async def recalc_operational_row(
             activity_row.id,
         )
         return None
+
+    missing_outputs = [
+        name for name, value in (
+            ("location-based emissions factors", resp.location_based_total_tco2e),
+            ("market-based emissions factors", resp.market_based_total_tco2e),
+        ) if value is None
+    ]
+    activity_row._dataset_data_warnings = [
+        f"Missing {', '.join(missing_outputs)} for operational source '{emissions_source}'."
+    ] if missing_outputs else []
 
     common = dict(
         db=db,

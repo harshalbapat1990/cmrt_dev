@@ -8,7 +8,6 @@ import pytest
 import crud.activity_data as activity_data_crud
 import services.emissions_calculator as emissions_calculator
 from schemas.activity_data import ActivityDataCreate, ActivityDataUpdate
-from services.project_dataset_recalculation import MissingDatasetDataError
 
 
 @pytest.mark.asyncio
@@ -95,7 +94,7 @@ async def test_grade34_update_clears_an_existing_generic_metric_reference(monkey
 
 
 @pytest.mark.asyncio
-async def test_grade34_strict_recalculation_reports_missing_required_inputs(monkeypatch):
+async def test_grade34_strict_recalculation_skips_missing_required_inputs(monkeypatch):
     row = SimpleNamespace(
         id=uuid4(),
         ui_table_key="bcDetailedLevel",
@@ -109,7 +108,7 @@ async def test_grade34_strict_recalculation_reports_missing_required_inputs(monk
         AsyncMock(return_value=None),
     )
 
-    with pytest.raises(MissingDatasetDataError, match="category, sub-category, source, unit, or quantity"):
-        await emissions_calculator._calculate_and_store_impl(object(), row, raise_errors=True)
+    result = await emissions_calculator._calculate_and_store_impl(object(), row, raise_errors=True)
 
+    assert result is None
     assert row.metric_natural_key is None

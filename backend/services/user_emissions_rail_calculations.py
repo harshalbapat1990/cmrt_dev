@@ -41,6 +41,7 @@ from schemas.user_emissions_rail import (
     RailEmissionsCalculateRequest,
     RailEmissionsCalculateResponse,
 )
+from services.calculation_errors import DatasetLookupError
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -206,7 +207,7 @@ async def calculate_rail(
     ef_row = (await db.execute(diesel_sql, diesel_params)).mappings().first()
 
     if ef_row is None:
-        raise ValueError(
+        raise DatasetLookupError(
             f"No emissions factor found in v_grade34_detailed_level for "
             f"Jurisdiction='{grade34_jurisdiction}', Source='{fuel_source}', UoM='kL'."
         )
@@ -225,7 +226,7 @@ async def calculate_rail(
     ).mappings().first()
 
     if fuel_row is None or fuel_row["fuel_consumption_l_per_000_gtk"] is None:
-        raise ValueError(
+        raise DatasetLookupError(
             f"No fuel consumption data found in freight_rail_factors for "
             f"rail_type='{req.rail_type}', terrain='{req.terrain}'."
         )

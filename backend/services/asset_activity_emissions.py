@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from crud.emissions_results import upsert_result
 from models.activity_data import ActivityData
 from services.grade1_asset_calculations import Grade1CalculationRequest, calculator
+from services.calculation_errors import DatasetLookupError
 from services.project_context_helper import ProjectContextHelper
 
 logger = logging.getLogger(__name__)
@@ -79,7 +80,7 @@ async def recalc_asset_row(
 
     try:
         resp = await calculator.calculate(db, req)
-    except ValueError as exc:
+    except DatasetLookupError as exc:
         if getattr(activity_row, "_strict_dataset_recalculation", False):
             from services.project_dataset_recalculation import MissingDatasetDataError
 
@@ -89,6 +90,11 @@ async def recalc_asset_row(
             activity_row.id,
             exc,
         )
+        return None
+    except ValueError:
+        if getattr(activity_row, "_strict_dataset_recalculation", False):
+            raise
+        logger.exception("asset skip: invalid calculation inputs activity_data=%s", activity_row.id)
         return None
 
     a1a3  = Decimal(str(resp.product_stage_a1a3))

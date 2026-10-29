@@ -23,6 +23,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
 from services._calc_utils import round_result
+from services.calculation_errors import DatasetLookupError
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -130,7 +131,7 @@ class Grade1AssetCalculator:
         lookup_data = await self._fetch_lookup_data(db, request)
         
         if not lookup_data:
-            raise ValueError(
+            raise DatasetLookupError(
                 f"No lookup data found for: "
                 f"Jurisdiction={request.jurisdiction}, "
                 f"Mastertype={request.mastertype}, "

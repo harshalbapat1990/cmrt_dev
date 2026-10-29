@@ -34,12 +34,18 @@ def _decimal(value: Any) -> Decimal | None:
         return None
 
 
+def _vkt(row: ActivityData) -> Decimal | None:
+    extra = row.extra_fields or {}
+    value = _decimal(extra.get("vkt"))
+    return value if value is not None else _decimal(row.quantity)
+
+
 def _speed(row: ActivityData) -> Decimal | None:
     extra = row.extra_fields or {}
     speed = _decimal(extra.get("avg_speed") or extra.get("speed_kmh"))
     if speed is not None:
         return speed
-    vkt = _decimal(extra.get("vkt")) or _decimal(row.quantity)
+    vkt = _vkt(row)
     vht = _decimal(extra.get("vht"))
     return vkt / vht if vkt is not None and vht else None
 
@@ -90,6 +96,7 @@ async def _mark_small_road_gaps(
     input_by_vehicle = {
         str((row.extra_fields or {}).get("vehicle_type") or "").strip().casefold(): row
         for row in inputs
+        if _vkt(row) is not None and _speed(row) is not None
     }
     fields = (
         {
@@ -141,7 +148,15 @@ async def _mark_large_road_gaps(
     outputs = list((await db.execute(select(model).where(model.project_option_id == option_id))).scalars().all())
     source_by_vehicle: dict[str, ActivityData] = {}
     for row in inputs:
+        if _vkt(row) is None or _speed(row) is None:
+            continue
+        try:
+            int((row.extra_fields or {}).get("modelled_year"))
+        except (TypeError, ValueError):
+            continue
         vehicle = str((row.extra_fields or {}).get("vehicle_type") or "").strip().casefold()
+        if not vehicle:
+            continue
         if is_nz:
             vehicle = vehicle.replace(" ", "_")
         source_by_vehicle.setdefault(vehicle, row)
@@ -211,7 +226,7 @@ async def recalculate_annual_road_results(
                 continue
             extra = row.extra_fields or {}
             vehicle = str(extra.get("vehicle_type") or "").strip().casefold()
-            vkt = _decimal(extra.get("vkt")) or _decimal(row.quantity)
+            vkt = _vkt(row)
             speed = _speed(row)
             if not vehicle or vkt is None or speed is None:
                 continue
@@ -289,7 +304,7 @@ async def recalculate_annual_road_results(
                 extra = row.extra_fields or {}
                 year_raw = extra.get("modelled_year")
                 vehicle = str(extra.get("vehicle_type") or "").strip()
-                vkt = _decimal(extra.get("vkt")) or _decimal(row.quantity)
+                vkt = _vkt(row)
                 speed = _speed(row)
                 try:
                     year = int(year_raw)

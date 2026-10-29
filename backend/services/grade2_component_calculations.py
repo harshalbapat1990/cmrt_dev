@@ -28,6 +28,7 @@ from models.metric_types import MetricType
 from models.units import Unit
 
 from services._calc_utils import round_result
+from services.calculation_errors import DatasetLookupError
 
 
 async def fetch_grade2_revision_factors(
@@ -177,7 +178,7 @@ class Grade2ComponentCalculator:
         lookup = await self._fetch_lookup(db, request)
 
         if not lookup:
-            raise ValueError(
+            raise DatasetLookupError(
                 f"No Grade 2 data found for: "
                 f"Jurisdiction='{request.jurisdiction}', "
                 f"Emissions Category='{request.emissions_category}', "
