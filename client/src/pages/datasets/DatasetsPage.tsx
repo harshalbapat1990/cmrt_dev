@@ -28,7 +28,7 @@ import {
   GRADE_OPTIONS, TABS, TAB_GROUPS, INIT_G1, INIT_G234, INIT_RC, INIT_TR, INIT_DECARB, INIT_CARBON_VALUES, INIT_EV_UPTAKE, INIT_DENSITY, INIT_FUGITIVE, INIT_WASTAGE_RATES, INIT_CONTENT_RECYCLED,
 } from './constants';
 import { distinct, LABEL_TO_METRIC_CODE } from './utils';
-import { useGrade34CategoryOptions } from './hooks/useGrade34CategoryOptions';
+import { useBgmCategoryOptions } from './hooks/useBgmCategoryOptions';
 import { useDatasetScopeJurisdiction } from './hooks/useDatasetScopeJurisdiction';
 import { withDefaultJurisdiction, withJurisdictionBackfill } from './jurisdictionDefaults';
 import { pivotGrade1, pivotGrade2, pivotGrade34 } from './pivot';
@@ -247,9 +247,11 @@ export default function DatasetsPage({ scope = { type: 'DEFAULT' } }: { scope?: 
   const [bgmSaving,    setBgmSaving]    = useState(false);
   const [bgmSaveError, setBgmSaveError] = useState('');
   const [bgmRawRows,   setBgmRawRows]   = useState<BgmRow[]>([]);
-  const grade34Options = useGrade34CategoryOptions(
+  const bgmCategoryOptions = useBgmCategoryOptions(
     bgmAddDraft.emissions_category_id ?? '',
-    bgmAdding && activeGrade !== '' && activeGrade !== '1' && activeGrade !== '2',
+    selectedRevisionId,
+    activeGrade,
+    bgmAdding && ['2', '3', '4'].includes(activeGrade),
   );
   const [auditRows, setAuditRows]           = useState<AuditLogRow[]>([]);
   const [auditFetching, setAuditFetching]   = useState(false);
@@ -4008,6 +4010,12 @@ useMemo(() => {
             ) : activeGrade === '2' ? (
               <Grade2Table rows={displayRows as unknown as G2Row[]} ec={canEditTab ? {
                 unitOpts, metricTypeOpts, ecOpts, jurOpts,
+                bgmCategoryOpts: bgmCategoryOptions.categoryOptions,
+                bgmSubcategoryOpts: bgmCategoryOptions.subcategoryOptions,
+                bgmCategoriesLoading: bgmCategoryOptions.categoriesLoading,
+                bgmCategoryError: bgmCategoryOptions.categoryError,
+                bgmSubcategoriesLoading: bgmCategoryOptions.subcategoriesLoading,
+                bgmSubcategoryError: bgmCategoryOptions.subcategoryError,
                 mastertypeOpts,
                 typecasts: allTypecastsRaw,
                 editKey: bgmEditKey,
@@ -4018,7 +4026,9 @@ useMemo(() => {
                 onEditField: (f, v) => setBgmEditDraft(p => ({ ...p, [f]: v })),
                 onSaveEdit: doSaveBgmEdit,
                 onCancelEdit: doCancelBgmEdit,
-                onAddField: (f, v) => setBgmAddDraft(p => ({ ...p, [f]: v })),
+                onAddField: (f, v) => setBgmAddDraft(p => f === 'emissions_category_id'
+                  ? { ...p, emissions_category_id: v, emissions_subcategory_id: '' }
+                  : { ...p, [f]: v }),
                 onSaveAdd: doSaveBgmAdd,
                 onCancelAdd: doCancelBgmAdd,
                 saving: bgmSaving,
@@ -4027,12 +4037,12 @@ useMemo(() => {
             ) : (
               <Grade34Table rows={displayRows as unknown as G34Row[]} ec={canEditTab ? {
                 unitOpts, metricTypeOpts, ecOpts, jurOpts,
-                grade34CategoryOpts: grade34Options.categoryOptions,
-                grade34SubcategoryOpts: grade34Options.subcategoryOptions,
-                grade34CategoriesLoading: grade34Options.categoriesLoading,
-                grade34CategoryError: grade34Options.categoryError,
-                grade34SubcategoriesLoading: grade34Options.subcategoriesLoading,
-                grade34SubcategoryError: grade34Options.subcategoryError,
+                bgmCategoryOpts: bgmCategoryOptions.categoryOptions,
+                bgmSubcategoryOpts: bgmCategoryOptions.subcategoryOptions,
+                bgmCategoriesLoading: bgmCategoryOptions.categoriesLoading,
+                bgmCategoryError: bgmCategoryOptions.categoryError,
+                bgmSubcategoriesLoading: bgmCategoryOptions.subcategoriesLoading,
+                bgmSubcategoryError: bgmCategoryOptions.subcategoryError,
                 mastertypeOpts,
                 typecasts: allTypecastsRaw,
                 editKey: bgmEditKey,

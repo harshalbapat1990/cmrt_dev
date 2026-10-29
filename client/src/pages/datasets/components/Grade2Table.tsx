@@ -79,8 +79,32 @@ export default function Grade2Table({ rows, ec }: { rows: G2Row[]; ec?: BgmEditC
       <tbody>
         {ec?.adding && (
           <tr className="bg-blue-50">
-            <TD><InlineSelect value={ec.addDraft.emissions_category_id ?? ''} options={ec.ecOpts} onChange={v => ec.onAddField('emissions_category_id', v)} placeholder="" /></TD>
-            <TD><InlineSelect value={ec.addDraft.emissions_subcategory_id ?? ''} options={ec.ecOpts} onChange={v => ec.onAddField('emissions_subcategory_id', v)} placeholder="" /></TD>
+            <TD>
+              <InlineSelect
+                value={ec.addDraft.emissions_category_id ?? ''}
+                options={ec.bgmCategoryOpts ?? []}
+                onChange={v => ec.onAddField('emissions_category_id', v)}
+                placeholder={ec.bgmCategoriesLoading ? 'Loading…' : '— category —'}
+                disabled={ec.bgmCategoriesLoading || !!ec.bgmCategoryError}
+              />
+              {ec.bgmCategoryError && <span role="alert" className="text-[10px] text-red-600">{ec.bgmCategoryError}</span>}
+              {!ec.bgmCategoriesLoading && !ec.bgmCategoryError && (ec.bgmCategoryOpts ?? []).length === 0 && (
+                <span className="text-[10px] text-text-base">No categories available for this grade and dataset.</span>
+              )}
+            </TD>
+            <TD>
+              <InlineSelect
+                value={ec.addDraft.emissions_subcategory_id ?? ''}
+                options={ec.bgmSubcategoryOpts ?? []}
+                onChange={v => ec.onAddField('emissions_subcategory_id', v)}
+                placeholder={ec.bgmSubcategoriesLoading ? 'Loading…' : ec.bgmSubcategoryError ? 'Unavailable' : ec.addDraft.emissions_category_id ? '— subcategory —' : 'Select category first'}
+                disabled={!ec.addDraft.emissions_category_id || ec.bgmSubcategoriesLoading || !!ec.bgmSubcategoryError}
+              />
+              {ec.bgmSubcategoryError && <span role="alert" className="text-[10px] text-red-600">{ec.bgmSubcategoryError}</span>}
+              {ec.addDraft.emissions_category_id && !ec.bgmSubcategoriesLoading && !ec.bgmSubcategoryError && (ec.bgmSubcategoryOpts ?? []).length === 0 && (
+                <span className="text-[10px] text-text-base">No subcategories available.</span>
+              )}
+            </TD>
             <TD><InlineInput value={ec.addDraft.emissions_source ?? ''} onChange={v => ec.onAddField('emissions_source', v)} /></TD>
             <TD right><InlineInput value={ec.addDraft.assumed_quantity_default ?? ''} onChange={v => ec.onAddField('assumed_quantity_default', v)} type="number" /></TD>
             <TD><InlineSelect value={ec.addDraft.unit_id ?? ''} options={ec.unitOpts} onChange={v => ec.onAddField('unit_id', v)} placeholder="" /></TD>

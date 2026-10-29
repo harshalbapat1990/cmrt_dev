@@ -11,9 +11,11 @@ function toOptions(records: CategoryRecord[]): NamedOption[] {
   return records.map(({ id, name }) => ({ id, name }));
 }
 
-/** Loads the category hierarchy used by the Grade 3/4 add-row form. */
-export function useGrade34CategoryOptions(
+/** Loads category options present in the selected active BGM grade and revision. */
+export function useBgmCategoryOptions(
   selectedCategoryId: string,
+  datasetRevisionId: string,
+  gradeId: string,
   enabled: boolean,
 ) {
   const [categoryOptions, setCategoryOptions] = useState<NamedOption[]>([]);
@@ -25,10 +27,25 @@ export function useGrade34CategoryOptions(
 
   useEffect(() => {
     let current = true;
+
+    setCategoryOptions([]);
+    setSubcategoryOptions([]);
+    setSubcategoryError('');
+    if (!enabled || !datasetRevisionId || !['2', '3', '4'].includes(gradeId)) {
+      setCategoriesLoading(false);
+      setCategoryError('');
+      setSubcategoriesLoading(false);
+      return () => { current = false; };
+    }
+
     setCategoriesLoading(true);
     setCategoryError('');
 
-    http.get<CategoryRecord[]>('/api/emissions-categories?top_level_only=true&limit=500')
+    const query = new URLSearchParams({
+      grade_ids: gradeId,
+      dataset_revision_id: datasetRevisionId,
+    });
+    http.get<CategoryRecord[]>(`/api/lookup/bgm-categories?${query.toString()}`)
       .then(({ data }) => {
         if (current) setCategoryOptions(toOptions(data));
       })
@@ -40,21 +57,25 @@ export function useGrade34CategoryOptions(
       });
 
     return () => { current = false; };
-  }, []);
+  }, [datasetRevisionId, enabled, gradeId]);
 
   useEffect(() => {
     let current = true;
     setSubcategoryOptions([]);
     setSubcategoryError('');
 
-    if (!enabled || !selectedCategoryId) {
+    if (!enabled || !datasetRevisionId || !['2', '3', '4'].includes(gradeId) || !selectedCategoryId) {
       setSubcategoriesLoading(false);
       return () => { current = false; };
     }
 
     setSubcategoriesLoading(true);
-    const query = new URLSearchParams({ parent_category_id: selectedCategoryId, limit: '500' });
-    http.get<CategoryRecord[]>(`/api/emissions-categories?${query.toString()}`)
+    const query = new URLSearchParams({
+      grade_ids: gradeId,
+      category_id: selectedCategoryId,
+      dataset_revision_id: datasetRevisionId,
+    });
+    http.get<CategoryRecord[]>(`/api/lookup/bgm-subcategories?${query.toString()}`)
       .then(({ data }) => {
         if (current) setSubcategoryOptions(toOptions(data));
       })
@@ -66,7 +87,7 @@ export function useGrade34CategoryOptions(
       });
 
     return () => { current = false; };
-  }, [enabled, selectedCategoryId]);
+  }, [datasetRevisionId, enabled, gradeId, selectedCategoryId]);
 
   return {
     categoryOptions,

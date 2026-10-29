@@ -39,23 +39,26 @@ export default function Grade34Table({ rows, ec }: { rows: G34Row[]; ec?: BgmEdi
             <TD>
               <InlineSelect
                 value={ec.addDraft.emissions_category_id ?? ''}
-                options={ec.grade34CategoryOpts ?? []}
+                options={ec.bgmCategoryOpts ?? []}
                 onChange={v => ec.onAddField('emissions_category_id', v)}
-                placeholder={ec.grade34CategoriesLoading ? 'Loading…' : '— category —'}
-                disabled={ec.grade34CategoriesLoading || !!ec.grade34CategoryError}
+                placeholder={ec.bgmCategoriesLoading ? 'Loading…' : '— category —'}
+                disabled={ec.bgmCategoriesLoading || !!ec.bgmCategoryError}
               />
-              {ec.grade34CategoryError && <span role="alert" className="text-[10px] text-red-600">{ec.grade34CategoryError}</span>}
+              {ec.bgmCategoryError && <span role="alert" className="text-[10px] text-red-600">{ec.bgmCategoryError}</span>}
+              {!ec.bgmCategoriesLoading && !ec.bgmCategoryError && (ec.bgmCategoryOpts ?? []).length === 0 && (
+                <span className="text-[10px] text-text-base">No categories available for this grade and dataset.</span>
+              )}
             </TD>
             <TD>
               <InlineSelect
                 value={ec.addDraft.emissions_subcategory_id ?? ''}
-                options={ec.grade34SubcategoryOpts ?? []}
+                options={ec.bgmSubcategoryOpts ?? []}
                 onChange={v => ec.onAddField('emissions_subcategory_id', v)}
-                placeholder={ec.grade34SubcategoriesLoading ? 'Loading…' : ec.grade34SubcategoryError ? 'Unavailable' : ec.addDraft.emissions_category_id ? '— subcategory —' : 'Select category first'}
-                disabled={!ec.addDraft.emissions_category_id || ec.grade34SubcategoriesLoading || !!ec.grade34SubcategoryError}
+                placeholder={ec.bgmSubcategoriesLoading ? 'Loading…' : ec.bgmSubcategoryError ? 'Unavailable' : ec.addDraft.emissions_category_id ? '— subcategory —' : 'Select category first'}
+                disabled={!ec.addDraft.emissions_category_id || ec.bgmSubcategoriesLoading || !!ec.bgmSubcategoryError}
               />
-              {ec.grade34SubcategoryError && <span role="alert" className="text-[10px] text-red-600">{ec.grade34SubcategoryError}</span>}
-              {ec.addDraft.emissions_category_id && !ec.grade34SubcategoriesLoading && !ec.grade34SubcategoryError && (ec.grade34SubcategoryOpts ?? []).length === 0 && (
+              {ec.bgmSubcategoryError && <span role="alert" className="text-[10px] text-red-600">{ec.bgmSubcategoryError}</span>}
+              {ec.addDraft.emissions_category_id && !ec.bgmSubcategoriesLoading && !ec.bgmSubcategoryError && (ec.bgmSubcategoryOpts ?? []).length === 0 && (
                 <span className="text-[10px] text-text-base">No subcategories available.</span>
               )}
             </TD>

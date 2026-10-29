@@ -547,12 +547,12 @@ export interface BgmEditCtx {
   unitOpts: NamedOption[];
   metricTypeOpts: NamedOption[];
   ecOpts: NamedOption[];
-  grade34CategoryOpts?: NamedOption[];
-  grade34SubcategoryOpts?: NamedOption[];
-  grade34CategoriesLoading?: boolean;
-  grade34CategoryError?: string;
-  grade34SubcategoriesLoading?: boolean;
-  grade34SubcategoryError?: string;
+  bgmCategoryOpts?: NamedOption[];
+  bgmSubcategoryOpts?: NamedOption[];
+  bgmCategoriesLoading?: boolean;
+  bgmCategoryError?: string;
+  bgmSubcategoriesLoading?: boolean;
+  bgmSubcategoryError?: string;
   jurOpts: NamedOption[];
   mastertypeOpts: NamedOption[];
   typecasts: NamedOption[];
