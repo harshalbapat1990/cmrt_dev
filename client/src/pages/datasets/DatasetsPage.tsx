@@ -581,6 +581,10 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
     setBaseData([]);
     setDisplayData([]);
     setActiveGrade('');
+    // Category IDs belong to a specific dataset revision. Do not leave an
+    // open add-row form holding selections from the previous revision.
+    setBgmAdding(false);
+    setBgmAddDraft({});
     setPage(1);
   };
 
@@ -589,6 +593,10 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
     setBaseData([]);
     setDisplayData([]);
     setActiveGrade('');
+    // Grade 2/3/4 category options are queried by the loaded grade. Clear any
+    // add-row selection while the new grade's dataset rows are being loaded.
+    setBgmAdding(false);
+    setBgmAddDraft({});
     setPage(1);
   };
 
