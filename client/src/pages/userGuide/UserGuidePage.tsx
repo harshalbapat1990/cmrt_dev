@@ -21,6 +21,15 @@ function getYoutubeThumbnail(videoId: string): string {
     return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 }
 
+function isVimeoUrl(url: string): boolean {
+    try {
+        const host = new URL(url).hostname;
+        return host === 'vimeo.com' || host.endsWith('.vimeo.com');
+    } catch {
+        return false;
+    }
+}
+
 export default function UserGuidePage() {
     const { roles } = useUser();
     const isSuperAdmin = roles.includes('SUPER_ADMIN');
@@ -123,7 +132,7 @@ export default function UserGuidePage() {
 
     const handleCreateVideo = async () => {
         if (!videoTitle.trim() || !videoUrl.trim()) {
-            setVideoError('Title and YouTube URL are required.');
+            setVideoError('Title and video URL are required.');
             return;
         }
 
@@ -336,12 +345,22 @@ export default function UserGuidePage() {
                                 >
                                     <a
                                         href={video.youtube_url}
-                                        target="_blank">
-                                        <img
-                                            src={getYoutubeThumbnail(video.youtube_video_id)}
-                                            alt={video.title}
-                                            className="w-full"
-                                        />
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        {isVimeoUrl(video.youtube_url) ? (
+                                            <div className="flex aspect-video w-full items-center justify-center bg-slate-100 text-slate-400">
+                                                <svg className="h-12 w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l5.2-3.5A1 1 0 0122 7.3v9.4a1 1 0 01-1.8.8L15 14m0-4v4m0-4L9 7m6 7l-6 3m0-10v10m0-10L3 5m6 12l-6 2" />
+                                                </svg>
+                                            </div>
+                                        ) : (
+                                            <img
+                                                src={getYoutubeThumbnail(video.youtube_video_id)}
+                                                alt={video.title}
+                                                className="w-full"
+                                            />
+                                        )}
 
                                         <div className="p-3">
                                             <div className="font-medium text-slate-700">
@@ -517,7 +536,7 @@ export default function UserGuidePage() {
 
                             <div>
                                 <label className="block text-sm font-medium text-slate-700">
-                                    YouTube URL
+                                    YouTube or Vimeo URL
                                 </label>
 
                                 <input

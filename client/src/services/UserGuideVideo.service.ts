@@ -27,11 +27,11 @@ class UserGuideVideoService extends BaseService {
 
     async createVideo(
         title: string,
-        youtubeUrl: string,
+        videoUrl: string,
     ): Promise<UserGuideVideo> {
         const response = await this.post('/', {
             title,
-            youtube_url: youtubeUrl,
+            youtube_url: videoUrl,
         });
 
         return response.data as UserGuideVideo;

@@ -1,0 +1,78 @@
+﻿Emissions Source,Classification
+Grid Electricity,Non-renewable
+On-site renewables,Renewable
+Off-site renewables,Renewable
+Natural gas distributed in a pipeline,Non-renewable
+Coal seam methane that is captured for combustion,Non-renewable
+Coal mine waste gas that is captured for combustion,Non-renewable
+Compressed natural gas (reverting to standard conditions),Non-renewable
+Unprocessed natural gas,Non-renewable
+Ethane ,Non-renewable
+Coke oven gas,Non-renewable
+Blast furnace gas,Non-renewable
+Town gas ,Non-renewable
+Liquefied natural gas,Non-renewable
+Gaseous fossil fuels other than those mentioned in the items above,Non-renewable
+Landfill biogas that is captured for combustion (methane only),Renewable
+Sludge biogas that is captured for combustion (methane only),Renewable
+"A biogas that is captured for combustion, other than those mentioned in the items above ",Renewable
+Biomethane,Renewable
+"Petroleum based oils (other than petroleum based oil used as fuel), eg lubricants",Non-renewable
+Petroleum based greases,Non-renewable
+Crude oil including crude oil condensates,Non-renewable
+Other natural gas liquids ,Non-renewable
+Gasoline (other than for use as fuel in an aircraft),Non-renewable
+Gasoline for use as fuel in an aircraft (avgas),Non-renewable
+Kerosene (other than for use as fuel in an aircraft),Non-renewable
+Kerosene for use as fuel in an aircraft (aviation turbine fuel),Non-renewable
+Heating oil,Non-renewable
+Diesel oil,Non-renewable
+Fuel oil,Non-renewable
+Liquefied aromatic hydrocarbons,Non-renewable
+Solvents: mineral turpentine or white spirits,Non-renewable
+Liquefied petroleum gas,Non-renewable
+Naphtha,Non-renewable
+Petroleum coke,Non-renewable
+Refinery gas and liquids,Non-renewable
+Refinery coke,Non-renewable
+Petroleum based products other than mentioned in the items above,Non-renewable
+Biodiesel ,Renewable
+Ethanol for use as a fuel in an internal combustion engine,Renewable
+Biofuels other than those mentioned in the items above,Renewable
+Renewable diesel,Renewable
+Gasoline (Cars and light commercial vehicles),Non-renewable
+Diesel oil (Cars and light commercial vehicles),Non-renewable
+Liquefied petroleum gas (LPG) (Cars and light commercial vehicles),Non-renewable
+Fuel oil (Cars and light commercial vehicles),Non-renewable
+Ethanol (Cars and light commercial vehicles),Renewable
+Biodiesel (Cars and light commercial vehicles),Renewable
+Other biofuels (Cars and light commercial vehicles),Renewable
+Compressed natural gas (Light duty vehicles),Renewable
+Liquefied natural gas (Light duty vehicles),Non-renewable
+Compressed natural gas (Heavy duty vehicles),Non-renewable
+Liquefied natural gas (Heavy duty vehicles),Non-renewable
+Diesel oil - Euro iv or higher (Heavy duty vehicles),Non-renewable
+Diesel oil - Euro iii (Heavy duty vehicles),Non-renewable
+Diesel oil - Euro i (Heavy duty vehicles),Non-renewable
+Gasoline for use as fuel in an aircraft (Aviation),Non-renewable
+Kerosene for use as fuel in an aircraft (Aviation),Non-renewable
+Bituminous coal ,Non-renewable
+Sub-bituminous coal ,Non-renewable
+Anthracite ,Non-renewable
+Brown coal,Non-renewable
+Coking coal,Non-renewable
+Coal briquettes,Non-renewable
+Coal coke,Non-renewable
+Coal tar,Non-renewable
+Solid fossil fuels other than those mentioned in the items above,Non-renewable
+"Industrial materials that are derived from fossil fuels, if recycled and combusted to produce heat or electricity",Non-renewable
+"Passenger car tyres, if recycled and combusted to produce heat or electricity  ",Non-renewable
+"Truck and off-road tyres, if recycled and combusted to produce heat or electricity ",Non-renewable
+"Non‑biomass municipal materials, if combusted to produce heat or electricity",Non-renewable
+Dry wood,Non-renewable
+Green and air dried wood,Non-renewable
+Sulphite lyes,Non-renewable
+Bagasse,Renewable
+"Biomass, municipal and industrial materials, if combusted to produce heat or electricity",Renewable
+Charcoal,Non-renewable
+Primary solid biomass fuels other than those mentioned in the items above,Non-renewable

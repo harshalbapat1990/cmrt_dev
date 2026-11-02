@@ -1,0 +1,222 @@
+[
+  {
+    "id": "1",
+    "projectName": "Bridge Safety Review 2026",
+    "programName": "",
+    "category": "Large",
+    "emissions": 1264,
+    "lastUpdated": "2026-02-10",
+    "status": "In Progress",
+    "statusNote": "",
+    "access": "edit"
+  },
+  {
+    "id": "2",
+    "projectName": "Highway Expansion Stage 2",
+    "programName": "Transport Development Program",
+    "category": "Recurring",
+    "emissions": 2039,
+    "lastUpdated": "2025-12-17",
+    "status": "In Progress",
+    "statusNote": "",
+    "access": "view"
+  },
+  {
+    "id": "3",
+    "projectName": "Regional Road Audit",
+    "programName": "Rural Connectivity Initiative",
+    "category": "Large",
+    "emissions": 3155,
+    "lastUpdated": "2025-12-04",
+    "status": "Approved",
+    "statusNote": "Construction - October 2025",
+    "access": "edit"
+  },
+  {
+    "id": "4",
+    "projectName": "Traffic Signal Optimisation",
+    "programName": "",
+    "category": "Small",
+    "emissions": 1977,
+    "lastUpdated": "2025-08-09",
+    "status": "Closed",
+    "statusNote": "",
+    "access": "view"
+  },
+  {
+    "id": "5",
+    "projectName": "Urban Road Resurfacing FY25",
+    "programName": "",
+    "category": "Recurring",
+    "emissions": 2062,
+    "lastUpdated": "2025-07-23",
+    "status": "Closed",
+    "statusNote": "",
+    "access": "edit"
+  },
+  {
+    "id": "6",
+    "projectName": "Rural Bridge Strengthening",
+    "programName": "Infrastructure Integrity Program",
+    "category": "Large",
+    "emissions": 1540,
+    "lastUpdated": "2026-01-28",
+    "status": "Awaiting Approval",
+    "statusNote": "",
+    "access": "edit"
+  },
+  {
+    "id": "7",
+    "projectName": "Metro Line Feasibility Study",
+    "programName": "",
+    "category": "Small",
+    "emissions": 890,
+    "lastUpdated": "2025-11-14",
+    "status": "In Progress",
+    "statusNote": "",
+    "access": "view"
+  },
+  {
+    "id": "8",
+    "projectName": "Coastal Highway Rehabilitation",
+    "programName": "",
+    "category": "Large",
+    "emissions": 2784,
+    "lastUpdated": "2025-10-29",
+    "status": "In Progress",
+    "statusNote": "",
+    "access": "edit"
+  },
+  {
+    "id": "9",
+    "projectName": "City Junction Redesign",
+    "programName": "",
+    "category": "Small",
+    "emissions": 645,
+    "lastUpdated": "2025-09-15",
+    "status": "Awaiting Approval",
+    "statusNote": "",
+    "access": "view"
+  },
+  {
+    "id": "10",
+    "projectName": "Industrial Corridor Upgrade",
+    "programName": "",
+    "category": "Recurring",
+    "emissions": 2210,
+    "lastUpdated": "2025-06-20",
+    "status": "Approved",
+    "statusNote": "",
+    "access": "edit"
+  },
+  {
+    "id": "11",
+    "projectName": "Hillside Road Stabilization",
+    "programName": "",
+    "category": "Large",
+    "emissions": 1735,
+    "lastUpdated": "2026-02-05",
+    "status": "In Progress",
+    "statusNote": "",
+    "access": "edit"
+  },
+  {
+    "id": "12",
+    "projectName": "BRT Lane Extension Phase 1",
+    "programName": "Urban Mobility Initiatives",
+    "category": "Recurring",
+    "emissions": 1422,
+    "lastUpdated": "2025-11-30",
+    "status": "Closed",
+    "statusNote": "",
+    "access": "view"
+  },
+  {
+    "id": "13",
+    "projectName": "River Bridge Replacement",
+    "programName": "",
+    "category": "Large",
+    "emissions": 3325,
+    "lastUpdated": "2025-12-22",
+    "status": "Awaiting Approval",
+    "statusNote": "",
+    "access": "edit"
+  },
+  {
+    "id": "14",
+    "projectName": "Suburban Road Widening",
+    "programName": "Transport Infrastructure",
+    "category": "Recurring",
+    "emissions": 1980,
+    "lastUpdated": "2025-08-27",
+    "status": "In Progress",
+    "statusNote": "",
+    "access": "view"
+  },
+  {
+    "id": "15",
+    "projectName": "Signal Timing Audit",
+    "programName": "",
+    "category": "Small",
+    "emissions": 430,
+    "lastUpdated": "2025-07-08",
+    "status": "Approved",
+    "statusNote": "",
+    "access": "edit"
+  },
+  {
+    "id": "16",
+    "projectName": "Expressway Toll Plaza Upgrade",
+    "programName": "Transport Development Program",
+    "category": "Large",
+    "emissions": 2650,
+    "lastUpdated": "2026-01-12",
+    "status": "In Progress",
+    "statusNote": "",
+    "access": "edit"
+  },
+  {
+    "id": "17",
+    "projectName": "City Bike Lane Network",
+    "programName": "Urban Mobility Initiatives",
+    "category": "Small",
+    "emissions": 520,
+    "lastUpdated": "2025-10-05",
+    "status": "In Progress",
+    "statusNote": "",
+    "access": "view"
+  },
+  {
+    "id": "18",
+    "projectName": "Rural Access Road Paving",
+    "programName": "",
+    "category": "Large",
+    "emissions": 2380,
+    "lastUpdated": "2025-09-01",
+    "status": "Closed",
+    "statusNote": "",
+    "access": "edit"
+  },
+  {
+    "id": "19",
+    "projectName": "Harbor Link Flyover",
+    "programName": "Transport Infrastructure",
+    "category": "Large",
+    "emissions": 3490,
+    "lastUpdated": "2025-11-18",
+    "status": "Approved",
+    "statusNote": "",
+    "access": "view"
+  },
+  {
+    "id": "20",
+    "projectName": "Smart Parking Pilot",
+    "programName": "",
+    "category": "Small",
+    "emissions": 610,
+    "lastUpdated": "2025-12-10",
+    "status": "In Progress",
+    "statusNote": "Pilot with 3 sites",
+    "access": "edit"
+  }
+]

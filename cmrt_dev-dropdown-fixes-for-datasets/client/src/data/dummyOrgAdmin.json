@@ -1,0 +1,47 @@
+[
+  {
+    "id": "1",
+    "requestedBy": "Ava Thompson",
+    "email": "ava.thompson@example.com",
+    "projectName": "Eastern Bypass Upgrade",
+    "dateRequested": "24 February 2026",
+    "justification": "Business case review only; view access sufficient for this phase.",
+    "action": "Review request"
+  },
+  {
+    "id": "2",
+    "requestedBy": "Noah Patel",
+    "email": "noah.patel@example.com",
+    "projectName": "Harbour Bridge Maintenance",
+    "dateRequested": "22 February 2026",
+    "justification": "Business case review only; view access sufficient for this phase.",
+    "action": "Review request"
+  },
+  {
+    "id": "3",
+    "requestedBy": "Mia Richardson",
+    "email": "mia.richardson@example.com",
+    "projectName": "Riverside Greenway Stage 2",
+    "dateRequested": "21 February 2026",
+    "justification": "Business case review only; view access sufficient for this phase.",
+    "action": "Review request"
+  },
+  {
+    "id": "4",
+    "requestedBy": "Lucas Nguyen",
+    "email": "lucas.nguyen@example.com",
+    "projectName": "City Centre Streetscape Revitalisation",
+    "dateRequested": "20 February 2026",
+    "justification": "Business case review only; view access sufficient for this phase.",
+    "action": "Review request"
+  },
+  {
+    "id": "5",
+    "requestedBy": "Zara Ahmed",
+    "email": "zara.ahmed@example.com",
+    "projectName": "Westside Water Pipeline",
+    "dateRequested": "19 February 2026",
+    "justification": "Business case review only; view access sufficient for this phase.",
+    "action": "Review request"
+  }
+]

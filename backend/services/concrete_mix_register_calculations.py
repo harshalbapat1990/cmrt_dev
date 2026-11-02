@@ -81,10 +81,22 @@ _GGBF_SLAG_NAMES = frozenset({"GGBF slag"})
 
 # BAU view component codes that belong to the cementitious trio and are
 # recalculated in the simplified path from total_cementitious + SCM target.
+# v_bau_default_concrete_mix emits UPPER_SNAKE codes while concrete_mix_designs
+# stores lower_snake, so both spellings are listed and matching is case-folded.
 _BAU_BINDER_COMPONENT_CODES = frozenset({
     "general_purpose_cement",
+    "gp_cement",
     "fly_ash",
     "ggbf_slag",
+    "ggbfs",
+})
+
+# Same trio identified by display label, as a fallback when component_code
+# uses yet another spelling.
+_BAU_BINDER_COMPONENT_LABELS = frozenset({
+    "general purpose cement",
+    "fly ash",
+    "ggbf slag",
 })
 
 _MIX_TYPES = frozenset({"Ready-mix", "Precast", "Shotcrete"})
@@ -1366,6 +1378,7 @@ async def _fetch_bau_grade_data(
     total_cementitious: Optional[float] = None
     bau_scm_frac: Optional[float] = None
     materials: list[tuple[str, float]] = []
+    seen_labels: set[str] = set()
 
     for row in rows:
         m = row._mapping
@@ -1374,13 +1387,23 @@ async def _fetch_bau_grade_data(
             scm_raw = m["default_max_fly_ash_pct"]
             total_cementitious = float(tc_raw)  if tc_raw  is not None else None
             bau_scm_frac       = float(scm_raw) if scm_raw is not None else None
-        else:
-            # Keep only non-cementitious rows; GPC/FA/GGBF are derived from
-            # the SCM formulas and must not be duplicated from BAU rows.
-            if m["component_code"] in _BAU_BINDER_COMPONENT_CODES:
-                continue
-            qty_raw = m["quantity_kg_m3"]
-            materials.append((m["component_label"], float(qty_raw) if qty_raw is not None else 0.0))
+            continue
+
+        code  = str(m["component_code"] or "").strip().lower()
+        label = str(m["component_label"] or "").strip()
+
+        # Keep only non-cementitious rows; GPC/FA/GGBF are derived from
+        # the SCM formulas and must not be duplicated from BAU rows.
+        if code in _BAU_BINDER_COMPONENT_CODES or label.lower() in _BAU_BINDER_COMPONENT_LABELS:
+            continue
+
+        # Guard against the same component appearing twice in the view.
+        if label.lower() in seen_labels:
+            continue
+        seen_labels.add(label.lower())
+
+        qty_raw = m["quantity_kg_m3"]
+        materials.append((label, float(qty_raw) if qty_raw is not None else 0.0))
 
     if total_cementitious is None or bau_scm_frac is None:
         return None

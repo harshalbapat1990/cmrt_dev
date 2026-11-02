@@ -1,0 +1,251 @@
+{
+  "projects": [
+    {
+      "projectId": "PROJ_SMALL_001",
+      "projectName": "Community Sports Complex",
+      "projectCategory": "Small",
+      "unit": { "emissions": "tCO2e" },
+      "submissions": [
+        {
+          "submissionId": "BUSINESS_CASE",
+          "label": "Business case",
+          "type": "one-time",
+          "intervals": [
+            {
+              "intervalId": "BUSINESS_CASE",
+              "label": "Business case",
+              "datasets": {
+                "Market-based": {
+                  "emissionsBreakdown": {
+                    "summaryIndicators": {
+                      "primaryIndicator": { "value": 4200, "unit": "tCO2e" },
+                      "secondaryIndicator": { "value": 190, "unit": "kgCO2e/FTE" }
+                    },
+                    "modules": [
+                      { "code": "A1", "label": "Raw material supply", "value": 520 },
+                      { "code": "A2", "label": "Transport", "value": 410 },
+                      { "code": "A3", "label": "Manufacturing", "value": 600 },
+                      { "code": "A4", "label": "Transport to site", "value": 220 },
+                      { "code": "A5", "label": "Construction process", "value": 180 },
+                      { "code": "B1", "label": "Use", "value": 300 },
+                      { "code": "B2", "label": "Maintenance", "value": 320 },
+                      { "code": "B3", "label": "Repair", "value": 280 },
+                      { "code": "B4", "label": "Replacement", "value": 340 },
+                      { "code": "B5", "label": "Refurbishment", "value": 290 },
+                      { "code": "B6", "label": "Operational energy", "value": 960 },
+                      { "code": "B7", "label": "Water use", "value": 220 },
+                      { "code": "B8", "label": "User emissions", "value": 280 },
+                      { "code": "Recurring Project", "label": "Recurring projects", "value": 260 },
+                      { "code": "Offsets", "label": "Offsets", "value": -900 },
+                      { "code": "Stored carbon", "label": "Stored Carbon", "value": -350 }
+                    ],
+                    "sourceCategories": [
+                      { "category": "Materials", "value": 1200 },
+                      { "category": "Electricity", "value": 900 },
+                      { "category": "Fuels", "value": 600 },
+                      { "category": "Waste", "value": 180 },
+                      { "category": "Gases", "value": 90 },
+                      { "category": "Commuting", "value": 120 },
+                      { "category": "Business Travel", "value": 110 },
+                      { "category": "Something", "value": 0 },
+                      { "category": "Something else", "value": 0 }
+                    ]
+                  },
+
+                  "materialHotspots": {
+                    "items": [
+                      { "material": "Concrete", "actual": 420, "mitigation": 120 },
+                      { "material": "Steel", "actual": 260, "mitigation": 140 },
+                      { "material": "Glass", "actual": 140, "mitigation": 60 },
+                      { "material": "Aggregates", "actual": 40, "mitigation": 20 },
+                      { "material": "Plastic", "actual": 90, "mitigation": 40 },
+                      { "material": "Timber", "actual": 110, "mitigation": 60 }
+                    ]
+                  },
+
+                  "mitigationSummary": {
+                    "unit": "tCO2e",
+                    "items": [
+                      { "label": "Base case", "value": 4600, "type": "absolute" },
+                      { "label": "Actual case", "value": 4200, "type": "absolute" },
+                      { "label": "Avoidance / reduction", "value": -200, "type": "delta" },
+                      { "label": "Substitution", "value": -150, "type": "delta" },
+                      { "label": "Other", "value": -50, "type": "delta" }
+                    ]
+                  },
+
+                  "totalEmissionsBySubmission": {
+                    "unit": "tCO2e",
+                    "submissions": [
+                      { "label": "Business case", "grades": { "Grade 1": 20, "Grade 2": 35, "Grade 3": 25, "Grade 4": 10 }, "total": 90 },
+                      { "label": "Design 1", "grades": { "Grade 1": 25, "Grade 2": 30, "Grade 3": 20, "Grade 4": 8 }, "total": 83 },
+                      { "label": "Design 2", "grades": { "Grade 1": 30, "Grade 2": 25, "Grade 3": 15, "Grade 4": 7 }, "total": 77 },
+                      { "label": "Construction", "grades": { "Grade 1": 35, "Grade 2": 20, "Grade 3": 10, "Grade 4": 5 }, "total": 70 }
+                    ]
+                  },
+                   "totalEmissionsByConstructionPeriod": {
+	                    "unit": "tCO2e",
+	                    "stage": "Construction",
+	                    "periodicity": "quarterly",
+	                    "periods": [
+	                      { "period": "Q1 2024", "value": 50 },
+	                      { "period": "Q2 2024", "value": 76 },
+	                      { "period": "Q3 2024", "value": 11 },
+	                      { "period": "Q4 2024", "value": 78 },
+	                      { "period": "Q1 2025", "value": 51 },
+	                      { "period": "Q2 2025", "value": 26 },
+	                      { "period": "Q3 2025", "value": 81 },
+	                      { "period": "Q4 2025", "value": 99 },
+	                      { "period": "Q1 2026", "value": 79 },
+	                      { "period": "Q2 2026", "value": 89 },
+	                      { "period": "Q3 2026", "value": 83 },
+	                      { "period": "Q4 2026", "value": 92 }
+	                    ]
+	                  },
+
+
+                  "comparisonByOption": {
+                    "unit": { "emissions": "tCO2e", "carbonValue": "USD" },
+                    "projectOptions": [
+                      {
+                        "label": "Option A",
+                        "emissions": { "min": 3500, "medium": 4200, "max": 4800 },
+                        "carbonValue": { "min": 300000, "medium": 420000, "max": 520000 }
+                      },
+                      {
+                        "label": "Option B",
+                        "emissions": { "min": 3000, "medium": 3900, "max": 4600 },
+                        "carbonValue": { "min": 260000, "medium": 390000, "max": 490000 }
+                      }
+                    ]
+                  },
+
+                  "renewableEnergySummary": {
+                    "unit": "GJ",
+                    "stages": ["Lifecycle"],
+                    "absolute": {
+                      "nonRenewable": { "Lifecycle": 1300 },
+                      "renewable": { "Lifecycle": 520 }
+                    },
+                    "percentage": {
+                      "nonRenewable": { "Lifecycle": 71 },
+                      "renewable": { "Lifecycle": 29 }
+                    }
+                  },
+
+                  "offsettingSummary": {
+                    "unit": "tCO2e",
+                    "categories": [
+                      { "label": "Nature based", "value": 800 }
+                    ],
+                    "standards": [
+                      { "label": "Standard A", "value": 800 }
+                    ]
+                  },
+
+                		
+		   "wasteAndRecycle": {
+		                    "materials": {
+		                      "kpis": {
+		                        "totalMaterialsTonnes": 6000,
+		                        "reusedPercentage": 19.2
+		                      },
+		                      "composition": {
+		                        "unit": "t",
+		                        "segments": [
+		                          { "label": "Recycled", "value": 2100 },
+		                          { "label": "Reused", "value": 1150 },
+		                          { "label": "Virgin material", "value": 2750 }
+		                        ]
+		                      }
+		                    },
+		                    "waste": {
+		                      "kpis": {
+		                        "totalWasteTonnes": 2470,
+		                        "disposedPercentage": 24.3,
+		                        "note": "1140 t (1,140 tex.spoli)"
+		                      },
+		                      "treatment": {
+		                        "unit": "t",
+		                        "segments": [
+		                          { "label": "Landfill", "value": 580 },
+		                          { "label": "Reuse", "value": 520 },
+		                          { "label": "Recycling", "value": 450 },
+		                          { "label": "Composting", "value": 600 },
+		                          { "label": "Other", "value": 320 }
+		                        ]
+		                      },
+		                      "breakdown": {
+		                        "unit": "t",
+		                        "items": [
+		                          { "label": "Inert waste - Concrete / plastics / glass / rubble", "value": 720 },
+		                          { "label": "Inert waste - Metals", "value": 430 },
+		                          { "label": "Paper and cardboard", "value": 210 },
+		                          { "label": "Garden and green", "value": 180 },
+		                          { "label": "Wood", "value": 370 },
+		                          { "label": "Mixed C&D waste", "value": 560 }
+		                        ]
+		                      }
+		                    }
+		                  }, 
+		
+
+
+                  "lcaModuleBreakdown": {
+                    "unit": {
+                      "absolute": "tCO2e",
+                      "perDeclaredUnit": "tCO2e/unit"
+                    },
+                    "rows": [
+                      {
+                        "module": "Product stage (A1-A3)",
+                        "baseline": { "absolute": 0, "perUnit": 0 },
+                        "actual": { "absoluteDiff": 1850, "perUnitDiff": 0.92 }
+                      },
+                      {
+                        "module": "Operational energy (B6)",
+                        "baseline": { "absolute": 0, "perUnit": 0 },
+                        "actual": { "absoluteDiff": 960, "perUnitDiff": 0.48 }
+                      }
+                    ]
+                  },
+
+                  "isCreditsSummary": {
+                    "credits": [
+                      { "code": "Ene-1", "value": 0.1 },
+                      { "code": "Wat-2", "value": 0.1 }
+                    ]
+                  }
+                },
+
+                "Location-based": {
+                  "emissionsBreakdown": {
+                    "summaryIndicators": {
+                      "primaryIndicator": { "value": 4600, "unit": "tCO2e" },
+                      "secondaryIndicator": { "value": 210, "unit": "kgCO2e/FTE" }
+                    },
+                    "modules": [
+                      { "code": "B6", "label": "Operational energy", "value": 1200 }
+                    ],
+                    "sourceCategories": [
+                      { "category": "Electricity", "value": 1200 }
+                    ]
+                  },
+                  "renewableEnergySummary": {
+                    "unit": "GJ",
+                    "stages": ["Lifecycle"],
+                    "absolute": {
+                      "nonRenewable": { "Lifecycle": 1550 },
+                      "renewable": { "Lifecycle": 450 }
+                    }
+                  },
+                  "isCreditsSummary": { "credits": [] }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

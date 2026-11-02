@@ -1,0 +1,240 @@
+﻿Jurisdiction,Emissions Category,Emissions Sub-Category,Emissions Source,Density,Material Density Unit,Source
+Australia,Fuels,Gaseous Fuels,Natural gas distributed in a pipeline,0.00084,t/m³,"Representative Density of 0.84 kg/m³ STP; average pipeline NG.Refer to [learnmetrics.com], [engineerin...oolbox.com]"
+Australia,Fuels,Gaseous Fuels,Coal seam methane that is captured for combustion,0.000717,t/m³,Representative Density of 0.717 kg/m³ (methane) STP.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Gaseous Fuels,Coal mine waste gas that is captured for combustion,0.000717,t/m³,Representative Density of 0.717 kg/m³ (methane proxy) STP (assumed CH₄‑rich).Refer to [engineerin...oolbox.com]
+Australia,Fuels,Gaseous Fuels,Compressed natural gas (reverting to standard conditions),0.00084,t/m³,Representative Density of 0.84 kg/m³ STP.Refer to [learnmetrics.com]
+Australia,Fuels,Gaseous Fuels,Unprocessed natural gas,0.00084,t/m³,Representative Density of 0.84 kg/m³ STP.Refer to [learnmetrics.com]
+Australia,Fuels,Gaseous Fuels,Ethane ,0.001264,t/m³,Representative Density of 1.264 kg/m³ STP.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Gaseous Fuels,Coke oven gas,0.000034,t/m³,Representative Density of 0.034 kg/m³ STP.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Gaseous Fuels,Blast furnace gas,0.00125,t/m³,Representative Density of 1.25 kg/m³ STP.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Gaseous Fuels,Town gas ,0.00058,t/m³,Representative Density of 0.58 kg/m³ (“coal gas”) STP; proxy for manufactured gas.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Gaseous Fuels,Liquefied natural gas,0.468,t/kL,"Representative Density of 0.468 t/kL (≈468 kg/m³) −163.5 °C, typical.Refer to [unitrove.com], [engineerin...oolbox.com]"
+Australia,Fuels,Gaseous Fuels,Other gaseous fossil fuels ,0.00084,t/m³,Representative Density of 0.84 kg/m³ (NG proxy) STP; generic fossil gas.Refer to [learnmetrics.com]
+Australia,Fuels,Gaseous Fuels,Landfill biogas that is captured for combustion (methane only),0.000717,t/m³,Representative Density of 0.717 kg/m³ STP; methane‑only basis.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Gaseous Fuels,Sludge biogas that is captured for combustion (methane only),0.000717,t/m³,Representative Density of 0.717 kg/m³ STP; methane‑only basis.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Gaseous Fuels,Other biogas that is captured for combustion,0.000062,t/m³,Representative Density of 0.062 kg/m³ STP; digester/biogas.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Gaseous Fuels,Hydrogen,0.0000899,t/m³,Representative Density of 0.0899 kg/m³ STP.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Liquid Fuels (Stationary),Petroleum based oils,0.88,t/kL,"Representative Density of 0.88 kg/L 15 °C; lube oil mid‑range.Refer to [engineerin...oolbox.com], [petrocanad...icants.com]"
+Australia,Fuels,Liquid Fuels (Stationary),Petroleum based greases,0.93,t/kL,Representative Density of 0.93 kg/L 15–20 °C; typical 0.91–0.97.Refer to [hymalube.com]
+Australia,Fuels,Liquid Fuels (Stationary),Crude oil including crude oil condensates,0.85,t/kL,Representative Density of 850 kg/m³ (0.85 t/kL) 15 °C; typical crude.Refer to [matmake.com]
+Australia,Fuels,Liquid Fuels (Stationary),Other natural gas liquids ,0.7,t/kL,Representative Density of 0.70 kg/L (condensate / natural gasoline proxy) 15 °C.Refer to [matmake.com]
+Australia,Fuels,Liquid Fuels (Stationary),Gasoline (other than for use as fuel in an aircraft),0.74,t/kL,Representative Density of 0.74 kg/L 15 °C; typical.Refer to [matmake.com]
+Australia,Fuels,Liquid Fuels (Stationary),Gasoline for use as fuel in an aircraft (avgas),0.717,t/kL,"Representative Density of 0.717 kg/L 15 °C; 100LL typical.Refer to [jsoils.com], [exxonmobil.com]"
+Australia,Fuels,Liquid Fuels (Stationary),Kerosene (other than for use as fuel in an aircraft),0.8,t/kL,Representative Density of 0.80 kg/L (within 0.775–0.840) 15 °C.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Liquid Fuels (Stationary),Kerosene for use as fuel in an aircraft (aviation turbine fuel),0.8,t/kL,"Representative Density of 0.80 kg/L (775–840 kg/m³) 15 °C.Refer to [hudsonoil.eu], [en.wikipedia.org]"
+Australia,Fuels,Liquid Fuels (Stationary),Heating oil,0.85,t/kL,Representative Density of 0.85 kg/L 15 °C.Refer to [Density an...ulator.com]
+Australia,Fuels,Liquid Fuels (Stationary),Diesel oil,0.84,t/kL,Representative Density of 0.84 kg/L (EN590: 0.82–0.845) 15 °C.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Liquid Fuels (Stationary),Fuel oil,0.93,t/kL,Representative Density of 0.93 kg/L 15 °C; heavy fuel oil.Refer to [Density an...ulator.com]
+Australia,Fuels,Liquid Fuels (Stationary),Liquefied aromatic hydrocarbons,0.87,t/kL,"Representative Density of 0.87 kg/L (benzene 0.879, toluene 0.866) 15–25 °C.Refer to [engineerin...oolbox.com], [matmake.com]"
+Australia,Fuels,Liquid Fuels (Stationary),Solvents: mineral turpentine or white spirits,0.78,t/kL,Representative Density of 0.78 kg/L 15 °C; SDS typical.Refer to [spectraoil.com]
+Australia,Fuels,Liquid Fuels (Stationary),Liquefied petroleum gas,0.51,t/kL,"Representative Density of 0.51 kg/L (propane‑rich) 15 °C.Refer to [engineerin...oolbox.com], [foxpetroleum.net]"
+Australia,Fuels,Liquid Fuels (Stationary),Naphtha,0.74,t/kL,"Representative Density of 0.74 kg/L 20 °C; petroleum naphtha.Refer to [aqua-calc.com], [matmake.com]"
+Australia,Fuels,Liquid Fuels (Stationary),Petroleum coke,1.85,t/m³,Representative Density of 1.70–2.00 t/m³ (bulk solid) Ambient.Refer to [matmake.com]
+Australia,Fuels,Liquid Fuels (Stationary),Refinery gas and liquids,,t/m³,Representative Density of — (mixed) —.Refer to —
+Australia,Fuels,Liquid Fuels (Stationary),Refinery coke,1.85,t/m³,Representative Density of 1.70–2.00 t/m³ (bulk solid) Ambient.Refer to [matmake.com]
+Australia,Fuels,Liquid Fuels (Stationary),Other petroleum based products ,0.84,t/kL,Representative Density of 0.84 kg/L (mid‑distillate proxy) 15 °C.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Liquid Fuels (Stationary),Biodiesel ,0.88,t/kL,"Representative Density of 0.88–0.90 kg/L (use 0.88) 15 °C spec range 0.860–0.900.Refer to [en.wikipedia.org], [beesleyfuels.co.uk]"
+Australia,Fuels,Liquid Fuels (Stationary),Ethanol for use as a fuel in an internal combustion engine,0.789,t/kL,Representative Density of 0.789 kg/L 20 °C reference.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Liquid Fuels (Stationary),Other biofuels,0.789,t/kL,Representative Density of 0.789 kg/L (if ethanol basis) 20 °C.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Liquid Fuels (Stationary),Renewable aviation kerosene,0.8,t/kL,Representative Density of 0.80 kg/L (Jet A‑1 spec range) 15 °C.Refer to [hudsonoil.eu]
+Australia,Fuels,Liquid Fuels (Stationary),Renewable diesel,0.79,t/kL,"Representative Density of 0.77–0.79 kg/L (use 0.79) 15 °C, EN 15940.Refer to [edi-hohenlohe.de], [greenergy.com]"
+Australia,Fuels,Liquid Fuels (Transport),Gasoline (Cars and light commercial vehicles),0.74,t/kL,Representative Density of 0.74 kg/L 15 °C.Refer to [matmake.com]
+Australia,Fuels,Liquid Fuels (Transport),Diesel oil (Cars and light commercial vehicles),0.84,t/kL,Representative Density of 0.84 kg/L 15 °C.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Liquid Fuels (Transport),Liquefied petroleum gas (LPG) (Cars and light commercial vehicles),0.51,t/kL,Representative Density of 0.51 kg/L 15 °C.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Liquid Fuels (Transport),Fuel oil (Cars and light commercial vehicles),0.93,t/kL,Representative Density of 0.93 kg/L 15 °C.Refer to [Density an...ulator.com]
+Australia,Fuels,Liquid Fuels (Transport),Ethanol (Cars and light commercial vehicles),0.789,t/kL,Representative Density of 0.789 kg/L 20 °C.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Liquid Fuels (Transport),Biodiesel (Cars and light commercial vehicles),0.88,t/kL,Representative Density of 0.88 kg/L 15 °C.Refer to [en.wikipedia.org]
+Australia,Fuels,Liquid Fuels (Transport),Other biofuels (Cars and light commercial vehicles),0.789,t/kL,Representative Density of 0.789 kg/L 20 °C.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Liquid Fuels (Transport),Compressed natural gas (Light duty vehicles),0.00084,t/m³,Representative Density of 0.84 kg/m³ STP.Refer to [learnmetrics.com]
+Australia,Fuels,Liquid Fuels (Transport),Liquefied natural gas (Light duty vehicles),0.468,t/kL,Representative Density of 0.468 t/kL −163.5 °C.Refer to [unitrove.com]
+Australia,Fuels,Liquid Fuels (Transport),Compressed natural gas (Heavy duty vehicles),0.00084,t/m³,Representative Density of 0.84 kg/m³ STP.Refer to [learnmetrics.com]
+Australia,Fuels,Liquid Fuels (Transport),Liquefied natural gas (Heavy duty vehicles),0.468,t/kL,Representative Density of 0.468 t/kL −163.5 °C.Refer to [unitrove.com]
+Australia,Fuels,Liquid Fuels (Transport),Diesel oil - Euro iv or higher (Heavy duty vehicles),0.84,t/kL,Representative Density of 0.84 kg/L 15 °C.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Liquid Fuels (Transport),Diesel oil - Euro iii (Heavy duty vehicles),0.84,t/kL,Representative Density of 0.84 kg/L 15 °C.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Liquid Fuels (Transport),Diesel oil - Euro i (Heavy duty vehicles),0.84,t/kL,Representative Density of 0.84 kg/L 15 °C.Refer to [engineerin...oolbox.com]
+Australia,Fuels,Liquid Fuels (Transport),Renewable diesel – Euro iv or higher (Heavy duty vehicles),0.79,t/kL,"Representative Density of 0.79 kg/L 15 °C, EN 15940.Refer to [edi-hohenlohe.de]"
+Australia,Fuels,Liquid Fuels (Transport),Renewable diesel – Euro iii (Heavy duty vehicles),0.79,t/kL,"Representative Density of 0.79 kg/L 15 °C, EN 15940.Refer to [edi-hohenlohe.de]"
+Australia,Fuels,Liquid Fuels (Transport),Renewable diesel – Euro I (Heavy duty vehicles),0.79,t/kL,"Representative Density of 0.79 kg/L 15 °C, EN 15940.Refer to [edi-hohenlohe.de]"
+Australia,Fuels,Liquid Fuels (Transport),Gasoline for use as fuel in an aircraft,0.717,t/kL,Representative Density of 0.717 kg/L 15 °C; 100LL.Refer to [jsoils.com]
+Australia,Fuels,Liquid Fuels (Transport),Kerosene for use as fuel in an aircraft,0.8,t/kL,Representative Density of 0.80 kg/L 15 °C; DEF STAN/ASTM.Refer to [hudsonoil.eu]
+Australia,Fuels,Liquid Fuels (Transport),Renewable aviation kerosene,0.8,t/kL,Representative Density of 0.80 kg/L 15 °C; DEF STAN/ASTM.Refer to [hudsonoil.eu]
+Australia,Fuels,Liquid Fuels (Stationary),E10 blend,33.12,GJ/kL,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),B5 blend,38.4,GJ/kL,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Stationary),B20 blend,37.8,GJ/kL,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),E10 blend,33.12,GJ/kL,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),B5 blend,38.4,GJ/kL,National Greenhouse Account Factors 2025
+Australia,Fuels,Liquid Fuels (Transport),B20 blend,37.8,GJ/kL,National Greenhouse Account Factors 2025
+Australia,Aggregate,Aggregate,Ballast,2.44,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Aggregate,Aggregate,Crushed Rock,2.44,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Aggregate,Aggregate,Crushed Slag Aggregate,2.44,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Aggregate,Aggregate,General Fill,2.44,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Aggregate,Aggregate,General Sand,2.04,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Aggregate,Aggregate,Gravel,1.6,t/m3,ICE Database v3 https://circularecology.com/embodied-carbon-footprint-database.html
+Australia,Aggregate,Aggregate,Recycled Aggregates,1.45,t/m3,WRAP / ICE https://wrap.org.uk/resources/aggregates
+Australia,Aggregate,Aggregate,Stabilised sand,1.76,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Aluminium,Aluminium - extruded,Extruded aluminium - anodised,2.72,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Aluminium,Aluminium - extruded,Extruded aluminium - powder coated,2.72,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Aluminium,Aluminium - extruded,Extruded aluminium - uncoated,2.72,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Cladding/roofing,Aluminium sheeting,0.009,t/m2,Engineering Toolbox https://www.engineeringtoolbox.com/metal-alloys-densities-d_50.html
+Australia,Building Envelope,Cladding/roofing,Clay and terracotta roof tiles,0.05,t/m2,Monier Roofing https://www.monier.com.au/roof-tiles/
+Australia,Building Envelope,Cladding/roofing,Concrete roof tiles,0.055,t/m2,Boral Roofing https://www.boral.com.au/products/roof-tiles
+Australia,Building Envelope,Cladding/roofing,Fibre cement board,0.0142,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Cladding/roofing,Glassfibre reinforced concrete cladding,0.04,t/m2,PCI / ICE https://www.pci.org
+Australia,Building Envelope,Cladding/roofing,Steel sheeting - metallic coat,0.00605,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Cladding/roofing,Steel sheeting - painted,0.00428,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,AAC and steel based system - generic ,0.0656,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,"Curtain wall, Aluminium unitised type 1: 100% DGU 8T-16-44.2",0.0508,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,"Curtain wall, Aluminium unitised type 2: aluminium cladding, 50% DGU 8T-16-44.2",0.0387,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,"Curtain wall, Aluminium unitised type 3: aluminium cladding with vertical fins, 50% DGU 8T-16-44.2",0.0458,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,"Curtain wall, Aluminium unitised type 4: aluminium cladding, 50% TGU 8T-16-6-16-44.2",0.0464,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,"Curtain wall, Aluminium unitised type 5: insulated shadow box, 50% DGU 8T-16-44.2",0.0545,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,"Curtain wall, Aluminium unitised type 6: GRC cladding, 50% DGU 8T-16-44.2",0.0682,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,"Curtain wall, Aluminium unitised type 7: opaque panel, 100% aluminium cladding",0.0354,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,"Curtain wall, Double skin type 1: deep cavity aluminium façade, 100% single + DGU 66.2 + 8T-16-44.2",0.135,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,"Curtain wall, Double skin type 2: narrow cavity aluminium façade, 100% single + DGU 66.2 + 8T-16-44.2",0.087,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,Wall system steel frame - 1 side plasterboard (150 mm stud),0.0161,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,Wall system steel frame - 1 side plasterboard (92mm stud),0.0147,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,Wall system steel frame - 2 sides plasterboard (150 mm stud),0.0285,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,Wall system steel frame - 2 sides plasterboard (92mm stud),0.0271,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,Wall system timber frame - 1 side plasterboard ,0.0176,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Curtain wall,Wall system timber frame - 2 sides plasterboard ,0.03,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,External shading system,Aluminium frame shading system,0.015,t/m2,One Click LCA defaults https://oneclicklca.com
+Australia,Building Envelope,External shading system,Steel frame shading system,0.04,t/m2,World Steel Association https://worldsteel.org
+Australia,Building Envelope,Glass,Glass (treated or untreated),2.6,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Wall louvre system,Aluminium louvre ,0.013,t/m2,Engineering Toolbox https://www.engineeringtoolbox.com/metal-alloys-densities-d_50.html
+Australia,Building Envelope,Windows & doors,Door - aluminium with glazing - generic,0.0291,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Windows & doors,Door - fully glazed - minor aluminium frame - generic,0.044,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Windows & doors,Door - steel solid - generic,0.098,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Windows & doors,Door - steel with glazing - generic,0.0517,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Windows & doors,Door - timber solid - generic,0.062,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Windows & doors,Door - timber with glazing - generic,0.0424,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Windows & doors,"Revolving door - glass, aluminium, steel - generic",0.164,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Windows & doors,Window - Aluminium frame - Generic,0.023,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Envelope,Windows & doors,Window - Timber frame - Generic,0.0301,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Ceilings & walls,AAC panel (inc. reinforced),0.435,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Ceilings & walls,Ceiling system aluminium frame suspended (powder coated aluminium),0.0081,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Ceilings & walls,Ceiling system steel frame suspended (fibre cement),0.012,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Ceilings & walls,Ceiling system steel frame suspended (mineral tile),0.0063,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Ceilings & walls,Ceiling system steel frame suspended (plasterboard),0.0136,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Ceilings & walls,Fibre cement sheet,0.0142,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Ceilings & walls,MDF (Medium Density Fibreboard),0.722,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Ceilings & walls,Particleboard wall/ceiling,0.654,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Ceilings & walls,Plasterboard,0.0111,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Ceilings & walls,Steel frame,0.045,t/m2,World Steel Association https://worldsteel.org
+Australia,Building Internals,Ceilings & walls,Timber framing,0.514,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Floors,Access flooring,0.0463,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Floors,Carpet flooring,0.00321,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Floors,Epoxy flooring,0.0025,t/m2,Flowcrete Technical Data https://www.flowcrete.com
+Australia,Building Internals,Floors,Hybrid flooring,0.0086,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Floors,Laminate flooring,0.00698,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Floors,Linoleum flooring,0.00269,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Floors,Rubber flooring,0.0022,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Floors,Vinyl flooring,0.0051,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Stick-framed wall /ceiling system,Ceiling tile,0.00489,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Wall ceiling Insulated Panel,Structural insulated panels>100mm,0.0148,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Wall ceiling Insulated Panel,Structural insulated panels≤100mm,0.0116,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Internals,Windows & doors,Roller doors,0.0259,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Services,Building and MEP services,"High rise office, hotel or retail building (>10 floors)",0.0193,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Services,Building and MEP services,Hospital or high services intensity building,0.0201,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Services,Building and MEP services,"Low or mid rise office, hotel or retail building (≤10 floors)",0.0188,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Services,Building and MEP services,Residential building,0.0207,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Services,Building and MEP services,Warehouse or industrial building,0.00577,t/m2,National Embodied Carbon Databook v1.00 2026
+Australia,Building Services,Escalator,Escalator,9.58,t/Unit,National Embodied Carbon Databook v1.00 2026
+Australia,Building Services,Lifts,Lift (elevator) for 10+ floors,47.4,t/Unit,National Embodied Carbon Databook v1.00 2026
+Australia,Building Services,Lifts,Lift (elevator) for 4-10 floors,14,t/Unit,National Embodied Carbon Databook v1.00 2026
+Australia,Building Services,Lifts,Lift (elevator) for less than 4 floors,4.74,t/Unit,National Embodied Carbon Databook v1.00 2026
+Australia,Building Services,Photovoltaic panels,Photovoltaic panel (monocrystalline),0.0125,t/m2,Clean Energy Business Council https://cleanenergybusinesscouncil.com/solar-energy/how-much-does-a-solar-panel-weigh/
+Australia,Building Services,Photovoltaic panels,Photovoltaic panel (polycrystalline),0.014,t/m2,Clean Energy Business Council https://cleanenergybusinesscouncil.com/solar-energy/how-much-does-a-solar-panel-weigh/
+Australia,Concrete & components,Concrete components,General concrete admixtures,0.0012,t/kg,Master Builders Australia https://www.masterbuilders.com.au
+Australia,Concrete & components,Concrete components,Coarse Aggregates,1.6,t/m3,ICE Database https://circularecology.com
+Australia,Concrete & components,Concrete components,Concrete production process,2.4,t/m3,AS 1379 / AusLCI https://www.standards.org.au
+Australia,Concrete & components,Concrete components,Fine Aggregates,1.55,t/m3,ICE Database https://circularecology.com
+Australia,Concrete & components,Concrete components,Fly ash,1.05,t/m3,Ash Development Association https://www.ash.org.au
+Australia,Concrete & components,Concrete components,Silica fume,0.6,t/m3,ICE Database https://circularecology.com
+Australia,Concrete & components,Concrete components,General purpose cement,1.45,t/m3,Cement Australia https://www.cementaustralia.com.au
+Australia,Concrete & components,Concrete components,GGBF slag,1.2,t/m3,ICE Database https://circularecology.com
+Australia,Concrete & components,Concrete components,Manufactured sand,2.04,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Concrete & components,Concrete components,Mortar or screed (1:3 cement: sand mix) (Using CEM I cement),2.05,t/m3,ICE Database https://circularecology.com
+Australia,Concrete & components,Concrete components,Mortar or screed (1:4 cement:sand mix) (Using CEM I cement),1.95,t/m3,ICE Database https://circularecology.com
+Australia,Concrete & components,Concrete components,Portland Cement,1.44,t/m3,Portland Cement Association https://www.cement.org
+Australia,Concrete & components,Concrete components,Recycled Aggregates,1.45,t/m3,WRAP / ICE https://wrap.org.uk/resources/aggregates
+Australia,Water,Water Use,Mains Water,1,t/kL,Engineering Toolbox https://www.engineeringtoolbox.com/water-density-d_747.html
+Australia,Concrete & components,Concrete components,Steel fibres for concrete reinforcement,0.00785,t/kg,World Steel https://worldsteel.org
+Australia,Concrete & components,Concrete in-situ,"Normal class: Concrete in-situ, >10 MPa to ≤20 MPa",2.4,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Concrete & components,Concrete in-situ,"Normal class: Concrete in-situ, >20 MPa to ≤25 MPa",2.4,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Concrete & components,Concrete in-situ,"Normal class: Concrete in-situ, >25 MPa to ≤32 MPa",2.4,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Concrete & components,Concrete in-situ,"Normal class: Concrete in-situ, >32 MPa to ≤40 MPa",2.4,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Concrete & components,Concrete in-situ,"Normal class: Concrete in-situ, >40 MPa to ≤50 MPa",2.4,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Concrete & components,Concrete in-situ,"Normal class: Concrete in-situ, >50 MPa to ≤65 MPa",2.4,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Concrete & components,Concrete in-situ,"Normal class: Concrete in-situ, >65 MPa to ≤80 MPa",2.4,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Concrete & components,Concrete in-situ,"Normal class: Concrete in-situ, >80 MPa +",2.4,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Concrete & components,Concrete in-situ,"Normal class: Concrete in-situ, ≤10 MPa",2.4,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Concrete & components,Precast concrete,Autoclaved aerated concrete (AAC) block (no fill or reinforcing),0.435,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Concrete & components,Precast concrete,Hollow core - precast concrete (inc. reinforcing),1.48,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Concrete & components,Precast concrete,Precast concrete block (exc. core fill or reinforcing),2.3,t/m3,PCI https://www.pci.org
+Australia,Concrete & components,Precast concrete,Wall panel - Precast concrete panel (inc. reinforcing),2.45,t/m3,PCI https://www.pci.org
+Australia,Masonry,Masonry,Clay brick,1.8,t/m3,Think Brick Australia https://www.thinkbrick.com.au
+Australia,Masonry,Masonry,Stone brick,2.55,t/m3,ICE Database https://circularecology.com
+Australia,Paint,Paint,Paint - solvent based,1.3,t/kL,Dulux SDS https://www.dulux.com.au/specifier
+Australia,Paint,Paint,Paint - Water based,1.1,t/kL,Dulux SDS https://www.dulux.com.au/specifier
+Australia,Pavements,Asphalt,General Asphalt,2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Hot mix asphalt, <2.5% virgin bitumen (>60% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Hot mix asphalt, 2.5-3.4% virgin bitumen (40-60% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Hot mix asphalt, 3.5% virgin bitumen (40% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Hot mix asphalt, 3.75% virgin bitumen (35% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Hot mix asphalt, 4% virgin bitumen (30% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Hot mix asphalt, 4.25% virgin bitumen (25% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Hot mix asphalt, 4.5% virgin bitumen (20% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Hot mix asphalt, 5% virgin bitumen (10% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Hot mix asphalt, 5.25% virgin bitumen (5% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Warm mix asphalt, <2.5% virgin bitumen (>60% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Warm mix asphalt, 2.5-3.4% virgin bitumen (40-60% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Warm mix asphalt, 3.5% virgin bitumen (40% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Warm mix asphalt, 3.75% virgin bitumen (35% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Warm mix asphalt, 4% virgin bitumen (30% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Warm mix asphalt, 4.25% virgin bitumen (25% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Warm mix asphalt, 4.5% virgin bitumen (20% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Warm mix asphalt, 4.75% virgin bitumen (15% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Warm mix asphalt, 5% virgin bitumen (10% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Warm mix asphalt, 5.25% virgin bitumen (5% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Asphalt,"Warm mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",2.16,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Bitumen,Bitumen,1.05,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Bitumen,Cutback bitumen,1.01,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Pavements,Pavers,Ceramic paver/tile,0.023,t/m2,Ceramics Australia https://www.ceramicsaustralia.com.au
+Australia,Pavements,Pavers,Concrete paver/tile,0.05,t/m2,Adbri https://www.adbri.com.au
+Australia,Pavements,Pavers,Stone paver/tile,0.07,t/m2,Australian Stone Association https://australianspecificationstone.com.au
+Australia,Pipes,Geopolymer pipes,Geopolymer pipes,2.35,t/m3,VicRoads https://www.vicroads.vic.gov.au
+Australia,Pipes,PE Pipes,HDPE Pipes,0.95,t/m3,Plastics Pipe Institute https://plasticpipe.org
+Australia,Pipes,PVC Pipes,PVC Pipes,1.4,t/m3,Plastics Pipe Institute https://plasticpipe.org
+Australia,Pipes,Steel pipes,Steel pipe (welded),0.095,t/m,Engineering Toolbox https://www.engineeringtoolbox.com
+Australia,Polymer,Rubbers,Synthetic rubber,1.15,t/m3,Engineering Toolbox https://www.engineeringtoolbox.com
+Australia,Polymer,Sealants and adhesives,Sealants and adhesives - Epoxy Resin,0.0011,t/kg,ECHA https://echa.europa.eu
+Australia,Polymer,Thermoplastics,High density polyethylene,0.971,t/m3,https://materials.fsri.org/materialdetail/high-density-polyethylene-hdpe
+Australia,Polymer,Thermoplastics,Low density polyethylene,0.927,t/m3,https://materials.fsri.org/materialdetail/low-density-polyethylene-ldpe
+Australia,Polymer,Thermoplastics,Nylon 6,1.13,t/m3,https://kg-m3.com/material/pa-6-polyamide-6
+Australia,Polymer,Thermoplastics,Polycarbonate,1.22,t/m3,https://materials.fsri.org/materialdetail/polycarbonate-pc
+Australia,Polymer,Thermoplastics,Polyethylene,0.949,t/m3,Average of LDPE and HDPE densities
+Australia,Polymer,Thermoplastics,Polypropylene,0.905,t/m3,https://kg-m3.com/material/pp-polypropylene-homopolymer
+Australia,Polymer,Thermoplastics,"Polystyrene, expanded",1.045,t/m3,https://kg-m3.com/material/hips-high-impact-polystyrene
+Australia,Polymer,Thermoplastics,"Polystyrene, general purpose",1.045,t/m3,https://kg-m3.com/material/hips-high-impact-polystyrene
+Australia,Polymer,Thermoplastics,"Polyurethane, flexible foam",0.034,t/m3,https://urethanecoatings.com.au/product_range/properties/
+Australia,Polymer,Thermoplastics,PVC General,1.388,t/m3,https://materials.fsri.org/materialdetail/polyvinyl-chloride-pvc
+Australia,Steel,Cold rolled steel,"Hot rolled lightweight – painted structural steel (e.g. formwork, framing and decking steel)",7.84,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Steel,Cold rolled steel,Cold rolled lightweight - structural framing steel,7.84,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Steel,Cold rolled steel,"Cold rolled lightweight - structural steel (e.g. formwork, framing and decking steel)",7.84,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Steel,Hot rolled steel,"Hot rolled - galvanised structural steel (welded beam, columns, angles, plates, piles etc) ",7.84,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Steel,Hot rolled steel,"Hot rolled - structural steel (welded beam, columns, angles, plates, piles etc) ",7.84,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Steel,Reinforcing steel,Bar & mesh reinforcing steel,7.84,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Steel,Steel wire,Steel wire,7.84,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Steel ,Stainless steel,Stainless steel (general),7.84,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Timber,Timber (engineered),Glue laminated timber (GLT) and cross laminated timber (CLT) - hardwood,0.674,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Timber,Timber (engineered),Glue laminated timber (GLT) and cross laminated timber (CLT) - softwood,0.518,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Timber,Timber (engineered),Laminated veer lumber,0.507,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Timber,Timber (engineered),Oriented strand board,0.61,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Timber,Timber (engineered),Particleboard,0.711,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Timber,Timber (engineered),Plywood,0.509,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Timber,Timber (engineered),Timber weatherboards (softwood),0.512,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Timber,Timber (sawn),Sawn hardwood,0.744,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Timber,Timber (sawn),Sawn softwood,0.514,t/m3,National Embodied Carbon Databook v1.00 2026
+Australia,Timber,Timber (sawn),Timber poles - piles,0.744,t/m3,National Embodied Carbon Databook v1.00 2026

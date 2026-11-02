@@ -1,0 +1,17 @@
+Group,Item,Power (kW),Hours of operation per day,Days of electricity consumption per year,Annual Electricity Consumption (MWh/year),Source/Comments
+Street lighting,Major arterial LED lighting (Category V1-V2),0.22,12,365,0.96,https://www.ausgrid.com.au/-/media/Documents/Technical-Documentation/NS/NS119.pdf
+Street lighting,Freeway/motorway LED lighting (Category V3),0.07,12,365,0.31,https://www.ausgrid.com.au/-/media/Documents/Technical-Documentation/NS/NS119.pdf
+Street lighting,Local/regional road LED lighting (V4-V5),0.05,12,365,0.22,https://www.ausgrid.com.au/-/media/Documents/Technical-Documentation/NS/NS119.pdf
+Street lighting,Pedestrian LED lighting,0.03,12,365,0.13,https://www.ausgrid.com.au/-/media/Documents/Technical-Documentation/NS/NS119.pdf
+Traffic systems,Traffic signal controller,0.1,24,365,0.88,Average of past project specifications
+Traffic systems,200mm traffic lantern,0.01,24,365,0.09,Average of past project specifications
+Traffic systems,300mm traffic lantern (3-aspect),0.02,24,365,0.18,Average of past project specifications
+Traffic systems,300mm traffic lantern (6-aspect),0.04,24,365,0.31,Average of past project specifications
+Traffic systems,Pedestrian lantern,0.02,24,365,0.13,Average of past project specifications
+Traffic systems,Signalised intersection UPS ,2,24,365,17.52,Average of past project specifications
+ITS,Variable Speed Limit Sign,0.32,24,365,2.8,TAGG Workbook (2013)
+ITS,Variable Message Sign,1.2,24,365,10.51,TAGG Workbook (2013)
+ITS,CCTV - Pan-Tilt-Zoom (PTZ),0.05,24,365,0.45,Average of past project specifications
+ITS,CCTV - Fixed,0.01,24,365,0.11,Average of past project specifications
+ITS,Roadside cabinet,0.2,24,365,1.75,TAGG Workbook (2013)
+Road tunnel systems,"Tunnel lighting, ventilation and other (per m of tunnel)",0.19,24,365,1.65,NZ Transport Agency PEET

@@ -1,0 +1,92 @@
+
+:root {
+  --color-tooltip-bg: #393939;
+  --color-tooltip-fg: var(--color-neutral-95);
+  --shadow-tooltip: 0 2px 8px rgba(0, 0, 0, 0.15);
+  --radius-tooltip: 4px;
+  --tooltip-padding-y: 8px;
+  --tooltip-padding-x: 12px;
+  --tooltip-font-size: 12px;
+  --tooltip-line-height: 18px;
+  --tooltip-z: 1000;
+  --tooltip-max-w: 320px;
+  --tooltip-min-h: 0;
+}
+
+/* Trigger button */
+.itp__icon-btn {
+  padding: 0;
+  border: none;
+  background: transparent;
+  line-height: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* Popup container */
+.itp {
+  position: absolute;
+  z-index: var(--tooltip-z);
+}
+.itp::before,
+.itp::after {
+  content: none !important; /* kill library pseudo-elements */
+}
+
+/* Panel */
+.itp__content {
+  background: var(--color-tooltip-bg);
+  color: var(--color-tooltip-fg);
+  border-radius: var(--radius-tooltip);
+  box-shadow: var(--shadow-tooltip);
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+  display: inline-block;
+  padding: var(--tooltip-padding-y) var(--tooltip-padding-x);
+  box-sizing: border-box;
+  font-family: var(--font-sans, Roboto, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, "Noto Sans");
+  font-weight: 400;
+  font-size: var(--tooltip-font-size);
+  line-height: var(--tooltip-line-height);
+  width: max-content;
+  max-width: var(--tooltip-max-w);
+  min-height: var(--tooltip-min-h);
+  
+}
+
+/* Arrow */
+.itp__arrow {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 8px solid transparent;
+}
+.itp__arrow--bottom {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top-color: var(--color-tooltip-bg);
+}
+.itp__arrow--left {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-right-color: var(--color-tooltip-bg);
+}
+.itp__arrow--right {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-left-color: var(--color-tooltip-bg);
+}
+
+/* --- Final hard reset against any library collisions --- */
+.itp,
+.itp__content {
+  writing-mode: horizontal-tb !important;
+
+  rotate: 0deg !important;
+}

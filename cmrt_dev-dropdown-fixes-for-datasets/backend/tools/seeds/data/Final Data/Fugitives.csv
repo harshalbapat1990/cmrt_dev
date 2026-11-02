@@ -1,0 +1,18 @@
+﻿Jurisdiction,Equipment type,Default annual leakage rate of gas,Source/Comments
+Australia,Commercial air conditioning,0.09,"National Greenhouse and Energy Reporting (Measurement) Determination 2008, Compilation No. 20, Section 4.102 (4)"
+Australia,Commercial refrigeration,0.23,"National Greenhouse and Energy Reporting (Measurement) Determination 2008, Compilation No. 20, Section 4.102 (4)"
+Australia,Industrial refrigeration,0.16,"National Greenhouse and Energy Reporting (Measurement) Determination 2008, Compilation No. 20, Section 4.102 (4)"
+Australia,Gas insulated switchgear and circuit breaker applications,0.0089,"National Greenhouse and Energy Reporting (Measurement) Determination 2008, Compilation No. 20, Section 4.102 (4)"
+New Zealand,Small refrigerator or freezer (<150 litres),0.03,Ministry of the Environment Measuring emissions: A guide for organisations 2024 detailed guide
+New Zealand,Medium refrigerator or freezer (150–300 litres),0.03,Ministry of the Environment Measuring emissions: A guide for organisations 2024 detailed guide
+New Zealand,Large refrigerator or freezer (>300 litres),0.03,Ministry of the Environment Measuring emissions: A guide for organisations 2024 detailed guide
+New Zealand,Small commercial stand-alone chiller (<300 litres),0.08,Ministry of the Environment Measuring emissions: A guide for organisations 2024 detailed guide
+New Zealand,Medium commercial stand-alone chiller (300–500 litres),0.08,Ministry of the Environment Measuring emissions: A guide for organisations 2024 detailed guide
+New Zealand,Large commercial stand-alone chiller (>500 litres),0.08,Ministry of the Environment Measuring emissions: A guide for organisations 2024 detailed guide
+New Zealand,Small commercial stand-alone freezer (<300 litres),0.08,Ministry of the Environment Measuring emissions: A guide for organisations 2024 detailed guide
+New Zealand,Medium commercial stand-alone freezer (300–500 litres),0.08,Ministry of the Environment Measuring emissions: A guide for organisations 2024 detailed guide
+New Zealand,Large commercial stand-alone freezer (>500 litres),0.08,Ministry of the Environment Measuring emissions: A guide for organisations 2024 detailed guide
+New Zealand,Water coolers,0.03,Ministry of the Environment Measuring emissions: A guide for organisations 2024 detailed guide
+New Zealand,Dehumidifiers,0.03,Ministry of the Environment Measuring emissions: A guide for organisations 2024 detailed guide
+New Zealand,Small self-contained air conditioners (window mounted or through-the-wall),0.01,Ministry of the Environment Measuring emissions: A guide for organisations 2024 detailed guide
+New Zealand,Non-ducted and ducted split commercial air conditioners (<20 kW),0.03,Ministry of the Environment Measuring emissions: A guide for organisations 2024 detailed guide

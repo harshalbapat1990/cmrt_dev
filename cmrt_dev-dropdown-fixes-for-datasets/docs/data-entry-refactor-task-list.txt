@@ -1,0 +1,275 @@
+DATA ENTRY REFACTOR — REMAINING WORK CHECKLIST
+================================================
+
+Purpose
+-------
+Track the remaining work to complete the data-entry maintainability refactor.
+Keep existing routes, permissions, API contracts, and user-visible workflows
+unchanged. Split modules when doing so clarifies ownership, not just to reduce
+line count. Preserve unrelated workspace changes.
+
+Current inventory
+-----------------
+- 190 TypeScript/TSX files and 67 test files in the data-entry area.
+- DataEntry.tsx: approximately 1,033 lines after Phase 1.
+- UsersSubStage.tsx: approximately 552 lines after Phase 2.
+- LargeRoadUsersSubStage.tsx: approximately 566 lines after Phase 2.
+- MitigationTableEditor.tsx: approximately 939 lines after Phase 3.
+- ConcreteRegister.tsx: approximately 695 lines after Phase 4.
+- Recent extractions cover stage and workflow hooks, row operations, concrete
+  data/actions, mitigation responsibilities, and road/rail calculations and
+  persistence. Check the current code and tests before repeating an extraction.
+
+Task sequence
+-------------
+
+PHASE 1 — Finish DataEntry page coordination
+--------------------------------------------
+[x] Map the responsibilities still owned by DataEntry.tsx: route and report
+    state, design seeding, audit state, modal coordination, and stage content.
+[x] For each responsibility, identify its existing hook or component owner.
+    Extract only logic that has a clear owner and contract; leave straightforward
+    composition in the page.
+[x] Add or update focused tests for any extracted behavior, including loading,
+    access, report changes, design seeding, and modal actions as applicable.
+[x] Confirm the page no longer implements table loading or workflow actions and
+    primarily composes the page and stage content.
+
+Phase 1 completion notes
+-----------------------
+- Project startup and route-derived context are owned by
+  useDataEntryProjectBootstrap; stage/report selection is owned by
+  useDataEntryNavigation and useDataEntryStageContext.
+- Option loading, design seeding, workflow actions, audit lookup, and modal
+  rendering are owned by their existing hooks/components. DataEntry.tsx wires
+  those contracts and composes the stage-specific table components.
+- Extracted loading, access-denied, and project-load-error presentation into
+  DataEntryProjectBootstrapView and added component tests for those states.
+- Removed the unused constructionReportStates placeholder from DataEntry and
+  LeftNavigation's prop contract.
+- Existing focused tests cover bootstrap/access, stage/report navigation,
+  design-seed confirm/cancel, workflow actions, audit lookup, and delete-modal
+  confirm/cancel. Checks were not run for this phase per workspace instruction.
+
+PHASE 2 — Review Users and Large Road Users editors
+--------------------------------------------------
+[x] Review the remaining state, editing, year controls, and save sequencing in
+    UsersSubStage.tsx and LargeRoadUsersSubStage.tsx, taking the completed
+    calculation and persistence hooks into account.
+[x] Extract a responsibility only when its state and behavior can be expressed
+    through a clear typed interface. Keep distinct road, rail, and multi-year
+    workflows explicit.
+[x] Preserve debounce timing, stale-response protection, read-only behavior,
+    year selection, and existing API payloads.
+[x] Add or extend tests for row edits, calculation and save failures, debounce,
+    stale responses, and large-user year add/copy/delete behavior.
+[x] Confirm the existing user workflows and permissions remain intact.
+
+Phase 2 completion notes
+-----------------------
+- Extracted road and rail row editing into useUsersRowEditing, including
+  derived road values, rail calculation-field invalidation, note-save behavior,
+  and read-only guards. Extracted small-road save sequencing into
+  useSmallRoadUserSave with a typed calculation-payload contract.
+- Moved rail calculation and persistence debounce coordination into
+  useRailUserCalculations; retained the 800 ms delays and stale calculation
+  response protection.
+- Extracted large-road row/global-parameter editing and modelled-year
+  initialization into useLargeRoadUserEditing. Extracted calculation-then-save
+  coordination into useLargeRoadUserSave and the year selector/menu into
+  LargeRoadUsersYearSelector.
+- Added focused tests for row editing and read-only guards, small/large road
+  save and calculation failures, rail debounce and stale results, and large
+  user year add/copy/delete and selector actions. Existing loader and
+  persistence tests remain in place.
+- Updated availableModelledYears to respond to activeYear changes and removed
+  unused year-menu state and obsolete commented UI scaffolding.
+- Current editor sizes are approximately 552 lines (UsersSubStage.tsx) and
+  566 lines (LargeRoadUsersSubStage.tsx). API payload construction remains in
+  the existing typed payload/persistence modules; stage routes and access
+  controls are unchanged.
+- Tests, type checks, build, and lint were not run for this phase per workspace
+  instruction.
+
+[x] Map the editor's list/detail, wizard, table, validation, upload, inline-edit,
+    and persistence responsibilities.
+[x] Extract only lifecycle or UI sections whose ownership becomes clearer after
+    separation. Keep the table editor cohesive if the resulting interfaces would
+    otherwise add indirection without reducing complexity.
+[x] Replace unsafe row, persistence, inline-edit, upload, and validation types
+    at the boundaries being changed with explicit contracts.
+[x] Add or extend tests for row persistence, inline edits, uploads, validation
+    failures, and relevant workflow transitions.
+
+Phase 3 completion notes
+-----------------------
+- Reviewed the mitigation wizard/list and detail ownership in Mitigations.tsx
+  and its existing MitigationOverview, MitigationStepOne, and MitigationStepTwo
+  components. In the table editor, table row state, persistence/upload actions,
+  and inline calculations are already owned by focused hooks and domain
+  helpers; stage-specific table composition remains explicit in
+  MitigationTableEditor.
+- Extracted the CSV/XLSX dialog lifecycle (table config selection, parsing,
+  validation, upload error propagation, and applying saved rows) into
+  MitigationUploadDialog. This reduced MitigationTableEditor from about 974 to
+  939 lines while keeping its stage-specific table composition readable.
+- Tightened inline edit factory keys and the mitigation upload callback to the
+  UploadKey union. The uploader now receives the typed key directly, and
+  mitigation row append uses a checked key guard before indexing its setter map.
+- Added tests for mitigation upload validation and error propagation, invalid
+  electricity-year and replacement-life uploads, inline electricity-year
+  validation, calculated row patches, and existing row persistence behavior.
+- Current inventory is 184 TypeScript/TSX files and 62 test files in this area.
+  Tests, type checks, build, and lint were not run for this phase per workspace
+  instruction.
+
+PHASE 4 — Review Concrete Register
+----------------------------------
+[x] Confirm the remaining ConcreteRegister.tsx sections have distinct
+    responsibilities before considering another extraction; data and actions
+    are already separated.
+[x] If a clear independent UI responsibility remains, extract it behind a typed
+    contract and add focused CRUD tests. Otherwise, keep the component intact
+    and record that the review is complete without splitting it.
+[x] Preserve current concrete-register editing, calculation, and CRUD behavior.
+
+Phase 4 completion notes
+-----------------------
+- Confirmed project loading and persistence state are owned by
+  useConcreteRegisterData and mutations/calculation coordination are owned by
+  useConcreteRegisterActions. The remaining parent component coordinates the
+  register accordion and Simplified/Detailed navigation.
+- Extracted the independently structured EPD / PCF table into
+  ConcreteEpdPcfTable with typed row/action props. Mix Design remains together
+  because the parent table and its expanded nested materials editor share one
+  row lifecycle; splitting those pieces would require forwarding the same
+  coordinated selection and mutation state without clarifying ownership.
+- Added EPD table tests for read-only rendering and edit/sync behavior, plus
+  action-hook coverage for mix-design, material, and EPD creation/deletion.
+  Existing tests continue to cover simplified row creation and data loading.
+- ConcreteRegister.tsx is now approximately 695 lines. Current inventory is
+  186 TypeScript/TSX files and 63 test files in the data-entry area. Tests,
+  type checks, build, and lint were not run for this phase per workspace
+  instruction.
+
+PHASE 5 — Tighten remaining unsafe types
+----------------------------------------
+[x] Search the data-entry area for any and as any, then inspect each occurrence
+    in context. Treat search results as review candidates, not a numeric target.
+[x] Prioritize validation, table configuration, modal, and hook boundaries.
+[x] Replace genuine unsafe types with explicit row, rule, context, and API
+    payload types; do not mechanically rewrite comments or safe boundary casts.
+[x] Add or update contract tests for behavior changed by type-boundary work.
+
+Phase 5 completion notes
+-----------------------
+- Reviewed production occurrences of any/as any in the data-entry area and
+  shared row parser. Removed the broad types in validation, executive-summary
+  user context, and CSV/XLSX parsing; no production any/as any matches remain
+  in the reviewed data-entry area.
+- Validation now accepts typed rows and unknown API errors, and parser output
+  is checked against the data-entry row contract before entering table state.
+  File parsing options and results, executive-summary user, upload keys, and
+  mitigation callback boundaries now use explicit types.
+- Calculation configuration is runtime-checked before use, and upload table
+  keys are narrowed through a shared type guard instead of assertions.
+- Added parser, row-validation, table-key, and calculation-config contract
+  tests. Current area inventory is 187 TypeScript/TSX files and 64 test files.
+- Tests, type checks, build, and lint were not run for this phase per workspace
+  instruction.
+
+PHASE 6 — Close behavior-test gaps
+----------------------------------
+[x] Check existing tests before adding new ones to avoid duplicate coverage.
+[x] Cover row mutations and synchronized component/replacement updates.
+[x] Cover mitigation persistence, inline edits, upload validation, and failures.
+[x] Cover Users and Large Road Users calculation, save, debounce, and year
+    workflows that are not already covered by focused hook tests.
+[x] Cover modal confirmation and cancellation paths not already protected.
+[x] Keep tests focused on observable behavior and existing API contracts.
+
+Phase 6 completion notes
+-----------------------
+- Reviewed the existing suite first. It already covers row deletion, mitigation
+  bulk and new-row persistence, inline calculations and validation, upload
+  validation/error propagation, road and rail calculations/saves/debounce,
+  large-user year add/copy/delete, and design-seed/delete-modal confirmation
+  and cancellation behavior.
+- Added a row-mutation regression case proving a component quantity patch
+  recalculates and persists its linked replacement row, updates replacement
+  state, and refreshes totals.
+- Added a mitigation persistence failure case proving the error propagates and
+  totals are not refreshed after a failed bulk upsert.
+- Tests were not run for this phase per workspace instruction.
+
+PHASE 7 — Targeted cleanup
+-------------------------
+[x] While touching a module, remove obsolete commented implementations, unused
+    state, compatibility scaffolding, and lint suppressions that no longer have
+    a valid reason to remain.
+[x] Surface actionable failures in the UI where a user needs to respond; avoid
+    replacing useful handling with console-only logging.
+[x] Review each cleanup for behavior parity and add coverage when it changes an
+    observable outcome.
+
+Phase 7 completion notes
+-----------------------
+- Removed obsolete commented-out mitigation filtering and stale placeholder,
+  tooltip, and explanatory UI fragments. Removed the unused tableRows input
+  from useDataEntryRowMutations and its invalidation dependency.
+- Option management, option deletion, option-data copying, and row deletion
+  now show failures in the open dialog. Failed row deletion leaves rows and the
+  confirmation target intact so the user can retry; successful deletion remains
+  applied if the totals refresh alone fails.
+- Added dialog error-state tests for option creation/deletion, option copying,
+  and row deletion. Added a row mutation case ensuring a failed delete does not
+  remove the local row or close confirmation.
+- Reviewed remaining comments and error handling in touched modules. Remaining
+  comments describe current behavior or mark intentional UI sections; existing
+  user-visible failures in concrete mix and mitigation flows were retained.
+- Current inventory is 190 TypeScript/TSX files and 67 test files in the area.
+  Tests, type checks, build, and lint were not run per workspace instruction.
+
+PHASE 8 — Final validation and completion review
+------------------------------------------------
+[x] For each implementation slice, run focused tests and the applicable
+    TypeScript check when workspace instructions permit.
+[x] From client/, run: npm run test
+[x] From client/, run: npm run typecheck:test
+[x] From client/, run: npm run build
+[x] From client/, run: npm run lint
+[x] Resolve refactor-related failures and record unrelated pre-existing failures
+    separately; do not change unrelated code to make the checklist pass.
+[x] Review the diff for preserved API payloads, routes, access controls, and
+    visible workflows before marking the refactor complete.
+
+Phase 8 completion notes
+-----------------------
+- Focused regression run passed: 8 files, 17 tests. Final client suite passed:
+  69 files and 182 tests. `npm run typecheck:test` and `npm run build` passed.
+- The first full test run exposed two stale road-speed expectations (the
+  existing calculation formats to two decimals) and an empty mitigation-upload
+  validation gap. Updated the expectations and now reject empty uploads with a
+  visible validation message. The focused run and final full suite passed after
+  these fixes.
+- `npm run lint` was run but ESLint exits before analyzing files because the
+  client has no `eslint.config.js`, `.mjs`, or `.cjs` flat configuration. This
+  is a repository configuration issue outside the data-entry refactor; no
+  unrelated lint setup was introduced.
+- Reviewed the refactor diff for route, access-control, and API contract
+  changes. The extracted hooks/components retain existing scopes and payload
+  fields; no route or backend contract changes were introduced by the refactor.
+- Phase 8 checks were run as requested. The refactor validation is complete
+  except for lint analysis, which remains blocked by the missing ESLint config.
+
+Completion criteria
+-------------------
+- DataEntry.tsx composes the page without owning table loading or workflow
+  implementation.
+- Large workflow modules have clear responsibility boundaries; cohesive modules
+  remain intact where further splitting would not improve maintainability.
+- Changed boundaries use explicit types, and focused tests protect critical
+  behavior and existing API contracts.
+- Routes, permissions, and user-visible workflows remain intact.
+- Final client tests, type checks, and production build pass. Lint can be
+  confirmed once the client has an ESLint 9 flat configuration.

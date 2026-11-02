@@ -1,0 +1,59 @@
+﻿Jurisdiction,Material Type,Construction wastage rate (%),Recycling Rate (%),Landfill Rate (%),Source/Comments
+Australia,Aggregate,0,0.9,0.1,National Embodied Carbon Databook (2026) v1.00
+Australia,Asphalt,0.05,0.9,0.1,National Embodied Carbon Databook (2026) v1.00
+Australia,Bricks/masonry,0.05,0.9,0.1,National Embodied Carbon Databook (2026) v1.00
+Australia,Building Services,0,0.4,0.6,National Embodied Carbon Databook (2026) v1.00
+Australia,Concrete - in-situ,0.05,0.9,0.1,National Embodied Carbon Databook (2026) v1.00
+Australia,Concrete - precast,0,0.9,0.1,National Embodied Carbon Databook (2026) v1.00
+Australia,Glass,0.01,0.4,0.6,National Embodied Carbon Databook (2026) v1.00
+Australia,Metals (excl. reinforcement),0.01,0.9,0.1,National Embodied Carbon Databook (2026) v1.00
+Australia,Plastics and Polymeric materials,0.06,0,1,National Embodied Carbon Databook (2026) v1.00
+Australia,Steel Reinforcement,0.05,0.9,0.1,National Embodied Carbon Databook (2026) v1.00
+Australia,Timbera,0.1,0.45,0.55,National Embodied Carbon Databook (2026) v1.00
+Australia,Timber (engineered wood)a,0.05,0.45,0.55,National Embodied Carbon Databook (2026) v1.00
+Australia,Miscellaneous materials - wasteb,0.06,0,1,National Embodied Carbon Databook (2026) v1.00
+Australia,Miscellaneous materials - no wastec,0,-,-,National Embodied Carbon Databook (2026) v1.00
+New Zealand,Aluminium,0.01,0.95,0.05,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Bitumen,0.05,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,"Blocks (AAC, solid)",0.05,0,0.1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,"Blocks (concrete, hollow)",0.05,0,0.1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,"Blocks (concrete, solid)",0.05,0,0.1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Bricks (clay),0.05,0,0.1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Bricks (concrete),0.05,0,0.1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Building wrap,0.1,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Chips/gravel,0.02,0,0.05,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Clay (bentonite),0.05,0,0.1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Composite panel,0,,,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Concrete (aerated autoclaved),0.04,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Concrete (in situ),0.04,0.1,0.9,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,"Concrete (in situ, light weight)",0.04,0.1,0.9,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,"Concrete (in situ, light weight, fibre reinforced)",0.04,0.1,0.9,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Concrete (precast),0,0,0,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,"Concrete (precast, light weight)",0,0,0,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Copper,0.01,0.95,0.05,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Fibre cement sheets,0.18,0,0.75,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Glass,0.01,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Glass fibre reinforced cement (GRC) panels,0.01,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Grout,0.1,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Insulation,0.15,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Insulation (board),0.15,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Mastic asphalt waterproofing,0.05,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Mortar,0.05,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Plaster,0.1,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Plastics,0.05,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Plywood,0.1,0.25,0.75,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Protective coating/decorative finish,0.05,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Sheet (gypsum wallboard),0.15,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Stainless steel,0.01,0.95,0.05,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Steel (reinforcing or mesh),0.05,0.95,0.05,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Steel (sheet),0.01,0.95,0.05,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Steel (structural),0.01,0.95,0,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Stone (natural),0.05,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Tile (clay),0.1,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Tile (concrete),0.1,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Timber (solid),0.1,0.75,0.25,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,"Timber (engineered wood) eg. laminates, LVL, glulam",0.05,0.25,0.75,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,"Timber (engineered panels) eg. MDF, OSB, particleboard",0.1,0.25,0.75,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Zinc,0.01,0.95,0.05,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Miscellaneous materials - waste,0.1,0,1,BRANZ (2023) - Construction site waste (module A5) dataset
+New Zealand,Miscellaneous materials - no waste,0,0,0,BRANZ (2023) - Construction site waste (module A5) dataset

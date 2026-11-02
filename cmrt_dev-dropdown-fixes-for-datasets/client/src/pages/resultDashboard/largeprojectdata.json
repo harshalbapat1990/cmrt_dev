@@ -1,0 +1,126 @@
+{
+  "projectId": "LP_001",
+  "projectName": "Large Infrastructure Project",
+  "projectCategory": "LARGE",
+  "unit": "tCO2e",
+
+  "submissions": [
+    {
+      "submissionId": "BUSINESS_CASE",
+      "label": "Business case",
+      "type": "one-time",
+      "intervals": [
+        {
+          "intervalId": "BUSINESS_CASE",
+          "label": "Business case",
+
+          "datasets": {
+            "Market-based": {
+              "emissionsBreakdown": {
+                "summaryIndicators": {
+                  "primaryIndicator": {
+                    "value": 10920,
+                    "unit": "tCO2e"
+                  },
+                  "secondaryIndicator": {
+                    "value": 328,
+                    "unit": "tCO2e/$M"
+                  }
+                },
+
+                "byModule": {
+                  "rows": [
+                    { "module": "A1–A3", "value": 1800 },
+                    { "module": "A4", "value": 650 },
+                    { "module": "A5", "value": 500 },
+                    { "module": "B1–B5", "value": 4200 },
+                    { "module": "B6", "value": 1600 },
+                    { "module": "B7", "value": 420 },
+                    { "module": "B8", "value": 1750 }
+                  ],
+                  "totals": {
+                    "A1–A5": 2950,
+                    "B1–B5": 4200,
+                    "B8": 1750,
+                    "A1–B8": 10920,
+                    "offsets": 0,
+                    "storedCarbon": 0,
+                    "netTotal": 10920
+                  }
+                },
+
+                "bySourceCategory": {
+                  "rows": [
+                    { "source": "Materials", "value": 3800 },
+                    { "source": "Fuels", "value": 2400 },
+                    { "source": "Electricity", "value": 2100 },
+                    { "source": "Waste", "value": 680 },
+                    { "source": "Water", "value": 520 },
+                    { "source": "Gases", "value": 420 },
+                    { "source": "Commute", "value": 300 },
+                    { "source": "Business Travel", "value": 400 },
+                    { "source": "Other", "value": 300 }
+                  ]
+                }
+              },
+
+              "materialHotspots": {
+                "materials": [
+                  { "material": "Cement", "emissions": 180 },
+                  { "material": "Steel", "emissions": 160 },
+                  { "material": "Concrete", "emissions": 120 },
+                  { "material": "Aluminium", "emissions": 140 }
+                ]
+              },
+
+              "mitigationSummary": {
+                "ghgReductions": {
+                  "construction": 12,
+                  "operations": 24,
+                  "lifecycle": 14
+                },
+                "energyReductions": {
+                  "construction": 4,
+                  "operations": 13,
+                  "lifecycle": 9
+                }
+              },
+
+              "comparisonByStagePeriod": {
+                "stages": [
+                  { "stage": "Construction", "value": 3200 },
+                  { "stage": "Operations", "value": 5100 },
+                  { "stage": "Lifecycle", "value": 2620 }
+                ]
+              },
+
+              "optionsComparison": {
+                "options": [
+                  { "option": "Option 1", "value": 75 },
+                  { "option": "Option 2", "value": 58 },
+                  { "option": "Option 3", "value": 92 }
+                ]
+              },
+
+              "renewableEnergy": {
+                "renewableSharePercent": 42
+              },
+
+              "offsettingSummary": {
+                "offsetsApplied": 0
+              },
+
+              "wasteRecycleMaterials": {
+                "recycledPercent": 38
+              },
+
+              "itmmReporting": {
+                "reportAvailable": true
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,314 @@
+﻿Jurisdiction,State/Territory,Emissions Category,Emissions Sub-Category,Emissions Source,UoM,Carbon Storage (tCO2e/UoM),Scope 1 Emissions Factor (tCO2e/UoM),Scope 3 Emissions Factor (tCO2e/UoM),Source/Comments
+Australia,National,Fuels,Gaseous Fuels,Natural gas distributed in a pipeline,m3,,0.002025129,0.0005502,"National Greenhouse Account Factors 2025, Scope 3 conservatively based on NSW & ACT non-metro"
+Australia,National,Fuels,Gaseous Fuels,Coal seam methane that is captured for combustion,m3,,0.002,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Coal mine waste gas that is captured for combustion,m3,,0.002,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Compressed natural gas (reverting to standard conditions),m3,,0.002,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Unprocessed natural gas,m3,,0.002,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Ethane ,m3,,0.004,0.00149073,"National Greenhouse Account Factors 2025, Scope 3 conservatively based on NSW"
+Australia,National,Fuels,Gaseous Fuels,Coke oven gas,m3,,0.001,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Blast furnace gas,m3,,0.001,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Town gas ,m3,,0.002,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Liquefied natural gas,kL,,1.304,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Other gaseous fossil fuels ,m3,,0.00200967,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Landfill biogas that is captured for combustion (methane only),m3,,0.000242411,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Sludge biogas that is captured for combustion (methane only),m3,,0.000242411,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Other biogas that is captured for combustion,m3,,0.00023791,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Gaseous Fuels,Hydrogen,m3,,0.00000061,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Petroleum based oils,kL,,0.539,0.698,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Petroleum based greases,kL,,0.136,0.698,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Crude oil including crude oil condensates,t,,3.166,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Other natural gas liquids ,t,,2.85,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Gasoline (other than for use as fuel in an aircraft),kL,,2.319,0.588,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Gasoline for use as fuel in an aircraft (avgas),kL,,2.231,0.596,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Kerosene (other than for use as fuel in an aircraft),kL,,2.592,0.675,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Kerosene for use as fuel in an aircraft (aviation turbine fuel),kL,,2.569,0.662,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Heating oil,kL,,2.601,0.671,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Diesel oil,kL,,2.71,0.668,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Fuel oil,kL,,2.931,0.715,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Liquefied aromatic hydrocarbons,kL,,2.406,0.619,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Solvents: mineral turpentine or white spirits,kL,,2.406,0.619,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Liquefied petroleum gas,kL,,1.557,0.519,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Naphtha,kL,,2.192,0.565,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Petroleum coke,kL,,3.176,0.616,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Refinery gas and liquids,kL,,2.349,0.772,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Refinery coke,kL,,3.176,0.616,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Other petroleum based products ,kL,,2.405,0.619,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Biodiesel ,kL,,0.01,0.918241617,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Ethanol for use as a fuel in an internal combustion engine,kL,,0.007,1.13635808,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Other biofuels,kL,,0.007,0.918241617,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Renewable aviation kerosene,kL,,0.008,0.918241617,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),Renewable diesel,kL,,0.012,1.884838,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Gasoline (Cars and light commercial vehicles),kL,,2.313,0.588,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Diesel oil (Cars and light commercial vehicles),kL,,2.718,0.668,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Liquefied petroleum gas (LPG) (Cars and light commercial vehicles),kL,,1.598,0.529,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Fuel oil (Cars and light commercial vehicles),kL,,2.945,0.715,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Ethanol (Cars and light commercial vehicles),kL,,0.009,1.13635808,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Biodiesel (Cars and light commercial vehicles),kL,,0.087,0.918241617,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Other biofuels (Cars and light commercial vehicles),kL,,0.059,0.918241617,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Compressed natural gas (Light duty vehicles),m3,,0.002,0.001,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Liquefied natural gas (Light duty vehicles),kL,,1.493,0.455,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Compressed natural gas (Heavy duty vehicles),kL,,0.002,0.001,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Liquefied natural gas (Heavy duty vehicles),kL,,1.379,0.455,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Diesel oil - Euro iv or higher (Heavy duty vehicles),kL,,2.716,0.668,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Diesel oil - Euro iii (Heavy duty vehicles),kL,,2.717,0.668,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Diesel oil - Euro i (Heavy duty vehicles),kL,,2.721,0.668,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Renewable diesel – Euro iv or higher (Heavy duty vehicles),kL,,0.018,1.884838,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Renewable diesel – Euro iii (Heavy duty vehicles),kL,,0.019,1.884838,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Renewable diesel – Euro I (Heavy duty vehicles),kL,,0.023,1.884838,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Gasoline for use as fuel in an aircraft,kL,,2.24,0.596,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Kerosene for use as fuel in an aircraft,kL,,2.584,0.662,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),Renewable aviation kerosene,kL,,0.022,0,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Bituminous coal ,t,,2.44,0.081,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Sub-bituminous coal ,t,,1.9,0.053,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Anthracite ,t,,2.62,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Brown coal,t,,0.96,0.004,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Coking coal,t,,2.76,0.192,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Coal briquettes,t,,2.11,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Coal coke,t,,2.9,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Coal tar,t,,3.08,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Other solid fossil fuels ,t,,2.11,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,"Industrial materials and tyres that are derived from fossil fuels
+",t,,2.15,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,"Non‑biomass municipal materials
+",t,,0.93,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Dry wood,t,,0.02,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Green and air dried wood,t,,0.01,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Sulphite lyes,t,,0.01,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Bagasse,t,,0.01,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,"Biomass, municipal and industrial materials
+
+",t,,0.02,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,Charcoal,t,,0.2,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Solid Fuels,"Primary solid biomass fuels 
+",t,,0.02,,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),E10 blend,kL,,2.022,0.674,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),B5 blend,kL,,2.561,0.682,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Stationary),B20 blend,kL,,2.125,0.724,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),E10 blend,kL,,2.017,0.674,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),B5 blend,kL,,2.573,0.682,National Greenhouse Account Factors 2025
+Australia,National,Fuels,Liquid Fuels (Transport),B20 blend,kL,,2.148,0.724,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-23,t,,12400,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-32,t,,677,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-41,t,,116,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-43-10mee,t,,1650,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-125,t,,3170,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-134,t,,1120,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-134a,t,,1300,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-143,t,,328,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-143a,t,,4800,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-152a,t,,138,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-227ea,t,,3350,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-236fa,t,,8060,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-245ca,t,,716,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-245fa,t,,858,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Hydrofluorocarbons (HFCs),HFC-365mfc,t,,804,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Other gases,Methane,t,,28,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Other gases,Nitrous oxide,t,,265,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Other gases,Sulphur hexafluoride,t,,23500,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Perfluorocarbons (PFCs),Perfluoromethane (tetrafluoromethane),t,,6630,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Perfluorocarbons (PFCs),Perfluoroethane (hexafluoroethane),t,,11100,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Perfluorocarbons (PFCs),Perfluoropropane,t,,8900,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Perfluorocarbons (PFCs),Perfluorobutane,t,,9200,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Perfluorocarbons (PFCs),Perfluorocyclobutane,t,,9540,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Perfluorocarbons (PFCs),Perfluoropentane,t,,8550,,National Greenhouse Account Factors 2025
+Australia,National,Gases,Perfluorocarbons (PFCs),Perfluorohexane,t,,7910,,National Greenhouse Account Factors 2025
+Australia,National,Materials,Aggregate,Ballast,t,0,,0.00666,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,Crushed Rock,t,0,,0.00666,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,Crushed Slag Aggregate,t,0,,0.017919001,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,General Fill,t,0,,0,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,General Sand,t,0,,0.00666,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,Gravel,t,0,,0.00666,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,Recycled Aggregates,t,0,,0.00382,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,Stabilised sand,m3,0,,0.185,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aluminium - extruded,Extruded aluminium - anodised,t,0,,19.3,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aluminium - extruded,Extruded aluminium - powder coated,t,0,,18.2,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aluminium - extruded,Extruded aluminium - uncoated,t,0,,17.4,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cladding/roofing,Aluminium sheeting,t,0,,11.8,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cladding/roofing,Clay and terracotta roof tiles,t,0,,0.31,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cladding/roofing,Concrete roof tiles,t,0,,0.159,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cladding/roofing,Fibre cement board,m2,-0.0000251,,0.0126,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cladding/roofing,Glassfibre reinforced concrete cladding,t,0,,0.544,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cladding/roofing,Steel sheeting - metallic coat,m2,0,,0.0191,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cladding/roofing,Steel sheeting - painted,m2,0,,0.0148,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,AAC and steel based system - generic ,m2,0,,0.0456,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 1: 100% DGU 8T-16-44.2",m2,0,,0.264,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 2: aluminium cladding, 50% DGU 8T-16-44.2",m2,0,,0.382,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 3: aluminium cladding with vertical fins, 50% DGU 8T-16-44.2",m2,0,,0.509,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 4: aluminium cladding, 50% TGU 8T-16-6-16-44.2",m2,0,,0.39,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 5: insulated shadow box, 50% DGU 8T-16-44.2",m2,0,,0.342,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 6: GRC cladding, 50% DGU 8T-16-44.2",m2,0,,0.448,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Aluminium unitised type 7: opaque panel, 100% aluminium cladding",m2,0,,0.68,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Double skin type 1: deep cavity aluminium façade, 100% single + DGU 66.2 + 8T-16-44.2",m2,0,,0.802,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,"Curtain wall, Double skin type 2: narrow cavity aluminium façade, 100% single + DGU 66.2 + 8T-16-44.2",m2,0,,0.412,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,Wall system steel frame - 1 side plasterboard (150 mm stud),m2,-0.000496,,0.0148,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,Wall system steel frame - 1 side plasterboard (92mm stud),m2,-0.000496,,0.0106,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,Wall system steel frame - 2 sides plasterboard (150 mm stud),m2,-0.000991,,0.0186,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,Wall system steel frame - 2 sides plasterboard (92mm stud),m2,-0.000991,,0.0143,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,Wall system timber frame - 1 side plasterboard ,m2,-0.00894,,0.00566,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Curtain wall,Wall system timber frame - 2 sides plasterboard ,m2,-0.00943,,0.00944,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,External shading system,Aluminium frame shading system,t,0,,18.2,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,External shading system,Steel frame shading system,t,0,,3.01,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Glass,Glass (treated or untreated),t,0,,1.66,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Wall louvre system,Aluminium louvre ,t,0,,18.2,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Door - aluminium with glazing - generic,m2,0,,0.245,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Door - fully glazed - minor aluminium frame - generic,m2,0,,0.199,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Door - steel solid - generic,m2,0,,0.299,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Door - steel with glazing - generic,m2,0,,0.138,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Door - timber solid - generic,m2,-0.0688,,0.0828,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Door - timber with glazing - generic,m2,-0.0274,,0.0545,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,"Revolving door - glass, aluminium, steel - generic",m2,-0.0263,,1.01,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Window - Aluminium frame - Generic,m2,0,,0.159,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Window - Timber frame - Generic,m2,-0.00599,,0.194,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,AAC panel (inc. reinforced),t,0,,0.451,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Ceiling system aluminium frame suspended (powder coated aluminium),m2,0,,0.148,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Ceiling system steel frame suspended (fibre cement),m2,-0.0000234,,0.0131,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Ceiling system steel frame suspended (mineral tile),m2,0,,0.00808,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Ceiling system steel frame suspended (plasterboard),m2,-0.000496,,0.00739,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Fibre cement sheet,m2,-0.0000251,,0.0126,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,MDF (Medium Density Fibreboard),m3,-1.23,,0.815,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Particleboard wall/ceiling,m3,-1.08,,0.433,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Plasterboard,m2,-0.000393,,0.00337,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Steel frame,t,0,,3.01,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Ceilings & walls,Timber framing,m3,-0.857,,0.188,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Access flooring,m2,0,,0.0382,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Carpet flooring,m2,0,,0.0133,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Epoxy flooring,t,0,,2.8,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Hybrid flooring,m2,0,,0.013,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Laminate flooring,m2,0,,0.00371,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Linoleum flooring,m2,0,,0.00361,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Rubber flooring,m2,0,,0.00869,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Floors,Vinyl flooring,m2,0,,0.0159,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Stick-framed wall /ceiling system,Ceiling tile,m2,0,,0.00428,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Wall ceiling Insulated Panel,Structural insulated panels>100mm,m2,0,,0.0556,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Wall ceiling Insulated Panel,Structural insulated panels≤100mm,m2,0,,0.0423,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Windows & doors,Roller doors,m2,0,,0.103,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Building and MEP services,"High rise office, hotel or retail building (>10 floors)",m2,0,,0.0626,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Building and MEP services,Hospital or high services intensity building,m2,0,,0.066,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Building and MEP services,"Low or mid rise office, hotel or retail building (≤10 floors)",m2,0,,0.0553,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Building and MEP services,Residential building,m2,0,,0.0468,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Building and MEP services,Warehouse or industrial building,m2,0,,0.0126,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Escalator,Escalator,Each,0,,50.5,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Lifts,Lift (elevator) for 10+ floors,Each,0,,167,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Lifts,Lift (elevator) for 4-10 floors,Each,0,,41.5,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Lifts,Lift (elevator) for less than 4 floors,Each,0,,14.2,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Photovoltaic panels,Photovoltaic panel (monocrystalline),m2,0,,0.278,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Photovoltaic panels,Photovoltaic panel (polycrystalline),m2,0,,0.203,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,General concrete admixtures,t,0,,1.67,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,Coarse Aggregates,t,0,,0.00666,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Concrete production process,m3,0,,0.006847129,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,Fine Aggregates,t,0,,0.00666,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Fly ash,t,0,,0,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Silica fume,t,0,,1.6,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,General purpose cement,t,0,,0.90063762,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,GGBF slag,t,0,,0.16863998,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Aggregate,Manufactured sand,t,0,,0.005003881,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Mortar or screed (1:3 cement: sand mix) (Using CEM I cement),t,0,,0.178880786,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Mortar or screed (1:4 cement:sand mix) (Using CEM I cement),t,0,,0.145996223,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Portland Cement,t,0,,0.94906658,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Recycled Aggregates,t,0,,0.00382,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete components,Steel fibres for concrete reinforcement,t,0,,1.6,National Embodied Carbon Databook v1.00 2026
+Australia,National,Water,Wastewater,Wastewater treatment,kL,0,,0.00186,AusLCI version 1.45
+Australia,National,Water,Water Use,Mains Water,kL,0,,0.000398329,National Embodied Carbon Databook v1.00 2026
+Australia,National,Water,Water Use,On-site recycled & captured water,kL,0,,0,NA
+Australia,National,Water,Water Use,Off-site recycled water,kL,0,,0.001,"Cook, S. Hall. M. and Gregory, A. (2012) Energy use in the provision and consumption of urban water in Australia: an update. CSIRO Water for a Healthy Country Flagship, Australia. Prepared for the Water Services Association of Australia."
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >10 MPa to ≤20 MPa",m3,0,,0.201,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >20 MPa to ≤25 MPa",m3,0,,0.222,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >25 MPa to ≤32 MPa",m3,0,,0.249,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >32 MPa to ≤40 MPa",m3,0,,0.305,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >40 MPa to ≤50 MPa",m3,0,,0.354,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >50 MPa to ≤65 MPa",m3,0,,0.402,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >65 MPa to ≤80 MPa",m3,0,,0.425,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, >80 MPa +",m3,0,,0.561,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Concrete in-situ,"Normal class: Concrete in-situ, ≤10 MPa",m3,0,,0.181,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Precast concrete,Autoclaved aerated concrete (AAC) block (no fill or reinforcing),m3,0,,0.19,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Precast concrete,Hollow core - precast concrete (inc. reinforcing),m3,0,,0.339,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Precast concrete,Precast concrete block (exc. core fill or reinforcing),t,0,,0.159,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Precast concrete,Wall panel - Precast concrete panel (inc. reinforcing),t,0,,0.233,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Masonry,Clay brick,t,0,,0.184,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Masonry,Stone brick,t,0,,0.239,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Paint,Paint - solvent based,t,0,,3.76,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Paint,Paint - Water based,t,0,,2.151830307,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,General Asphalt,t,0,,0.0714,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, <2.5% virgin bitumen (>60% RAP)",t,0,,0.037082358,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 2.5-3.4% virgin bitumen (40-60% RAP)",t,0,,0.043690147,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 3.5% virgin bitumen (40% RAP)",t,0,,0.046970257,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 3.75% virgin bitumen (35% RAP)",t,0,,0.048610311,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 4% virgin bitumen (30% RAP)",t,0,,0.050250366,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 4.25% virgin bitumen (25% RAP)",t,0,,0.051902313,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 4.5% virgin bitumen (20% RAP)",t,0,,0.053554261,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 5% virgin bitumen (10% RAP)",t,0,,0.056858155,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, 5.25% virgin bitumen (5% RAP)",t,0,,0.058462533,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",t,0,,0.06006691,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, <2.5% virgin bitumen (>60% RAP)",t,0,,0.032479522,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 2.5-3.4% virgin bitumen (40-60% RAP)",t,0,,0.039087425,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 3.5% virgin bitumen (40% RAP)",t,0,,0.042367573,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 3.75% virgin bitumen (35% RAP)",t,0,,0.044007646,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 4% virgin bitumen (30% RAP)",t,0,,0.04564772,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 4.25% virgin bitumen (25% RAP)",t,0,,0.047299696,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 4.5% virgin bitumen (20% RAP)",t,0,,0.048951672,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 4.75% virgin bitumen (15% RAP)",t,0,,0.050603647,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 5% virgin bitumen (10% RAP)",t,0,,0.052255623,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, 5.25% virgin bitumen (5% RAP)",t,0,,0.05386002,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Asphalt,"Warm mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",t,0,,0.055464417,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Bitumen,Bitumen,t,0,,0.19086,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Bitumen,Cutback bitumen,kL,0,,0.72,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Pavers,Ceramic paver/tile,t,0,,0.548,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Pavers,Concrete paver/tile,t,0,,0.159,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Pavers,Stone paver/tile,t,0,,0.239,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Geopolymer pipes,Geopolymer pipes,t,0,,0.1374604,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,PE Pipes,HDPE Pipes,t,0,,2.52,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,PVC Pipes,PVC Pipes,t,0,,3.23,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Steel pipes,Steel pipe (welded),t,0,,2.51,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Rubbers,Synthetic rubber,t,0,,2.546930191,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Sealants and adhesives,Sealants and adhesives - Epoxy Resin,t,0,,5.7,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,High density polyethylene,t,0,,2.3776359,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,Low density polyethylene,t,0,,3.5203841,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,Nylon 6,t,0,,9.14,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,Polycarbonate,t,0,,7.62,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,Polyethylene,t,0,,2.54,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,Polypropylene,t,0,,2.6592556,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,"Polystyrene, expanded",t,0,,3.29,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,"Polystyrene, general purpose",t,0,,3.43,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,"Polyurethane, flexible foam",t,0,,4.84,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Thermoplastics,PVC General,t,0,,3.1,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cold rolled steel,"Hot rolled lightweight – painted structural steel (e.g. formwork, framing and decking steel)",t,0,,2.41,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cold rolled steel,Cold rolled lightweight - structural framing steel,t,0,,3.01,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Cold rolled steel,"Cold rolled lightweight - structural steel (e.g. formwork, framing and decking steel)",t,0,,3.01,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Hot rolled steel,"Hot rolled - galvanised structural steel (welded beam, columns, angles, plates, piles etc) ",t,0,,2.4,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Hot rolled steel,"Hot rolled - structural steel (welded beam, columns, angles, plates, piles etc) ",t,0,,2.27,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Reinforcing steel,Bar & mesh reinforcing steel,t,0,,1.6,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Steel wire,Steel wire,t,0,,2.16,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Stainless steel,Stainless steel (general),t,0,,3.51,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (engineered),Glue laminated timber (GLT) and cross laminated timber (CLT) - hardwood,m3,-1.09,,0.69,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (engineered),Glue laminated timber (GLT) and cross laminated timber (CLT) - softwood,m3,-0.823,,0.242,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (engineered),Laminated veer lumber,m3,-0.843,,0.298,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (engineered),Oriented strand board,m3,-1.02,,0.194,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (engineered),Particleboard,m3,-1.14,,0.65,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (engineered),Plywood,m3,-0.841,,0.498,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (engineered),Timber weatherboards (softwood),m3,-0.848,,0.195,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (sawn),Sawn hardwood,m3,-1.17,,0.347,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (sawn),Sawn softwood,m3,-0.857,,0.188,National Embodied Carbon Databook v1.00 2026
+Australia,National,Materials,Timber (sawn),Timber poles - piles,m3,-1.17,,0.347,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Recycling,Inert waste - Concrete/ plastics / glass / rubble,t,,,0.002737,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Recycling,Inert waste - Metals,t,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Recycling,Food,t,,,0.028,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Recycling,Paper and cardboard,t,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Recycling,Garden and green,t,,,0.046,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Recycling,Wood,t,,,0.1,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Recycling,Textiles,t,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Recycling,Sludge,t,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Recycling,Rubber and leather,t,,,0,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Recycling,Mixed construction and demolition waste,t,,,0.002359,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Waste reuse (onsite),Spoil,t,,,,Zero impact - emissions from onsite fuel use captured separately
+Australia,National,Waste,Waste reuse (offsite),Spoil,t,,,,Zero impact - emissions from transport captured separately
+Australia,National,Waste,Landfill,Inert waste - Concrete/ plastics / glass / rubble,t,,,0.014333333,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Landfill,Inert waste - Metals,t,,,0.014333333,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Landfill,Food,t,,,2.1,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Landfill,Paper and cardboard,t,,,3.3,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Landfill,Garden and green,t,,,1.6,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Landfill,Wood,t,,,0.7,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Landfill,Textiles,t,,,2,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Landfill,Sludge,t,,,0.4,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Landfill,Rubber and leather,t,,,3.3,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Landfill,Mixed construction and demolition waste,t,,,0.2,National Embodied Carbon Databook v1.00 2026
+Australia,National,Waste,Landfill,Spoil,t,,,0.014333333,National Embodied Carbon Databook v1.00 2026 (equivalent to inert waste)

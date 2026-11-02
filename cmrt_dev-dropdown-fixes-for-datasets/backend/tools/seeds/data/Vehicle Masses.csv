@@ -1,0 +1,21 @@
+VehicleClass,Reference GCM (tonnes),Max Payload (tonnes),GVM,Assumed Payload
+Small Car,\,0.40,1.10,75%
+Medium Car,1.40,0.40,1.30,75%
+Large Car,1.60,0.40,1.50,75%
+Courier Van-Utility,2.15,0.85,1.94,75%
+4WD Mid Size Petrol,2.73,0.93,2.50,75%
+Light Rigid,3.75,2.15,3.21,75%
+Medium Rigid,10.40,7.20,8.60,75%
+Heavy Rigid,22.50,13.50,19.13,75%
+Heavy Bus,19.00,7.00,17.25,75%
+Artic 4 Axle,31.50,20.50,26.38,75%
+Artic 5 Axle,39.00,26.00,32.50,75%
+Artic 6 Axle,42.50,27.50,35.63,75%
+Rigid + 5 Axle Dog,59.00,40.00,49.00,75%
+B-Double,62.50,40.50,52.38,75%
+Twin steer + 5 Axle Dog,64.00,43.00,53.25,75%
+A-Double,79.00,48.00,67.00,75%
+B Triple,82.50,48.50,70.38,75%
+A B Combination,99.00,60.00,84.00,75%
+A-Triple,115.50,71.50,97.63,75%
+Double B-Double,119.00,72.00,101.00,75%

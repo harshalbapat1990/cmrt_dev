@@ -7,9 +7,9 @@ WORKDIR /app
 # Disable npm strict SSL for installation (development only)
 RUN npm config set strict-ssl false
 
-# Copy package files and install dependencies
-COPY package.json ./
-RUN npm install
+# Install the exact dependency tree recorded in the lockfile.
+COPY package.json package-lock.json ./
+RUN npm ci --legacy-peer-deps
 
 # Copy application code
 COPY . .

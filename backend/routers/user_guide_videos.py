@@ -16,10 +16,14 @@ from schemas.user_guide_videos import (
     UserGuideVideoResponse,
 )
 
-def extract_youtube_video_id(url: str) -> str:
+def extract_video_id(url: str) -> str:
     parsed = urlparse(url)
+    host = parsed.hostname
 
-    if parsed.netloc in (
+    if parsed.scheme not in ("http", "https") or not host:
+        raise ValueError("A valid video URL is required")
+
+    if host in (
         "youtube.com",
         "www.youtube.com",
     ):
@@ -30,13 +34,26 @@ def extract_youtube_video_id(url: str) -> str:
 
         return video_id[0]
 
-    if parsed.netloc in (
+    if host in (
         "youtu.be",
         "www.youtu.be",
     ):
-        return parsed.path.strip("/")
+        video_id = parsed.path.strip("/")
+        if not video_id:
+            raise ValueError("Invalid YouTube URL")
+        return video_id
 
-    raise ValueError("Only YouTube URLs are supported")
+    if host == "vimeo.com" or host.endswith(".vimeo.com"):
+        path_parts = parsed.path.strip("/").split("/")
+        video_id = next(
+            (part for part in reversed(path_parts) if part.isdigit()),
+            None,
+        )
+        if video_id:
+            return video_id
+        raise ValueError("Invalid Vimeo URL")
+
+    raise ValueError("Only YouTube and Vimeo URLs are supported")
 
 router = APIRouter(
     prefix="/api/user-guide-videos",
@@ -69,13 +86,13 @@ async def create_video(
     db: AsyncSession = Depends(get_session),
 ):
     try:
-        youtube_video_id = extract_youtube_video_id(
+        youtube_video_id = extract_video_id(
             payload.youtube_url
         )
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A valid YouTube URL is required.",
+            detail="A valid YouTube or Vimeo URL is required.",
         )
 
     record = await crud.create_video(

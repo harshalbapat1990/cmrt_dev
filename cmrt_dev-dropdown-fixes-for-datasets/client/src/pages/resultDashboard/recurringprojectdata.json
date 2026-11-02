@@ -1,0 +1,128 @@
+{
+  "projects": [
+    {
+      "projectId": "PROJ_RECUR_001",
+      "projectName": "Annual Highway Maintenance Programme",
+      "projectCategory": "Recurring",
+      "unit": { "emissions": "tCO2e" },
+      "submissions": [
+        {
+          "submissionId": "CONSTRUCTION",
+          "label": "Construction",
+          "type": "recurring",
+          "intervals": [
+            {
+              "intervalId": "Q1_2026",
+              "label": "Q1 2026",
+              "datasets": {
+                "Market-based": {
+                  "emissionsBreakdown": {
+                    "summaryIndicators": {
+                      "primaryIndicator": {
+                        "value": 3200,
+                        "unit": "tCO2e"
+                      },
+                      "secondaryIndicator": {
+                        "value": 140,
+                        "unit": "kgCO2e/FTE"
+                      }
+                    },
+                    "modules": [
+                      { "code": "A5", "label": "Construction process", "value": 780 },
+                      { "code": "B6", "label": "Operational energy", "value": 1450 },
+                      { "code": "B7", "label": "Water use", "value": 310 },
+                      { "code": "Recurring Project", "label": "Recurring projects", "value": 900 }
+                    ],
+                    "sourceCategories": [
+                      { "category": "Electricity", "value": 1900 },
+                      { "category": "Fuels", "value": 1100 },
+                      { "category": "Materials", "value": 200 },
+                      { "category": "Something", "value": 0 },
+                      { "category": "Something else", "value": 0 }
+                    ]
+                  },
+
+                  "renewableEnergySummary": {
+                    "unit": "GJ",
+                    "stages": ["Recurring project"],
+                    "absolute": {
+                      "nonRenewable": { "Recurring project": 2100 },
+                      "renewable": { "Recurring project": 850 }
+                    },
+                    "percentage": {
+                      "nonRenewable": { "Recurring project": 71 },
+                      "renewable": { "Recurring project": 29 }
+                    }
+                  },
+
+                  "offsettingSummary": {
+                    "unit": "tCO2e",
+                    "categories": [
+                      { "label": "Nature based (avoidance)", "value": 1200 }
+                    ],
+                    "standards": [
+                      { "label": "Standard A", "value": 1200 }
+                    ]
+                  },
+
+                  "wasteAndRecycle": {
+                    "materials": {
+                      "kpis": {
+                        "totalMaterialsTonnes": 4200,
+                        "reusedPercentage": 18.0
+                      }
+                    }
+                  },
+
+                  "isCreditsSummary": { "credits": [] }
+                },
+
+                "Location-based": {
+                  "emissionsBreakdown": {
+                    "summaryIndicators": {
+                      "primaryIndicator": {
+                        "value": 3600,
+                        "unit": "tCO2e"
+                      },
+                      "secondaryIndicator": {
+                        "value": 155,
+                        "unit": "kgCO2e/FTE"
+                      }
+                    },
+                    "modules": [
+                      { "code": "B6", "label": "Operational energy", "value": 1900 }
+                    ],
+                    "sourceCategories": [
+                      { "category": "Electricity", "value": 1900 }
+                    ]
+                  },
+
+                  "renewableEnergySummary": {
+                    "unit": "GJ",
+                    "stages": ["Recurring project"],
+                    "absolute": {
+                      "nonRenewable": { "Recurring project": 2450 },
+                      "renewable": { "Recurring project": 720 }
+                    }
+                  },
+
+                  "offsettingSummary": {
+                    "unit": "tCO2e",
+                    "categories": [
+                      { "label": "Nature based (avoidance)", "value": 1200 }
+                    ],
+                    "standards": [
+                      { "label": "Standard A", "value": 1200 }
+                    ]
+                  },
+
+                  "isCreditsSummary": { "credits": [] }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

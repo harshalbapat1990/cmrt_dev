@@ -1,0 +1,37 @@
+﻿User entered emissions source,Unit,BAU equivalent emission source,BAU equivalent unit,BAU quantity (per unit of user identified source)
+"Hot mix asphalt, <2.5% virgin bitumen (>60% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Hot mix asphalt, 2.5-3.4% virgin bitumen (40-60% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Hot mix asphalt, 3.5% virgin bitumen (40% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Hot mix asphalt, 3.75% virgin bitumen (35% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Hot mix asphalt, 4% virgin bitumen (30% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Hot mix asphalt, 4.25% virgin bitumen (25% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Hot mix asphalt, 4.5% virgin bitumen (20% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Hot mix asphalt, 5% virgin bitumen (10% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Hot mix asphalt, 5.25% virgin bitumen (5% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Warm mix asphalt, <2.5% virgin bitumen (>60% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Warm mix asphalt, 2.5-3.4% virgin bitumen (40-60% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Warm mix asphalt, 3.5% virgin bitumen (40% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Warm mix asphalt, 3.75% virgin bitumen (35% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Warm mix asphalt, 4% virgin bitumen (30% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Warm mix asphalt, 4.25% virgin bitumen (25% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Warm mix asphalt, 4.5% virgin bitumen (20% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Warm mix asphalt, 4.75% virgin bitumen (15% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Warm mix asphalt, 5% virgin bitumen (10% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Warm mix asphalt, 5.25% virgin bitumen (5% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+"Warm mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,"Hot mix asphalt, standard mix, 5.5% virgin bitumen (0% RAP)",tonne,1
+Recycled Aggregates,tonne,Crushed Rock,tonne,1
+Landfill biogas that is captured for combustion (methane only),m3,Natural gas distributed in a pipeline,m3,0.959287532
+Sludge biogas that is captured for combustion (methane only),m3,Natural gas distributed in a pipeline,m3,0.959287532
+"A biogas that is captured for combustion, other than those mentioned in the items above ",m3,Natural gas distributed in a pipeline,m3,0.959287532
+Biomethane,m3,Natural gas distributed in a pipeline,m3,1
+Biodiesel ,kL,Diesel oil,kL,0.896373057
+B5 blend,kL,Diesel oil,kL,0.994818653
+B20 blend,kL,Diesel oil,kL,0.979274611
+Renewable diesel,kL,Diesel oil,kL,1
+Ethanol for use as a fuel in an internal combustion engine,kL,Gasoline (other than for use as fuel in an aircraft),kL,0.684210526
+Ethanol blend (E10) for use as a fuel in an internal combustion engine,kL,Gasoline (other than for use as fuel in an aircraft),kL,0.968421053
+Biofuels other than those mentioned in the items above,kL,Diesel oil,kL,0.606217617
+Bagasse,t,Solid fossil fuels other than those mentioned in the items above,t,0.43438914
+"Biomass, municipal and industrial materials, if combusted to produce heat or electricity",t,"Non‑biomass municipal materials, if combusted to produce heat or electricity",t,0.860655738
+On-site recycled & captured water,kL,Mains Water,kL,1
+Off-site recycled water,kL,Mains Water,kL,1
