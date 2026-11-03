@@ -1,5 +1,0 @@
-DROP DATABASE IF EXISTS cmrt_dev;
-
-CREATE DATABASE cmrt_dev;
-
-ALTER DATABASE cmrt_dev OWNER TO psqladmin;

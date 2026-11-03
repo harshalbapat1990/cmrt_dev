@@ -14,6 +14,7 @@ import networkx as nx
 import base64, json
 import adlfs
 import os
+from starlette.exceptions import HTTPException
 
 
 # ==== AZURE BLOB ACCESS =======
@@ -146,13 +147,12 @@ users = {}  # wsid -> send callable
 
 # ========== HELPERS ==========
 def check_user_auth(userid, conn):
-    # print("checking user auth")
     user_check_query = f"""
     SELECT id, valid_until
     FROM read_json_auto('{BLOB_PATH}')
-    WHERE id == '{userid}'
+    WHERE id = ?
     """
-    return conn.cursor().execute(user_check_query).df()
+    return conn.cursor().execute(user_check_query, (userid,)).df()
 def _df(query: str):
     res = conn.cursor().execute(query)
     headers = [c[0] for c in res.description]
@@ -486,13 +486,22 @@ def extract_username_from_github(req):
 
     return None
 
-# ========== ROUTES ==========
-@rt("/debug/headers")
-async def debug_headers(req):
-    # Convert headers to a normal dict so they’re easy to read
-    hdrs = {k: v for k, v in req.headers.items()}
-    return hdrs
 
+def has_valid_user_identity(req):
+    """Require an ingress-provided GitHub identity present in the user directory."""
+    try:
+        username = extract_username_from_github(req)
+        return bool(username and not check_user_auth(username, conn).empty)
+    except Exception:
+        # Malformed or unavailable identity data must fail closed.
+        return False
+
+
+def require_valid_user_identity(req):
+    if not has_valid_user_identity(req):
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+# ========== ROUTES ==========
 @rt("/")
 async def home(req):
     user = extract_username_from_github(req)
@@ -565,7 +574,8 @@ async def home(req):
 
 # ========== INSERT HANDLERS ==========
 @rt("/insert_material")
-async def insert_material(material_name: str, material_desc: str = ""):
+async def insert_material(req, material_name: str, material_desc: str = ""):
+    require_valid_user_identity(req)
     conn.cursor().execute(f"INSERT INTO {db_str}materials VALUES (?, ?, ?, NOW())", (str(uuid.uuid4()), material_name.strip(), material_desc.strip() or None))
     await _broadcast("materials_table", f"SELECT id, name, description, ts FROM {db_str}materials ORDER BY ts DESC")
     # refresh dependent forms
@@ -576,7 +586,8 @@ async def insert_material(material_name: str, material_desc: str = ""):
     return Alert("✅ Material added.")
 
 @rt("/insert_measure")
-async def insert_measure(measure_name: str, measure_desc: str = ""):
+async def insert_measure(req, measure_name: str, measure_desc: str = ""):
+    require_valid_user_identity(req)
     conn.cursor().execute(f"INSERT INTO {db_str}measures VALUES (?, ?, ?, NOW())", (str(uuid.uuid4()), measure_name.strip(), measure_desc.strip() or None))
     await _broadcast("measures_table",f"SELECT id, name, description, ts FROM {db_str}measures ORDER BY ts DESC")
     # refresh dependent forms
@@ -587,7 +598,8 @@ async def insert_measure(measure_name: str, measure_desc: str = ""):
     return Alert("✅ Measure added.")
 
 @rt("/insert_node")
-async def insert_node(material_id: str, measure_id: str):
+async def insert_node(req, material_id: str, measure_id: str):
+    require_valid_user_identity(req)
     conn.cursor().execute(f"INSERT INTO {db_str}nodes VALUES (?, ?, ?, NOW())", (str(uuid.uuid4()), material_id, measure_id))
     await _broadcast("nodes_table", "SELECT id, material, measure, ts FROM v_nodes ORDER BY ts DESC")
     # refresh link form
@@ -598,7 +610,8 @@ async def insert_node(material_id: str, measure_id: str):
     return Alert("✅ Node added.")
 
 @rt("/insert_link")
-async def insert_link(numerator_node_id: str, denominator_node_id: str, value: float):
+async def insert_link(req, numerator_node_id: str, denominator_node_id: str, value: float):
+    require_valid_user_identity(req)
     conn.cursor().execute(f"INSERT INTO {db_str}links VALUES (?, ?, ?, ?, NOW())", (str(uuid.uuid4()), numerator_node_id, denominator_node_id, float(value)))
     # update current + history + graph
     await _broadcast("links_table", "SELECT id, numerator_node, denominator_node, value, ts FROM v_links_latest ORDER BY ts DESC")
@@ -611,6 +624,7 @@ async def convert_post(req):
     """
     Handle form submission and find path between nodes
     """
+    require_valid_user_identity(req)
     form_data = await req.form()
 
     try:
@@ -644,6 +658,7 @@ async def add_conversion_row(req):
     """
     Handle adding a new conversion row to the table
     """
+    require_valid_user_identity(req)
     form_data = await req.form()
 
     try:
@@ -678,6 +693,7 @@ async def add_conversion_row(req):
 
 @rt("/update_hidden_end_node", methods=["POST"])
 async def update_hidden_end_node(req):
+    require_valid_user_identity(req)
     form_data = await req.form()
     selected_value = form_data.get("end_node_id")
     return Input(type="hidden", id="hidden_end_node", name="end_node_id", value=selected_value)
@@ -687,6 +703,9 @@ def on_disconn(ws):
     users.pop(str(id(ws)), None)
 
 async def on_conn(send, ws):
+    if not has_valid_user_identity(ws):
+        await ws.close(code=4403)
+        return
     users[str(id(ws))] = send
     await send(Div("Welcome! Add data to see the network update live.", id="welcome"))
     await send(_render_table("materials_table", f"SELECT id, name, description, ts FROM {db_str}materials ORDER BY ts DESC"))

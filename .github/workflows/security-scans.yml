@@ -1,0 +1,60 @@
+name: Security scans
+
+on:
+  pull_request:
+  push:
+    branches: [main, development]
+  schedule:
+    - cron: '23 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dependencies:
+    name: Dependency vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Audit frontend dependencies
+        run: npm audit --prefix client --audit-level=high
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install pip-audit
+        run: python -m pip install --disable-pip-version-check pip-audit==2.10.1
+
+      - name: Audit backend dependencies
+        run: pip-audit -r backend/requirements.txt
+
+      - name: Audit legacy prototype dependencies
+        run: pip-audit -r app/requirements.txt
+
+      - name: Audit deployment tooling dependencies
+        run: pip-audit -r cmrt_pulumi_deploy/requirements.txt
+
+  secrets:
+    name: Secret scan (working tree and Git history)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Scan current files
+        run: >-
+          docker run --rm
+          -v "${GITHUB_WORKSPACE}:/repo"
+          ghcr.io/gitleaks/gitleaks:v8.30.1
+          dir --redact /repo
+
+      - name: Scan all Git refs and history
+        run: >-
+          docker run --rm
+          -v "${GITHUB_WORKSPACE}:/repo"
+          ghcr.io/gitleaks/gitleaks:v8.30.1
+          git --redact --log-opts=--all /repo

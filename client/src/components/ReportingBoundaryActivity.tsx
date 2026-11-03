@@ -207,21 +207,13 @@ const RBActivityOperationPanel: React.FC<RBActivityOperationPanelProps> = ({
 
         let subOptions: any[] = [];
         if (catLabel) {
-          try {
-            subOptions = await LookupsService.fetchGrade3Subcategories(catLabel, projectId);
-          } catch (error) {
-            throw error;
-          }
+          subOptions = await LookupsService.fetchGrade3Subcategories(catLabel, projectId);
         }
         const subVal = matchByValueOrLabelToValue(subRaw, subOptions);
 
         let srcOptions: any = [];
         if (catLabel && subVal) {
-          try {
-            srcOptions = await LookupsService.fetchGrade3Sources(catLabel, subVal, projectId);
-          } catch (error) {
-            throw error;
-          }
+          srcOptions = await LookupsService.fetchGrade3Sources(catLabel, subVal, projectId);
         }
         const srcVal = matchByValueOrLabelToValue(srcRaw, srcOptions);
 
