@@ -1,0 +1,11 @@
+[tool.mutmut]
+source_paths = [
+  "services/grade1_asset_calculations.py",
+  "services/user_emissions_aus_large_road_calculations.py",
+  "services/emissions_calculator.py",
+]
+pytest_add_cli_args_test_selection = [
+  "tests/test_grade1_calculation_golden.py",
+  "tests/test_aus_large_road_projection.py",
+  "tests/test_emissions_calculator_dispatch.py",
+]

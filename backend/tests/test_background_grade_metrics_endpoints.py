@@ -1,6 +1,7 @@
 """Tests for /api/background-grade-metrics endpoints."""
 from __future__ import annotations
 
+from types import SimpleNamespace
 from uuid import uuid4
 
 import pytest
@@ -32,6 +33,14 @@ async def test_list_background_grade_metrics_empty(client):
     resp = await client.get(f"/api/background-grade-metrics?dataset_revision_id={dataset_revision_id}")
     assert resp.status_code == 200
     assert resp.json() == []
+
+
+@pytest.mark.asyncio
+async def test_list_background_grade_metrics_requires_revision_context(client):
+    response = await client.get("/api/background-grade-metrics?grade_id=3&limit=1")
+
+    assert response.status_code == 400
+    assert "dataset_revision_id is required" in response.json()["detail"]
 
 
 @pytest.mark.asyncio
@@ -97,6 +106,91 @@ async def test_patch_background_grade_metric(client):
     resp = await client.patch(f"/api/background-grade-metrics/{mid}", json={"value": "9.99"})
     assert resp.status_code == 200
     assert resp.json()["value"] == "9.99"
+
+
+@pytest.mark.asyncio
+async def test_superseding_metric_deactivates_old_row_and_creates_active_replacement():
+    """Editing a metric preserves history while making only the replacement current."""
+    from crud.background_grade_metrics import supersede_background_grade_metric
+    from models.background_grade_metrics import BackgroundGradeMetric
+
+    old = BackgroundGradeMetric(
+        id=uuid4(),
+        dataset_revision_id=uuid4(),
+        grade_id=3,
+        metric_type_id=uuid4(),
+        value="1.4",
+        is_active=True,
+    )
+
+    class Session:
+        def __init__(self):
+            self.added = []
+
+        def add(self, obj):
+            self.added.append(obj)
+
+        async def flush(self):
+            pass
+
+        async def refresh(self, _obj):
+            pass
+
+    db = Session()
+    replacement = await supersede_background_grade_metric(db, old, {"value": "2.4"})
+
+    assert old.is_active is False
+    assert replacement.is_active is True
+    assert replacement.value == "2.4"
+    assert replacement.dataset_revision_id == old.dataset_revision_id
+    assert db.added == [old, replacement]
+
+
+@pytest.mark.asyncio
+async def test_natural_key_lookup_is_revision_scoped_and_excludes_inactive_rows():
+    from crud.background_grade_metrics import (
+        _BGM_NATURAL_KEY_FIELDS,
+        get_background_grade_metric_by_natural_key,
+    )
+
+    revision_id = uuid4()
+    metric_id = uuid4()
+    natural_key = {
+        field: (
+            3 if field == "grade_id"
+            else str(uuid4()) if field in {
+                "jurisdiction_id", "mastertype_id", "typecast_id",
+                "emissions_category_id", "emissions_subcategory_id",
+                "metric_type_id", "unit_id",
+            }
+            else None
+        )
+        for field in _BGM_NATURAL_KEY_FIELDS
+    }
+    active_metric = SimpleNamespace(id=metric_id, is_active=True)
+
+    class Scalars:
+        def all(self):
+            return [active_metric]
+
+    class Result:
+        def scalars(self):
+            return Scalars()
+
+    class Session:
+        statement = None
+
+        async def execute(self, statement):
+            self.statement = statement
+            return Result()
+
+    db = Session()
+    found = await get_background_grade_metric_by_natural_key(db, revision_id, natural_key)
+
+    assert found is active_metric
+    sql = str(db.statement).lower()
+    assert "background_grade_metrics.is_active is true" in sql
+    assert "background_grade_metrics.dataset_revision_id" in sql
 
 
 @pytest.mark.asyncio

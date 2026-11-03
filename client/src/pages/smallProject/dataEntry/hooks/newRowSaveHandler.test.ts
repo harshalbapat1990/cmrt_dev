@@ -54,4 +54,36 @@ describe("createNewRowSaveHandler server calculation result", () => {
       total_emissions_tco2e: "24322.5",
     })]);
   });
+
+  it("does not append an optimistic row when calculation fails before persistence", async () => {
+    vi.mocked(resolveTableConfig).mockReturnValue({ rules: [] } as never);
+    const updateRows = vi.fn();
+    const setErrorForKey = vi.fn();
+    const error = new Error("dataset factor lookup failed");
+    const logError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const handler = createNewRowSaveHandler({
+      activeStageInstance: { id: "stage-1", stage: "BUSINESS_CASE" } as never,
+      projectId: "project-1",
+      activeOptionId: "option-1",
+      activePeriod: null,
+      user: null,
+      getRows: () => [],
+      updateRows,
+      setErrorForKey,
+      resolveMetricId: vi.fn().mockResolvedValue("metric-1"),
+      apiRowToUiRow: (row) => ({ id: row.id, emissions_tco2e: row.emissions_tco2e }),
+      computeEmissionsForRow: vi.fn().mockRejectedValue(error),
+      refreshOptionTotals: vi.fn().mockResolvedValue(undefined),
+      validateComponentReplLife: () => null,
+      validateElectricityYear: () => null,
+      recalcElectricitySiblings: vi.fn().mockResolvedValue(undefined),
+    });
+
+    await expect(handler({ quantity: 150000000 }, "asset")).resolves.toBe(false);
+
+    expect(ActivityDataService.createRow).not.toHaveBeenCalled();
+    expect(updateRows).not.toHaveBeenCalled();
+    expect(setErrorForKey).toHaveBeenCalledWith("asset", "Failed to save row. Please try again.");
+    logError.mockRestore();
+  });
 });

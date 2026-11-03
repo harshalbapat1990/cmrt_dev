@@ -31,6 +31,9 @@ jobs:
       - name: Audit backend dependencies
         run: pip-audit -r backend/requirements.txt
 
+      - name: Audit backend test dependencies
+        run: pip-audit -r backend/requirements-test.txt
+
       - name: Audit legacy prototype dependencies
         run: pip-audit -r app/requirements.txt
 

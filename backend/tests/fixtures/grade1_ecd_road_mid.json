@@ -1,0 +1,26 @@
+{
+  "source": "Infrastructure and Transport Ministers Embodied Carbon Databook (ECD) 2026.",
+  "description": "Verified manually from the Grade 1 Road / Low Use Road / Mid / CAPEX example.",
+  "inputs": {
+    "jurisdiction": "Australia",
+    "mastertype": "Road",
+    "typecast": "Low Use Road",
+    "sensitivity": "Mid",
+    "quantity": 150000000,
+    "functional_unit": "CAPEX"
+  },
+  "lookup_data": {
+    "Material share of capex - Mid": 0.23,
+    "Product stage (A1-A3) - Mid": 0.000457,
+    "transport (A4) - Mid": 0.000045,
+    "Construction (A5) - Mid": 0.000203
+  },
+  "expected_tco2e": {
+    "A1-A3": 15766.5,
+    "A4": 1552.5,
+    "A5": 7003.5,
+    "total": 24322.5
+  },
+  "tolerance": 0.000001,
+  "unit": "tCO2e"
+}

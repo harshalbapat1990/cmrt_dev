@@ -1,0 +1,6 @@
+-r requirements.txt
+
+# Test-only packages; these are not installed in the production container.
+hypothesis>=6.115
+pytest-cov>=6.0
+mutmut>=3.2,<4

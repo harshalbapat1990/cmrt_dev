@@ -1,0 +1,15 @@
+{
+  "$schema": "https://stryker-mutator.io/schema/stryker.schema.json",
+  "testRunner": "vitest",
+  "vitest": {
+    "configFile": "vite.config.ts",
+    "related": true
+  },
+  "mutate": [
+    "src/pages/smallProject/dataEntry/rowTransforms.ts",
+    "src/pages/smallProject/dataEntry/hooks/newRowSaveHandler.ts"
+  ],
+  "reporters": ["clear-text", "progress", "html"],
+  "concurrency": 2,
+  "plugins": ["@stryker-mutator/vitest-runner"]
+}

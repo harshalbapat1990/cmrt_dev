@@ -155,3 +155,51 @@ async def test_recurring_project_creation_seeds_a_period_without_opt_in(monkeypa
 
     seed.assert_awaited_once_with(db, project_id)
     generate.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_recurring_period_exec_summary_patch_persists_period_fields(monkeypatch):
+    from datetime import datetime
+    from routers import construction_periods as periods_router
+
+    project_id = uuid4()
+    stage_instance_id = uuid4()
+    period_id = uuid4()
+    period = SimpleNamespace(
+        id=period_id,
+        project_id=project_id,
+        stage_instance_id=stage_instance_id,
+        exec_summary=None,
+        exec_summary_author=None,
+        exec_summary_date=None,
+        updated_on=None,
+    )
+    get_period = AsyncMock(return_value=period)
+    check_access = AsyncMock()
+    monkeypatch.setattr(periods_router, "_get_period_or_404", get_period)
+    monkeypatch.setattr(periods_router, "require_stage_access", check_access)
+    db = SimpleNamespace(
+        add=lambda _value: None,
+        flush=AsyncMock(),
+        refresh=AsyncMock(),
+        commit=AsyncMock(),
+    )
+    saved_at = datetime(2026, 10, 28, 11, 15, 27)
+
+    result = await periods_router.save_period_exec_summary(
+        period_id=period_id,
+        exec_summary="Summary survives reload",
+        exec_summary_author="Demo User",
+        exec_summary_date=saved_at,
+        principal=SimpleNamespace(user_id=uuid4()),
+        db=db,
+    )
+
+    assert result is period
+    assert period.exec_summary == "Summary survives reload"
+    assert period.exec_summary_author == "Demo User"
+    assert period.exec_summary_date == saved_at
+    assert period.updated_on is not None
+    get_period.assert_awaited_once_with(db, period_id)
+    check_access.assert_awaited_once()
+    db.commit.assert_awaited_once()

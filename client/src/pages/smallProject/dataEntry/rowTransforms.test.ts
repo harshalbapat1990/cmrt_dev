@@ -25,6 +25,28 @@ describe("activity row transforms", () => {
     });
   });
 
+  it.each([
+    { apiValue: "0", expected: 0 },
+    { apiValue: "12.75", expected: 12.75 },
+    { apiValue: null, expected: null },
+    { apiValue: "-", expected: null },
+  ])("preserves valid zero and finite calculated values (%o)", ({ apiValue, expected }) => {
+    const row = apiRowToUiRow({
+      id: "stable-row",
+      project_id: "project-1",
+      project_stage_instance_id: "stage-1",
+      ui_table_key: "asset",
+      quantity: 0,
+      emissions_tco2e: apiValue,
+      extra_fields: { total_emissions_tco2e: 999 },
+    } satisfies ActivityDataOut);
+
+    expect(row.id).toBe("stable-row");
+    expect(row.quantity).toBe(0);
+    expect(row.emissions_tco2e).toBe(expected);
+    expect(row.total_emissions_tco2e).toBe(expected);
+  });
+
   it("keeps calculation outputs only when the target table supports them", () => {
     const row = {
       id: "activity-1",

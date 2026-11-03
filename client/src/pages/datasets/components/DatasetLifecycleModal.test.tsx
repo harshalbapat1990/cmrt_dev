@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { axe } from 'vitest-axe';
 import DatasetLifecycleModal from './DatasetLifecycleModal';
 
 const boundProjects = [
@@ -8,6 +9,21 @@ const boundProjects = [
 ];
 
 describe('DatasetLifecycleModal', () => {
+  it('exposes the lifecycle confirmation as a labelled modal dialog', () => {
+    render(
+      <DatasetLifecycleModal
+        mode="unpublish"
+        projects={[]}
+        onClose={vi.fn()}
+        onConfirm={vi.fn()}
+      />,
+    );
+
+    const dialog = screen.getByRole('dialog', { name: 'Move this revision to draft?' });
+    expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(dialog).toHaveAttribute('aria-labelledby', 'dataset-lifecycle-title');
+  });
+
   it('lists bound projects and explains recalculation before unpublishing', () => {
     const onConfirm = vi.fn();
     render(
@@ -70,5 +86,40 @@ describe('DatasetLifecycleModal', () => {
     expect(screen.getByText(/North bridge: recalculation failed/i)).toBeTruthy();
     expect(screen.getByText(/South road: recalculated/i)).toBeTruthy();
     expect(screen.getByText(/Grade 2 factors/)).toBeTruthy();
+  });
+
+  it('announces lifecycle errors and prevents duplicate confirmation while loading', () => {
+    const onConfirm = vi.fn();
+    render(
+      <DatasetLifecycleModal
+        mode="unpublish"
+        loading
+        error="The project bindings changed. Review them and try again."
+        onClose={vi.fn()}
+        onConfirm={onConfirm}
+      />,
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent(/project bindings changed/i);
+    const confirm = screen.getByRole('button', { name: 'Working…' });
+    expect(confirm).toBeDisabled();
+    fireEvent.click(confirm);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('has no axe violations in the lifecycle confirmation dialog', async () => {
+    const { container } = render(
+      <DatasetLifecycleModal
+        mode="unpublish"
+        projects={boundProjects}
+        onClose={vi.fn()}
+        onConfirm={vi.fn()}
+      />,
+    );
+
+    const results = await axe(container, {
+      runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] },
+    });
+    expect(results).toHaveNoViolations();
   });
 });
