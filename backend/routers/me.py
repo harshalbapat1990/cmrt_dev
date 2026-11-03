@@ -255,9 +255,35 @@ async def get_pending_actions(
     else:
         org_roles = await get_effective_role_names(db, principal.user_id)
 
-    is_org_or_super_admin = bool({SUPER_ADMIN, ORG_ADMIN} & org_roles)
+    # Super admins can review workflow actions across the platform. Organisation
+    # admins are scoped to their organisation; project admins are scoped to all
+    # projects where they hold an active PROJECT_ADMIN role.
+    if SUPER_ADMIN in org_roles:
+        project_scope = None
+    elif ORG_ADMIN in org_roles and principal.organization_id is not None:
+        project_scope = "organisation"
+    else:
+        project_scope = "project_admin"
 
-    if is_org_or_super_admin and principal.organization_id is not None:
+    if project_scope is None:
+        q = (
+            select(
+                Project.id.label("project_id"),
+                Project.project_name.label("project_name"),
+                ProjectStageInstance.id.label("stage_instance_id"),
+                ProjectStageInstance.stage.label("stage"),
+                ProjectOption.report_number.label("report_number"),
+                sqlfunc.coalesce(ProjectStageInstance.num_reports_required, 1).label("num_reports_required"),
+                ProjectOption.approval_status.label("approval_status"),
+            )
+            .select_from(ProjectOption)
+            .join(ProjectStageInstance, ProjectStageInstance.id == ProjectOption.stage_instance_id)
+            .join(Project, Project.id == ProjectOption.project_id)
+            .where(ProjectOption.approval_status.in_(PENDING_STATUSES))
+            .distinct(ProjectOption.stage_instance_id, ProjectOption.report_number)
+            .order_by(ProjectOption.stage_instance_id, ProjectOption.report_number)
+        )
+    elif project_scope == "organisation":
         q = (
             select(
                 Project.id.label("project_id"),
@@ -294,7 +320,6 @@ async def get_pending_actions(
                 UserRole.scope_type == "PROJECT",
                 Role.name == PROJECT_ADMIN,
             )
-            .scalar_subquery()
         )
         q = (
             select(

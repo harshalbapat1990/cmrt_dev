@@ -4,6 +4,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.audit_diff import compute_field_diffs, orm_to_audit_dict
@@ -19,7 +20,14 @@ from core.rbac import (
 from core.security import Principal, get_current_principal
 from core.session import get_session
 from crud.audit_logs import write_audit_event
-from schemas.project import ProjectOut, ProjectCreate, ProjectUpdate, ReportingBoundaryOut
+from schemas.project import (
+    ProjectOut,
+    ProjectCreate,
+    ProjectUpdate,
+    ReportingBoundaryOut,
+    ProjectAccessRequestLookupOut,
+)
+from models.project import Project
 from crud.project import (
     create_project,
     get_project,
@@ -101,6 +109,42 @@ async def get_projects(
         limit=limit
     )
     return objs
+
+
+@router.get(
+    "/access-request-lookup",
+    response_model=Optional[ProjectAccessRequestLookupOut],
+)
+async def lookup_project_for_access_request(
+    organisation_id: UUID,
+    project_name: str = Query(..., min_length=1, max_length=200),
+    _principal: Principal = Depends(get_current_principal),
+    db: AsyncSession = Depends(get_session),
+):
+    """Resolve an active project by exact name within its owning organisation.
+
+    This lookup intentionally does not require existing project access: it is
+    used to let users identify a project before requesting access to it.
+    """
+    normalized_name = project_name.strip().lower()
+    if not normalized_name:
+        return None
+
+    result = await db.execute(
+        select(Project.id, Project.project_name, Project.project_class).where(
+            Project.proponent_org_id == organisation_id,
+            Project.is_active.is_(True),
+            func.lower(func.trim(Project.project_name)) == normalized_name,
+        )
+    )
+    row = result.one_or_none()
+    if row is None:
+        return None
+    return {
+        "id": row.id,
+        "project_name": row.project_name,
+        "project_class": row.project_class,
+    }
 
 
 @router.get("/{id:uuid}", response_model=ProjectOut)

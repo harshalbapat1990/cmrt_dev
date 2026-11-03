@@ -48,6 +48,42 @@ async def create_request(
     principal: Principal = Depends(get_current_principal),
     db: AsyncSession = Depends(get_session),
 ):
+    request_type = payload.request_type.upper()
+    if request_type in {PROJECT_ADMIN, PROJECT_EDITOR, PROJECT_VIEWER}:
+        if (
+            payload.scope_type.upper() != "PROJECT"
+            or payload.project_id is None
+            or payload.scope_id != payload.project_id
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Project access requests must use the same project ID for project_id and PROJECT scope_id",
+            )
+
+        project_result = await db.execute(
+            select(ProjectModel).where(
+                ProjectModel.id == payload.project_id,
+                ProjectModel.is_active.is_(True),
+            )
+        )
+        project = project_result.scalars().first()
+        if project is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Active project not found",
+            )
+        if (
+            payload.organisation_id is not None
+            and payload.organisation_id != project.proponent_org_id
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Organisation does not own the requested project",
+            )
+
+        payload.request_type = request_type
+        payload.scope_type = "PROJECT"
+
     if payload.request_type.upper() == SUPER_ADMIN:
         if payload.target_user_id not in (None, principal.user_id):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You can only request Super Admin access for yourself")

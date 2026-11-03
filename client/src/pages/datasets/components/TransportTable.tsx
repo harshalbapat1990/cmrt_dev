@@ -1,5 +1,4 @@
 import type { TransportRow, InlineEditContext } from '../types';
-import { TODAY, DEFAULT_EFFECTIVE_TO } from '../constants';
 import { TH, TD, InlineInput, InlineSelect, SaveCancelButtons } from './TablePrimitives';
 
 export default function TransportTable({ rows, editCtx }: { rows: TransportRow[]; editCtx?: InlineEditContext }) {
@@ -27,8 +26,6 @@ export default function TransportTable({ rows, editCtx }: { rows: TransportRow[]
       sea_transport_mode: row.sea_transport_mode ?? '',
       source: row.source ?? '',
       grade_applicability: row.grade_applicability ?? '',
-      effective_from: row.effective_from ?? '',
-      effective_to: row.effective_to ?? '',
     });
   };
 
@@ -43,8 +40,6 @@ export default function TransportTable({ rows, editCtx }: { rows: TransportRow[]
           <TH>Sea</TH>
           <TH>Grade</TH>
           <TH>Source</TH>
-          <TH>Effective From</TH>
-          <TH>Effective To</TH>
           {isSA && <TH>&nbsp;</TH>}
         </tr>
       </thead>
@@ -88,8 +83,6 @@ export default function TransportTable({ rows, editCtx }: { rows: TransportRow[]
             </TD>
             <TD><InlineInput value={ec.addDraft.grade_applicability ?? ''} onChange={v => ec.onAddField('grade_applicability', v)} /></TD>
             <TD><InlineInput value={ec.addDraft.source ?? ''} onChange={v => ec.onAddField('source', v)} /></TD>
-            <TD><InlineInput value={ec.addDraft.effective_from ?? ''} onChange={v => ec.onAddField('effective_from', v)} type="date" /></TD>
-            <TD><InlineInput value={ec.addDraft.effective_to ?? ''} onChange={v => ec.onAddField('effective_to', v)} type="date" /></TD>
             <TD><SaveCancelButtons onSave={ec.onSaveAdd} onCancel={ec.onCancelAdd} saving={ec.saving} error={ec.saveError} /></TD>
           </tr>
         )}
@@ -126,8 +119,6 @@ export default function TransportTable({ rows, editCtx }: { rows: TransportRow[]
                 </TD>
                 <TD><InlineInput value={ec.editDraft.grade_applicability ?? ''} onChange={v => ec.onEditField('grade_applicability', v)} /></TD>
                 <TD><InlineInput value={ec.editDraft.source ?? ''} onChange={v => ec.onEditField('source', v)} /></TD>
-                <TD><InlineInput value={ec.editDraft.effective_from ?? ''} onChange={v => ec.onEditField('effective_from', v)} type="date" /></TD>
-                <TD><InlineInput value={ec.editDraft.effective_to ?? ''} onChange={v => ec.onEditField('effective_to', v)} type="date" /></TD>
                 <TD><SaveCancelButtons onSave={ec.onSaveEdit} onCancel={ec.onCancelEdit} saving={ec.saving} error={ec.saveError} /></TD>
               </tr>
             );
@@ -145,8 +136,6 @@ export default function TransportTable({ rows, editCtx }: { rows: TransportRow[]
               <TD muted>{modeCell(r.sea_transport_mode, r.sea_distance)}</TD>
               <TD muted>{r.grade_applicability ?? '—'}</TD>
               <TD muted>{r.source ?? '—'}</TD>
-              <TD>{r.effective_from ?? TODAY}</TD>
-              <TD>{r.effective_to ?? DEFAULT_EFFECTIVE_TO}</TD>
               {isSA && (
                 <TD>
                   {!ec?.editingId && !ec?.adding && ec?.onDelete && (

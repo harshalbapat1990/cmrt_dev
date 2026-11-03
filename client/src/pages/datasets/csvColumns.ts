@@ -24,8 +24,6 @@ export const TRANSPORT_COLS: CsvColumn[] = [
   { key: 'sea_distance',            label: 'Sea Distance' },
   { key: 'sea_transport_mode',      label: 'Sea Mode' },
   { key: 'source',                  label: 'Source' },
-  { key: 'effective_from',          label: 'Effective From' },
-  { key: 'effective_to',            label: 'Effective To' },
 ];
 
 // Waste Rates

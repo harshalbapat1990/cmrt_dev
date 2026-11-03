@@ -46,8 +46,9 @@ export default function HomePage() {
 
   const isOrgAdmin = roles.includes("ORG_ADMIN");
   const isProjAdmin = roles.includes("PROJECT_ADMIN");
+  const isSuperAdmin = roles.includes("SUPER_ADMIN");
   const fallbackAccess: "view" | "edit" =
-    isOrgAdmin || roles.includes("PROJECT_ADMIN") ? "edit" : "view";
+    isOrgAdmin || isProjAdmin || isSuperAdmin ? "edit" : "view";
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -83,7 +84,15 @@ export default function HomePage() {
   if (!hasProjects) {
     return (
       <div>
-        <EmptyOverview role={isOrgAdmin ? "admin" : "user"} />
+        <EmptyOverview role={isOrgAdmin || isSuperAdmin ? "admin" : "user"} />
+      </div>
+    );
+  }
+
+  if (isSuperAdmin) {
+    return (
+      <div>
+        <AdminProjects data={projects} role="Super admin" />
       </div>
     );
   }

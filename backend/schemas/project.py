@@ -306,6 +306,16 @@ class ProjectOut(ProjectBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ProjectAccessRequestLookupOut(BaseModel):
+    """Minimal project identity exposed for self-service access requests."""
+
+    id: UUID
+    project_name: str
+    project_class: ProjectClassEnum
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class DatasetRevisionStatusCounts(BaseModel):
     draft: int = 0
     published: int = 0

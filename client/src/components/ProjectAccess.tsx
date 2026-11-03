@@ -322,14 +322,18 @@ const enabledStages = useMemo(() => {
       try {
         setIsResolvingProject(true);
         setProjectLookupError(null);
-        const res = await http.get<any[]>("/api/projects?limit=500");
+        const res = await http.get<{
+          id: string;
+          project_name: string;
+          project_class: string;
+        } | null>("/api/projects/access-request-lookup", {
+          params: {
+            organisation_id: matchedOrg.id,
+            project_name: q,
+          },
+        });
         if (cancelled) return;
-        const all: any[] = Array.isArray(res.data) ? res.data : [];
-        const match = all.find(
-          p =>
-            String(p.proponent_org_id) === matchedOrg.id &&
-            (p.project_name as string).toLowerCase() === q.toLowerCase(),
-        );
+        const match = res.data;
         if (match) {
           setMatchedProject({ id: String(match.id), name: match.project_name, project_class: match.project_class });
           const classMap: Record<string, string> = { SMALL: "small", LARGE: "large", RECURRING: "contractor" };

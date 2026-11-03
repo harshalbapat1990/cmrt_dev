@@ -13,6 +13,7 @@ import http from "@/http";
 import { useUser } from "@/context/UserContext";
 import ProjectAccess from "../../../components/ProjectAccess";
 import { Modal } from "../../../components/common/Modal";
+import accessRequestsService, { type AccessRequestEnriched } from "@/services/accessRequests.service";
 
 interface PendingActionItem {
   project_id: string;
@@ -65,15 +66,23 @@ const ProjectsPage: React.FC<Props> = ({
 
   // Pending report-level actions
   const [pendingActions, setPendingActions] = useState<PendingActionItem[]>([]);
+  const [pendingAccessRequests, setPendingAccessRequests] = useState<AccessRequestEnriched[]>([]);
+  const [pendingActionsError, setPendingActionsError] = useState(false);
+  const [pendingAccessRequestsError, setPendingAccessRequestsError] = useState(false);
   const [pendingExpanded, setPendingExpanded] = useState(false);
   const [reopenExpanded, setReopenExpanded] = useState(false);
+  const [accessRequestsExpanded, setAccessRequestsExpanded] = useState(false);
 
   useEffect(() => {
     if (role === "user") return;
     http
       .get<PendingActionItem[]>("/api/me/pending-actions")
-      .then((res) => setPendingActions(res.data))
-      .catch(() => setPendingActions([]));
+      .then((res) => { setPendingActions(res.data); setPendingActionsError(false); })
+      .catch(() => { setPendingActions([]); setPendingActionsError(true); });
+    accessRequestsService
+      .fetchPending()
+      .then((requests) => { setPendingAccessRequests(requests); setPendingAccessRequestsError(false); })
+      .catch(() => { setPendingAccessRequests([]); setPendingAccessRequestsError(true); });
   }, [role]);
 
   const pendingApprovals = useMemo(
@@ -84,6 +93,21 @@ const ProjectsPage: React.FC<Props> = ({
     () => pendingActions.filter((s) => s.approval_status === "pending_reopen"),
     [pendingActions]
   );
+
+  const reviewableAccessRequests = useMemo(() => {
+    const reviewableTypes = role === "Org admin"
+      ? ["PROJECT_ADMIN", "PROJECT_EDITOR", "PROJECT_VIEWER"]
+      : role === "Super admin"
+        ? ["ORG_ADMIN", "SUPER_ADMIN"]
+        : ["PROJECT_EDITOR", "PROJECT_VIEWER"];
+    return pendingAccessRequests.filter((request) => reviewableTypes.includes(request.request_type));
+  }, [pendingAccessRequests, role]);
+
+  const manageAccessPath = role === "Org admin"
+    ? "/ManageUserAccess/orgadmin"
+    : role === "Super admin"
+      ? "/ManageUserAccess/superadmin"
+      : "/ManageUserAccess/admin";
 
   const closeAllModals = () => {
     setShowRequestAccess(false);
@@ -278,7 +302,7 @@ const ProjectsPage: React.FC<Props> = ({
                     </span>
                   </div>
                   <span className="font-semibold text-sm leading-5 text-info-text">
-                    Pending approvals ({pendingApprovals.length})
+                    Pending approvals ({pendingActionsError ? "—" : pendingApprovals.length})
                   </span>
                 </div>
                 <span
@@ -291,7 +315,9 @@ const ProjectsPage: React.FC<Props> = ({
 
               {pendingExpanded && (
                 <div className="border-t border-info-border/15 max-h-56 overflow-y-auto">
-                  {pendingApprovals.length === 0 ? (
+                  {pendingActionsError ? (
+                    <p className="px-3 py-3 text-xs text-red-700">Could not load pending approvals.</p>
+                  ) : pendingApprovals.length === 0 ? (
                     <p className="px-3 py-3 text-xs text-info-text">No pending approvals.</p>
                   ) : (
                     pendingApprovals.map((item) => (
@@ -329,7 +355,7 @@ const ProjectsPage: React.FC<Props> = ({
                 onClick={() => setReopenExpanded((v) => !v)}
               >
                 <span className="font-semibold text-sm text-text-dark leading-5">
-                  Pending reopen requests ({pendingReopens.length})
+                  Pending reopen requests ({pendingActionsError ? "—" : pendingReopens.length})
                 </span>
                 <span
                   className="material-symbols-rounded text-text-faint transition-transform"
@@ -341,7 +367,9 @@ const ProjectsPage: React.FC<Props> = ({
 
               {reopenExpanded && (
                 <div className="border-t border-grey-light/40 max-h-56 overflow-y-auto">
-                  {pendingReopens.length === 0 ? (
+                  {pendingActionsError ? (
+                    <p className="px-4 py-3 text-xs text-red-700">Could not load pending requests.</p>
+                  ) : pendingReopens.length === 0 ? (
                     <p className="px-4 py-3 text-xs text-text-faint">No pending reopen requests.</p>
                   ) : (
                     pendingReopens.map((item) => (
@@ -361,6 +389,48 @@ const ProjectsPage: React.FC<Props> = ({
                         <div className="text-xs text-text-faint leading-4">
                           {STAGE_LABEL[item.stage] ?? item.stage}
                           {item.num_reports_required > 1 && ` (${item.report_number} of ${item.num_reports_required})`}
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {role !== "user" && (
+            <div className="w-59.75 rounded-md border border-grey-light bg-white overflow-hidden">
+              <button
+                type="button"
+                className="w-full flex items-center justify-between px-4 py-3 text-left cursor-pointer"
+                onClick={() => setAccessRequestsExpanded((value) => !value)}
+              >
+                <span className="font-semibold text-sm text-text-dark leading-5">
+                  Pending access requests ({pendingAccessRequestsError ? "—" : reviewableAccessRequests.length})
+                </span>
+                <span className="material-symbols-rounded text-text-faint" style={{ fontSize: 18 }}>
+                  {accessRequestsExpanded ? "expand_less" : "expand_more"}
+                </span>
+              </button>
+              {accessRequestsExpanded && (
+                <div className="border-t border-grey-light/40 max-h-56 overflow-y-auto">
+                  {pendingAccessRequestsError ? (
+                    <p className="px-4 py-3 text-xs text-red-700">Could not load pending access requests.</p>
+                  ) : reviewableAccessRequests.length === 0 ? (
+                    <p className="px-4 py-3 text-xs text-text-faint">No pending access requests.</p>
+                  ) : (
+                    reviewableAccessRequests.map((request) => (
+                      <button
+                        key={request.id}
+                        type="button"
+                        className="w-full text-left px-4 py-2.5 cursor-pointer hover:bg-neutral-50 border-b border-color-border last:border-b-0"
+                        onClick={() => navigate(manageAccessPath)}
+                      >
+                        <div className="font-semibold text-xs text-text-dark leading-4 truncate">
+                          {request.requester_display_name || request.requester_email || "Access request"}
+                        </div>
+                        <div className="text-xs text-text-faint leading-4">
+                          {request.project_name || request.organisation_name || "Platform"} · {request.request_type.replaceAll("_", " ")}
                         </div>
                       </button>
                     ))

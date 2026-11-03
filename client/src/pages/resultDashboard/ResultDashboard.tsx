@@ -318,13 +318,10 @@ const projectCategory = useMemo(() => {
 
 
   useEffect(() => {
-    // Reset all filters when section changes
-    setSubmission("");
-    setIntervalId("");
+    // Keep the selected submission and its period/option while moving between
+    // dashboard sections. Only the accounting method has a section-specific
+    // default.
     setAccountingMethod(activeSection === "Detailed Results" ? "market" : "location");
-    setProjectOptionId(undefined);
-    setSubmissionPeriodId(undefined);
-    setIntervals([]);
   }, [activeSection]);
 
 
@@ -596,6 +593,9 @@ const showProjectOptionDropdown =
   const clearFilters = () => {
     setSubmission("");
     setIntervalId("");
+    setSubmissionPeriodId(undefined);
+    setProjectOptionId(undefined);
+    setIntervals([]);
     setAccountingMethod(activeSection === "Detailed Results" ? "market" : "location");
   };
 

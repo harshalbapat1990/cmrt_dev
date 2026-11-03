@@ -31,6 +31,7 @@ import { distinct, LABEL_TO_METRIC_CODE } from './utils';
 import { useBgmCategoryOptions } from './hooks/useBgmCategoryOptions';
 import { useDatasetScopeJurisdiction } from './hooks/useDatasetScopeJurisdiction';
 import { withDefaultJurisdiction, withJurisdictionBackfill } from './jurisdictionDefaults';
+import { buildTransportQueryParams } from './transportQuery';
 import { pivotGrade1, pivotGrade2, pivotGrade34 } from './pivot';
 import { StatusBadge } from './components/Badges';
 import { MultiSelect, TextFilter } from './components/FilterControls';
@@ -216,7 +217,6 @@ export default function DatasetsPage({ scope = { type: 'DEFAULT' } }: { scope?: 
   const [rcError, setRcError]       = useState('');
   const [rcFilter, setRcFilter]     = useState<RcFilter>(INIT_RC);
   const [rcPage, setRcPage]         = useState(1);
-  const [trAsOfDate, setTrAsOfDate] = useState(today);
   const [trRows, setTrRows]         = useState<TransportRow[]>([]);
   const [trFetching, setTrFetching] = useState(false);
   const [trError, setTrError]       = useState('');
@@ -726,14 +726,12 @@ const [eraRows, setEraRows] = useState<ElectricityRecyclingAssumptionRow[]>([]);
     setTrFetching(true); setTrError('');
     if (resetFilter) { setTrFilter(INIT_TR); setTrPage(1); }
     try {
-      const p = new URLSearchParams({ limit: '5000', skip: '0' });
-      if (trAsOfDate) p.set('as_of_date', trAsOfDate);
-      if (selectedRevisionId) p.set('dataset_revision_id', selectedRevisionId);
+      const p = buildTransportQueryParams(selectedRevisionId);
       const res = await http.get<TransportRow[]>(`/api/default-transport-distances?${p}`);
       setTrRows(res.data);
     } catch { setTrError('Failed to load transport distance data.'); }
     finally { setTrFetching(false); }
-  }, [trAsOfDate, selectedRevisionId]);
+  }, [selectedRevisionId]);
 
   const fetchWasteRates = useCallback(async (_resetFilter = true) => {
     if (!selectedRevisionId) return;
@@ -2593,6 +2591,10 @@ useMemo(() => {
         }
       }
       if (addingTab === 'transport') {
+        // Transport validity dates are no longer editable or used as a list
+        // filter. New records should therefore remain unbounded by dates.
+        delete payload.effective_from;
+        delete payload.effective_to;
         const keyType = addDraft.__tr_key_type ?? 'material';
         const jurisdictionId = addDraft.jurisdiction_id || scopeJurisdictionId || '';
         if (!jurisdictionId) {
@@ -3405,17 +3407,20 @@ useMemo(() => {
           )}
           {(activeTab === 'recycled' || activeTab === 'transport' || activeTab === 'waste') && (
             <>
-              <label className="text-xs text-text-base">As of date:</label>
-              <input
-                type="date"
-                value={activeTab === 'recycled' ? rcAsOfDate : activeTab === 'transport' ? trAsOfDate : wrAsOfDate}
-                onChange={e => {
-                  if (activeTab === 'recycled') setRcAsOfDate(e.target.value);
-                  else if (activeTab === 'transport') setTrAsOfDate(e.target.value);
-                  else setWrAsOfDate(e.target.value);
-                }}
-                className="rounded border border-neutral-80 px-2 py-1 text-xs focus:outline-none focus:border-primary"
-              />
+              {activeTab !== 'transport' && (
+                <>
+                  <label className="text-xs text-text-base">As of date:</label>
+                  <input
+                    type="date"
+                    value={activeTab === 'recycled' ? rcAsOfDate : wrAsOfDate}
+                    onChange={e => {
+                      if (activeTab === 'recycled') setRcAsOfDate(e.target.value);
+                      else setWrAsOfDate(e.target.value);
+                    }}
+                    className="rounded border border-neutral-80 px-2 py-1 text-xs focus:outline-none focus:border-primary"
+                  />
+                </>
+              )}
               <button
                 onClick={() => {
                   if (activeTab === 'recycled') fetchRecycledContent();
@@ -4123,7 +4128,7 @@ useMemo(() => {
             ) : trRows.length === 0 && addingTab !== 'transport' ? (
               <div className="flex flex-col items-center justify-center h-full gap-1">
                 <p className="text-base font-medium text-text-dark">No transport distance data loaded</p>
-                <p className="text-sm text-text-base">Optionally set an effective date, then click Load</p>
+                <p className="text-sm text-text-base">Click Load to view active transport data</p>
               </div>
             ) : trFiltered.length === 0 && addingTab !== 'transport' ? (
               <div className="flex flex-col items-center justify-center h-full gap-1">

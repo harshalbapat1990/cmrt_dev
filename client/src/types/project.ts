@@ -30,4 +30,4 @@ export const ADMIN_STATUS_OPTIONS = [
   "Closed",
 ] as const;
 
-export type RoleType = "user" | "Org admin" | "Project admin";
+export type RoleType = "user" | "Org admin" | "Project admin" | "Super admin";

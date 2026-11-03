@@ -301,12 +301,21 @@ async def test_list_filter_by_status(client):
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
-async def test_project_admin_sees_requests_for_their_project(client, monkeypatch):
+async def test_project_admin_sees_requests_for_their_project(client, app, monkeypatch):
     """PROJECT_ADMIN can list PENDING requests for projects they administer."""
+    from types import SimpleNamespace
+    from core.session import get_session
+    from conftest import FakeSession
     import routers.access_requests as ar_router
     from core.rbac import PROJECT_ADMIN
 
     project_id = uuid4()
+    organisation_id = uuid4()
+
+    async def _project_session():
+        yield FakeSession(execute_returns=[SimpleNamespace(proponent_org_id=organisation_id)])
+
+    app.dependency_overrides[get_session] = _project_session
 
     async def _pa_roles(_db, user_id, project_id=None):
         return [PROJECT_ADMIN]
@@ -322,7 +331,7 @@ async def test_project_admin_sees_requests_for_their_project(client, monkeypatch
         "scope_type": "PROJECT",
         "scope_id": str(project_id),
         "project_id": str(project_id),
-        "organisation_id": str(uuid4()),
+        "organisation_id": str(organisation_id),
         "reason": "I want to contribute to this project",
     })
     assert r.status_code == 201
@@ -334,13 +343,22 @@ async def test_project_admin_sees_requests_for_their_project(client, monkeypatch
 
 
 @pytest.mark.asyncio
-async def test_project_admin_excluded_from_other_project_requests(client, monkeypatch):
+async def test_project_admin_excluded_from_other_project_requests(client, app, monkeypatch):
     """Requests for a project the user does NOT admin are excluded."""
+    from types import SimpleNamespace
+    from core.session import get_session
+    from conftest import FakeSession
     import routers.access_requests as ar_router
     from core.rbac import PROJECT_ADMIN
 
     other_project_id = uuid4()
     my_project_id = uuid4()
+    organisation_id = uuid4()
+
+    async def _project_session():
+        yield FakeSession(execute_returns=[SimpleNamespace(proponent_org_id=organisation_id)])
+
+    app.dependency_overrides[get_session] = _project_session
 
     async def _pa_roles(_db, user_id, project_id=None):
         return [PROJECT_ADMIN]
@@ -356,7 +374,7 @@ async def test_project_admin_excluded_from_other_project_requests(client, monkey
         "scope_type": "PROJECT",
         "scope_id": str(other_project_id),
         "project_id": str(other_project_id),
-        "organisation_id": str(uuid4()),
+        "organisation_id": str(organisation_id),
     })
     assert r.status_code == 201
     ar_id = r.json()["id"]
@@ -367,12 +385,21 @@ async def test_project_admin_excluded_from_other_project_requests(client, monkey
 
 
 @pytest.mark.asyncio
-async def test_project_admin_can_view_specific_request_for_their_project(client, monkeypatch):
+async def test_project_admin_can_view_specific_request_for_their_project(client, app, monkeypatch):
     """PROJECT_ADMIN may GET a specific pending request for their project."""
+    from types import SimpleNamespace
+    from core.session import get_session
+    from conftest import FakeSession
     import routers.access_requests as ar_router
     from core.rbac import PROJECT_ADMIN
 
     project_id = uuid4()
+    organisation_id = uuid4()
+
+    async def _project_session():
+        yield FakeSession(execute_returns=[SimpleNamespace(proponent_org_id=organisation_id)])
+
+    app.dependency_overrides[get_session] = _project_session
 
     # Create under default (SUPER_ADMIN) context
     r = await client.post("/api/access-requests", json={
@@ -380,7 +407,7 @@ async def test_project_admin_can_view_specific_request_for_their_project(client,
         "scope_type": "PROJECT",
         "scope_id": str(project_id),
         "project_id": str(project_id),
-        "organisation_id": str(uuid4()),
+        "organisation_id": str(organisation_id),
     })
     assert r.status_code == 201
     ar_id = r.json()["id"]
