@@ -33,6 +33,7 @@ import { useBgmCategoryOptions } from './hooks/useBgmCategoryOptions';
 import { useDatasetScopeJurisdiction } from './hooks/useDatasetScopeJurisdiction';
 import { withDefaultJurisdiction, withJurisdictionBackfill } from './jurisdictionDefaults';
 import { buildTransportQueryParams } from './transportQuery';
+import { prepareConcreteMixCsvRows } from './concreteMixCalculations';
 import { pivotGrade1, pivotGrade2, pivotGrade34 } from './pivot';
 import { StatusBadge } from './components/Badges';
 import { MultiSelect, TextFilter } from './components/FilterControls';
@@ -3113,14 +3114,14 @@ useMemo(() => {
       case 'renewable_energy':            return recRows;
       case 'content_recycled':           return crfFiltered;
       case 'factors':                    return displayData as any[];
-      case 'concrete_mix_designs':       return cmRows;
+      case 'concrete_mix_designs':       return prepareConcreteMixCsvRows(cmRows, cmAssumptions);
       case 'direct_substitutions':       return directSubRows;
       case 'electricity_recycling_assumptions': return eraRowsForCsvExport(eraRows);
       default:                           return [];
     }
   }, [activeTab, rcFiltered, trFiltered, wrRows, decarbFiltered, cvFiltered, evUptakeFiltered,
       vepmFiltered, frRows, mrRows, opEqRows, densityFiltered, ucRows, fcFiltered, edcRows,
-     vmRows, ivRows, uvRows, veRows, wgFiltered, recRows, crfFiltered, cmRows, directSubRows, eraRows, displayData]);
+     vmRows, ivRows, uvRows, veRows, wgFiltered, recRows, crfFiltered, cmRows, cmAssumptions, directSubRows, eraRows, displayData]);
 
   const tabCsvCols = useMemo(() => {
     switch (activeTab) {

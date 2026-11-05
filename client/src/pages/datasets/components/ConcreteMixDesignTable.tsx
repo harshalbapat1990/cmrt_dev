@@ -6,6 +6,7 @@ import {
   type ConcreteMixEditCtx,
   type ConcreteMixStrengthField,
 } from '../types';
+import { calculateConcreteMixComponents, deduplicateConcreteMixRows, normalizeConcreteMixComponentCode } from '../concreteMixCalculations';
 import { TH, TD, InlineInput, SaveCancelButtons } from './TablePrimitives';
 
 type RowKind = 'input' | 'calc';
@@ -73,24 +74,21 @@ export default function ConcreteMixDesignTable({ assumptions, rows, editCtx }: P
   // regardless of API order, and recover the row-id needed to edit cells.
   const byCode = useMemo(() => {
     const m = new Map<string, ConcreteMixDesignRow>();
-    for (const r of rows) m.set(r.component_code.toLowerCase(), r);
+    for (const r of deduplicateConcreteMixRows(rows)) m.set(normalizeConcreteMixComponentCode(r.component_code), r);
     return m;
   }, [rows]);
 
   const totalRow = byCode.get('total_cementitious_content');
-  const bauScm = toNumber(assumptions?.bau_scm_content_pct);
-  const maxFly = toNumber(assumptions?.default_max_fly_ash_pct);
+  const calculatedComponents = useMemo(
+    () => calculateConcreteMixComponents(assumptions, totalRow),
+    [assumptions, totalRow],
+  );
 
   const calcCellValue = (
     calc: 'general_purpose_cement' | 'fly_ash' | 'ggbf_slag',
     field: ConcreteMixStrengthField,
   ): number | null => {
-    if (!totalRow) return null;
-    const total = toNumber((totalRow as unknown as Record<string, unknown>)[field]);
-    if (total === null || bauScm === null || maxFly === null) return null;
-    if (calc === 'general_purpose_cement') return (1 - bauScm) * total;
-    if (calc === 'fly_ash')                return (bauScm < maxFly ? bauScm : maxFly) * total;
-    /* ggbf_slag */                          return bauScm > maxFly ? (bauScm - maxFly) * total : 0;
+    return calculatedComponents[calc][field] ?? null;
   };
 
 

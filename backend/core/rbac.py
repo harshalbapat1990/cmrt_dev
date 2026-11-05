@@ -239,10 +239,13 @@ async def get_stage_access_level(
     # 3. Resolve broader project-level administrative roles.
     # ------------------------------------------------------------------
 
-    effective_project_roles = await get_effective_role_names(
-        db,
-        user_id,
-        project_id=project_id,
+    effective_project_roles = set(
+        await get_effective_role_names(
+            db,
+            user_id,
+            project_id=project_id,
+        )
+        or ()
     )
 
     if effective_project_roles.intersection(PROJECT_ADMIN_ROLES):
@@ -341,10 +344,13 @@ async def get_project_access_level(
     from core.authorization_policy import AccessLevel, PROJECT_ADMIN_ROLES
     from models.project_stage_instances import ProjectStageInstance
 
-    effective_project_roles = await get_effective_role_names(
-        db,
-        user_id,
-        project_id=project_id,
+    effective_project_roles = set(
+        await get_effective_role_names(
+            db,
+            user_id,
+            project_id=project_id,
+        )
+        or ()
     )
 
     if effective_project_roles.intersection(PROJECT_ADMIN_ROLES):

@@ -9,6 +9,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func, text
+from sqlalchemy.orm import validates
 
 from core.base import Base, TimestampMixin
 
@@ -36,6 +37,10 @@ ALL_COMPONENT_DEFINITIONS: list[tuple[str, str, int]] = sorted(
 )
 
 TOTAL_CEMENTITIOUS_CODE = "total_cementitious_content"
+
+
+def normalize_concrete_mix_component_code(code: str) -> str:
+    return code.strip().lower()
 
 CALCULATED_COMPONENT_CODES: frozenset[str] = frozenset(
     code for code, _, _ in CALCULATED_COMPONENT_DEFINITIONS
@@ -121,17 +126,21 @@ class ConcreteMixDesign(Base, TimestampMixin):
 
     is_active = Column(Boolean, nullable=False, server_default=text("true"), default=True)
 
+    @validates("component_code")
+    def _normalize_component_code(self, _key: str, value: str) -> str:
+        return normalize_concrete_mix_component_code(value)
+
     __table_args__ = (
         Index(
             "uq_concrete_mix_designs_global_component",
-            "component_code",
+            func.lower(func.btrim(component_code)),
             unique=True,
             postgresql_where=text("dataset_revision_id IS NULL AND is_active = TRUE"),
         ),
         Index(
             "uq_concrete_mix_designs_revision_component",
             "dataset_revision_id",
-            "component_code",
+            func.lower(func.btrim(component_code)),
             unique=True,
             postgresql_where=text("dataset_revision_id IS NOT NULL AND is_active = TRUE"),
         ),

@@ -376,12 +376,15 @@ async def test_revision_read_check_resolves_project_binding(monkeypatch):
     monkeypatch.setattr(da, "get_dataset_revision", get_revision)
     monkeypatch.setattr(da, "assert_revision_view_permission", check_visibility)
 
-    await require_dataset_read_access(
+    resolved_revision_id = await require_dataset_read_access(
         _read_request("/lookup/bgm-categories", f"project_id={project_id}"),
         FakeSessionWithRevision(),
         Principal(user_id=uuid4(), email="reader@example.com"),
     )
-    assert authorized == [revision_id]
+    assert resolved_revision_id == revision_id
+    # Project-context authorization trusts the current binding after confirming
+    # the caller can access that project; owner-scope visibility is not required.
+    assert authorized == []
 
 
 @pytest.mark.asyncio

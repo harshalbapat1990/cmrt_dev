@@ -13,6 +13,7 @@ from models.concrete_mix_design import (
     TOTAL_CEMENTITIOUS_CODE,
     ConcreteMixAssumption,
     ConcreteMixDesign,
+    normalize_concrete_mix_component_code,
 )
 
 
@@ -76,7 +77,26 @@ async def list_mix_designs(
     else:
         q = q.where(ConcreteMixDesign.dataset_revision_id == dataset_revision_id)
     result = await db.execute(q)
-    return list(result.scalars().all())
+    rows = list(result.scalars().all())
+    # The database index prevents active duplicates. Keep a deterministic
+    # defensive selection for deployments before the normalization migration.
+    by_code: dict[str, ConcreteMixDesign] = {}
+    for row in rows:
+        normalized = normalize_component_code(row.component_code)
+        current = by_code.get(normalized)
+        if current is None or _component_row_priority(row) < _component_row_priority(current):
+            by_code[normalized] = row
+    return list(by_code.values())
+
+
+def normalize_component_code(code: str) -> str:
+    return normalize_concrete_mix_component_code(code)
+
+
+def _component_row_priority(row: ConcreteMixDesign) -> tuple[int, str]:
+    normalized = normalize_component_code(row.component_code)
+    is_canonical = row.component_code == normalized
+    return (0 if is_canonical else 1, str(row.id))
 
 
 async def ensure_mix_designs(
@@ -85,7 +105,7 @@ async def ensure_mix_designs(
 ) -> List[ConcreteMixDesign]:
    
     rows = await list_mix_designs(db, dataset_revision_id)
-    existing_codes = {r.component_code.lower() for r in rows}
+    existing_codes = {normalize_component_code(r.component_code) for r in rows}
 
     canonical = INPUT_COMPONENT_DEFINITIONS + CALCULATED_COMPONENT_DEFINITIONS
     missing = [defn for defn in canonical if defn[0].lower() not in existing_codes]
@@ -143,7 +163,7 @@ async def recompute_calculated_rows(
     max_fly_ash = assumptions.default_max_fly_ash_pct if assumptions else None
 
     rows = await list_mix_designs(db, dataset_revision_id)
-    by_code = {r.component_code: r for r in rows}
+    by_code = {normalize_component_code(r.component_code): r for r in rows}
     total_row = by_code.get(TOTAL_CEMENTITIOUS_CODE)
 
     updated: List[ConcreteMixDesign] = []

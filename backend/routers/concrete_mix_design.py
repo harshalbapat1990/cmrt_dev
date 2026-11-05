@@ -130,7 +130,7 @@ async def update_concrete_mix_design_row(
         dataset_revision_id=obj.dataset_revision_id,
         dataset_type="concrete_mix_designs",
     )
-    if obj.component_code in CALCULATED_COMPONENT_CODES:
+    if obj.component_code.strip().lower() in CALCULATED_COMPONENT_CODES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=(
@@ -158,7 +158,7 @@ async def update_concrete_mix_design_row(
     # Recompute calculated rows when the edited row is the trigger
     # (total_cementitious_content). Other input rows don't affect calc.
     recalc: list = []
-    if new_obj.component_code == TOTAL_CEMENTITIOUS_CODE:
+    if new_obj.component_code.strip().lower() == TOTAL_CEMENTITIOUS_CODE:
         recalc = await recompute_calculated_rows(db, new_obj.dataset_revision_id)
     await db.commit()
     await db.refresh(new_obj)

@@ -274,6 +274,13 @@ async def require_dataset_read_access(
                 status_code=400,
                 detail="dataset_revision_id is required when reading revisioned dataset data",
             )
+    # The project-context resolver has already authorized project access and
+    # verified that the bound revision exists. Avoid a duplicate revision read
+    # here; it can also produce inconsistent results with lightweight session
+    # adapters that implement the binding lookup only.
+    if project_authorized:
+        return UUID(raw_ids[0]) if raw_ids else None
+
     for raw_id in set(raw_ids):
         try:
             revision_id = UUID(raw_id)
@@ -282,10 +289,9 @@ async def require_dataset_read_access(
         revision = await get_dataset_revision(db, revision_id)
         if not revision:
             raise HTTPException(status_code=404, detail="Dataset revision not found")
-        if not project_authorized:
-            await assert_dataset_revision_read_permission(
-                db, principal, revision_id, allow_project_binding=True
-            )
+        await assert_dataset_revision_read_permission(
+            db, principal, revision_id, allow_project_binding=True
+        )
     return UUID(raw_ids[0]) if len(raw_ids) == 1 else None
 
 
