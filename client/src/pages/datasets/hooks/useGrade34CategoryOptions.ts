@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import http from '@/http';
 import type { NamedOption } from '../types';
+import { sortNamedOptions } from '@/utils/sortOptions';
 
 interface CategoryRecord {
   id: string;
@@ -8,7 +9,7 @@ interface CategoryRecord {
 }
 
 function toOptions(records: CategoryRecord[]): NamedOption[] {
-  return records.map(({ id, name }) => ({ id, name }));
+  return sortNamedOptions(records.map(({ id, name }) => ({ id, name })));
 }
 
 /** Loads the category hierarchy used by the Grade 3/4 add-row form. */

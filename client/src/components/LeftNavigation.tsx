@@ -265,6 +265,7 @@ const isProjAdmin = isStageAdmin;
             value={selectedReportId ?? ""}
             onChange={(value: string) => onSelectReport?.(value)}
             options={constructionPeriodOptions}
+            optionOrder="provided"
           />
         </div>
                 {subStages.length > 0 && (
@@ -383,6 +384,7 @@ const isProjAdmin = isStageAdmin;
                   value={selectedStageValue}
                   onChange={(value: any) => onSelectStage?.(value)}
                   options={stages}
+                  optionOrder="provided"
                 />
               )}
               <div
@@ -490,6 +492,7 @@ const isProjAdmin = isStageAdmin;
                   value={selectedStageValue}
                   onChange={(value: any) => onSelectStage?.(value)}
                   options={stageOptions}
+                  optionOrder="provided"
                 />
               )}
                {(activeStageInstance?.approval_status === "final_approved" || activeStageInstance?.approval_status === "rejected") && (

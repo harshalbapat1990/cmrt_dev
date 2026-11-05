@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import useDebounce from "../../customHooks/useDebounce";
 import Info from "../../assets/icons/info.svg";
+import { sortOptionsByLabel, type OptionOrder } from "@/utils/sortOptions";
 
 export type AutocompleteOption = {
   id?: string | number;
@@ -23,6 +24,8 @@ type AsyncAutocompleteProps<TOption extends AutocompleteOption> = {
   icon?: React.ReactNode;
   materialIconName?: string;
   isLoginPage?: boolean;
+  /** Defaults to alphabetical. Use `provided` for intentionally ranked choices. */
+  optionOrder?: OptionOrder;
 };
 
 const KEY = {
@@ -48,6 +51,7 @@ export default function AsyncAutocomplete<TOption extends AutocompleteOption>({
   icon,
   materialIconName,
   isLoginPage,
+  optionOrder = "alphabetical",
 }: AsyncAutocompleteProps<TOption>) {
   const [options, setOptions] = useState<TOption[]>([]);
   const [open, setOpen] = useState(false);
@@ -66,7 +70,7 @@ export default function AsyncAutocomplete<TOption extends AutocompleteOption>({
     if (loadedOnce) return;
     try {
       const data = await loadOptions();
-      setOptions(data || []);
+      setOptions(optionOrder === "provided" ? (data || []) : sortOptionsByLabel(data || []));
       setLoadedOnce(true);
     } catch (e: any) {
       console.error("Autocomplete loadOptions failed", e?.message ?? e);

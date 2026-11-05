@@ -44,7 +44,11 @@ async def get_active_maintenance_replacement_factors(
     authorized_revision_id: UUID = Depends(require_dataset_read_access),
     db: AsyncSession = Depends(get_session),
 ):
-    dataset_revision_id = dataset_revision_id or authorized_revision_id
+    dataset_revision_id = (
+        authorized_revision_id
+        if project_id is not None
+        else (dataset_revision_id or authorized_revision_id)
+    )
     if use_org_jurisdiction and current_user.organization_id:
         org_result = await db.execute(
             select(Organization.jurisdiction_id)

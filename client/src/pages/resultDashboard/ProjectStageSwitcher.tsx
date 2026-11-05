@@ -22,6 +22,7 @@ export function ProjectStageSwitcher({ options, collapsed, onChange }: Props) {
         value={RESULTS_DASHBOARD_VALUE}
         onChange={onChange}
         options={options}
+        optionOrder="provided"
         placeholder="Navigate project"
         className={collapsed ? "!w-10 !px-2" : "w-full"}
         aria-label="Project stage and dashboard"

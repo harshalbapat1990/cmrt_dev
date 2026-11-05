@@ -42,7 +42,11 @@ async def get_operational_equipment_list(
     limit: int = 500,
     db: AsyncSession = Depends(get_session),
 ):
-    resolved_dataset_revision_id = dataset_revision_id or authorized_revision_id
+    resolved_dataset_revision_id = (
+        authorized_revision_id
+        if project_id is not None
+        else (dataset_revision_id or authorized_revision_id)
+    )
     if resolved_dataset_revision_id is None and project_id is not None:
         project_revisions = await list_project_dataset_revisions_by_project(db, project_id)
         if project_revisions:

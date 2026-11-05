@@ -224,6 +224,7 @@ export const assetTableConfig = (projectId: string) => ({
             key: "band_code",
             editable: true,
             editorType: "select",
+            optionOrder: "provided",
             getOptions: () => SENSITIVITY_OPTIONS,
         },
         {

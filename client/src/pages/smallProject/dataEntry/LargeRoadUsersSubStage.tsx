@@ -361,6 +361,7 @@ const LargeRoadUsersSubStage = ({
                         <SelectListbox
                             value={globalParams.ev_uptake_scenario}
                             options={EV_UPTAKE_OPTIONS}
+                            optionOrder="provided"
                             onChange={(val: string) =>
                                 updateParams({ ev_uptake_scenario: val })
                             }
@@ -378,6 +379,7 @@ const LargeRoadUsersSubStage = ({
                         <SelectListbox
                             value={globalParams.roughness}
                             options={ROUGHNESS_OPTIONS}
+                            optionOrder="provided"
                             onChange={(val: string) =>
                                 updateParams({ roughness: val })
                             }
@@ -394,6 +396,7 @@ const LargeRoadUsersSubStage = ({
                         <SelectListbox
                             value={globalParams.gradient}
                             options={GRADIENT_OPTIONS}
+                            optionOrder="provided"
                             onChange={(val: string) =>
                                 updateParams({ gradient: val })
                             }
@@ -411,6 +414,7 @@ const LargeRoadUsersSubStage = ({
                         <SelectListbox
                             value={globalParams.curvature}
                             options={CURVATURE_OPTIONS}
+                            optionOrder="provided"
                             onChange={(val: string) =>
                                 updateParams({ curvature: val })
                             }

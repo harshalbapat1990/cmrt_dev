@@ -276,6 +276,7 @@ export const constructionG3Config = (projectId?: string, tableKey?: string, allo
             editable: true,
             editorType: "select",
             idKey: "data_quality",
+            optionOrder: "provided",
             getOptions: async () => DATAQUALITY_OPTIONS,
           },
         ]

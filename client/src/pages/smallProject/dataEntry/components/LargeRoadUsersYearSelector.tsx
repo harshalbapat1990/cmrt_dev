@@ -34,6 +34,7 @@ export function LargeRoadUsersYearSelector({
         <SelectListbox
           value={String(activeYear ?? "")}
           options={years.map((year) => ({ label: String(year), value: String(year) }))}
+          optionOrder="provided"
           onChange={(value: string) => onYearChange?.(Number(value))}
           disabled={readOnly}
           className="h-9 w-48"

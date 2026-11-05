@@ -3,6 +3,7 @@ import http from '@/http';
 import { extractApiError } from '@/utils/utils';
 import { useUser } from '@/context/UserContext';
 import { SelectListbox } from '@/components/common/Select';
+import { sortNamedOptions } from '@/utils/sortOptions';
 import PaginationBar from '@/components/PaginationBar';
 
 import type {
@@ -3476,7 +3477,7 @@ useMemo(() => {
                 className="rounded border border-neutral-80 px-2 py-1 text-xs focus:outline-none focus:border-primary min-w-[10rem]"
               >
                 <option value="">All</option>
-                {auNzDirectSubJurOpts.map(j => (
+                {sortNamedOptions(auNzDirectSubJurOpts).map(j => (
                   <option key={j.id} value={j.id}>{j.name}</option>
                 ))}
               </select>
@@ -3497,7 +3498,7 @@ useMemo(() => {
                 className="rounded border border-neutral-80 px-2 py-1 text-xs focus:outline-none focus:border-primary min-w-[10rem]"
               >
                 <option value="">All</option>
-                {auNzDirectSubJurOpts.map(j => (
+                {sortNamedOptions(auNzDirectSubJurOpts).map(j => (
                   <option key={j.id} value={j.id}>{j.name}</option>
                 ))}
               </select>

@@ -1,4 +1,5 @@
 import BaseService from './base.service';
+import { compareOptionLabels } from '@/utils/sortOptions';
 export interface UnitOption {
     id: string;
     name: string;
@@ -61,16 +62,14 @@ export class LookupsService extends BaseService {
         if (this.datasetRevisionCache.has(projectId)) {
             return this.datasetRevisionCache.get(projectId) ?? null;
         }
-        try {
-            const resp = await this.get(`/project-dataset-revisions/by-project/${projectId}`);
-            const bindings = Array.isArray(resp.data) ? resp.data : [];
-            const revisionId = bindings[0]?.dataset_revision_id ?? null;
-            this.datasetRevisionCache.set(projectId, revisionId);
-            return revisionId;
-        } catch {
-            this.datasetRevisionCache.set(projectId, null);
-            return null;
-        }
+        // Allow request failures to propagate: callers must not mistake an
+        // unavailable binding lookup for a valid "no revision" result and
+        // silently query the DEFAULT dataset.
+        const resp = await this.get(`/project-dataset-revisions/by-project/${projectId}`);
+        const bindings = Array.isArray(resp.data) ? resp.data : [];
+        const revisionId = bindings[0]?.dataset_revision_id ?? null;
+        this.datasetRevisionCache.set(projectId, revisionId);
+        return revisionId;
     }
 
     async resolvePublishedDefaultDatasetRevisionId(): Promise<string | null> {
@@ -254,7 +253,7 @@ export class LookupsService extends BaseService {
                     result.push({ value: name, label: name });
                 }
             }
-            return result;
+            return result.sort((left, right) => compareOptionLabels(left.label, right.label));
         } catch (error: any) {
             console.error('LookupData: Error fetching grade 3 subcategories:', error.message);
             throw error;
@@ -278,7 +277,7 @@ export class LookupsService extends BaseService {
                     result.push({ value: name, label: name });
                 }
             }
-            return result;
+            return result.sort((left, right) => compareOptionLabels(left.label, right.label));
         } catch (error: any) {
             console.error('LookupData: Error fetching grade 3 sources:', error.message);
             throw error;
@@ -316,38 +315,24 @@ export class LookupsService extends BaseService {
 
     /** Get units compatible with an emission source for the requested revision. */
     async fetchUnitsBySource(sourceId: string, datasetRevisionId?: string | null): Promise<UnitOption[]> {
-        try {
-            const revisionId = await this.resolveLookupDatasetRevisionId(datasetRevisionId);
-            const params = new URLSearchParams();
-            if (revisionId) params.set("dataset_revision_id", revisionId);
-            const query = params.toString();
-            const response = await this.get(`/lookup/emission-sources/${encodeURIComponent(sourceId)}/units${query ? `?${query}` : ""}`);
-            const rawData = response.data;
-            if (Array.isArray(rawData) && rawData.length > 0) {
-                return rawData;
-            }
-            return [];
-        } catch {
-            return [];
-        }
+        const revisionId = await this.resolveLookupDatasetRevisionId(datasetRevisionId);
+        const params = new URLSearchParams();
+        if (revisionId) params.set("dataset_revision_id", revisionId);
+        const query = params.toString();
+        const response = await this.get(`/lookup/emission-sources/${encodeURIComponent(sourceId)}/units${query ? `?${query}` : ""}`);
+        if (!Array.isArray(response.data)) throw new Error("Unit lookup returned an invalid response.");
+        return response.data;
     }
 
     async fetchUnitsByTypecast(typecastId: string, gradeIds?: number[], datasetRevisionId?: string | null): Promise<UnitOption[]> {
-        try {
-            const revisionId = await this.resolveLookupDatasetRevisionId(datasetRevisionId);
-            const params = new URLSearchParams();
-            if (gradeIds && gradeIds.length > 0) params.set("grade_ids", gradeIds.join(","));
-            if (revisionId) params.set("dataset_revision_id", revisionId);
-            const query = params.toString();
-            const response = await this.get(`/lookup/benchmark-typecasts/${encodeURIComponent(typecastId)}/units${query ? `?${query}` : ""}`);
-            const rawData = response.data;
-            if (Array.isArray(rawData) && rawData.length > 0) {
-                return rawData;
-            }
-            return [];
-        } catch {
-            return [];
-        }
+        const revisionId = await this.resolveLookupDatasetRevisionId(datasetRevisionId);
+        const params = new URLSearchParams();
+        if (gradeIds && gradeIds.length > 0) params.set("grade_ids", gradeIds.join(","));
+        if (revisionId) params.set("dataset_revision_id", revisionId);
+        const query = params.toString();
+        const response = await this.get(`/lookup/benchmark-typecasts/${encodeURIComponent(typecastId)}/units${query ? `?${query}` : ""}`);
+        if (!Array.isArray(response.data)) throw new Error("Unit lookup returned an invalid response.");
+        return response.data;
     }
 
     // ---------------------------------------------------------------
@@ -404,27 +389,23 @@ export class LookupsService extends BaseService {
     }
 
     async fetchBgmSourceUnits(gradeIds: number[], subcategoryId: string, source: string, datasetRevisionId?: string | null): Promise<UnitOption[]> {
-        try {
-            const revisionId = await this.resolveLookupDatasetRevisionId(datasetRevisionId);
-            const params = new URLSearchParams({
-                grade_ids: gradeIds.join(","),
-                subcategory_id: subcategoryId,
-                source,
-            });
-            if (revisionId) params.set("dataset_revision_id", revisionId);
-            const response = await this.get(`/lookup/bgm-source-units?${params.toString()}`);
-            const data = Array.isArray(response.data) ? response.data : [];
-            if (data.length > 0) return data;
-            return [];
-        } catch {
-            return [];
-        }
+        const revisionId = await this.resolveLookupDatasetRevisionId(datasetRevisionId);
+        const params = new URLSearchParams({
+            grade_ids: gradeIds.join(","),
+            subcategory_id: subcategoryId,
+            source,
+        });
+        if (revisionId) params.set("dataset_revision_id", revisionId);
+        const response = await this.get(`/lookup/bgm-source-units?${params.toString()}`);
+        if (!Array.isArray(response.data)) throw new Error("Unit lookup returned an invalid response.");
+        return response.data;
     }
 
     /**
      * Get unit options for electricity tables: MWh (canonical) plus every unit
      * that converts to MWh via the unit_conversions table (e.g. kWh, GWh).
-     * Falls back to the canonical MWh option if the conversion lookup is unavailable.
+     * Propagates request failures so the editor can distinguish an unavailable
+     * lookup from a valid result that has no related conversion units.
      */
     async fetchElectricityUnits(datasetRevisionId?: string | null): Promise<UnitOption[]> {
         const revisionId = await this.resolveLookupDatasetRevisionId(datasetRevisionId);
@@ -434,38 +415,14 @@ export class LookupsService extends BaseService {
         if (cached && now - cached.timestamp < CACHE_EXPIRATION) {
             return cached.data;
         }
-        try {
-            const params = new URLSearchParams();
-            if (revisionId) params.set("dataset_revision_id", revisionId);
-            const query = params.toString();
-            const response = await this.get(`/lookup/electricity-units${query ? `?${query}` : ""}`);
-            const data: UnitOption[] = Array.isArray(response.data) ? response.data : [];
-            if (data.length > 0) {
-                electricityUnitsCache.set(cacheKey, { data, timestamp: now });
-                return data;
-            }
-        } catch {
-            // fall through to default
-        }
-        // Keep a real, selectable canonical MWh unit if the conversion lookup fails.
-        try {
-            const units = await this.fetchUnits();
-            const mwh = units.find((unit: UnitOption) => unit.name?.toLowerCase() === "mwh");
-            if (mwh) {
-                return [{
-                    id: mwh.id,
-                    name: mwh.name,
-                    label: mwh.name,
-                    is_canonical: true,
-                    to_canonical_factor: 1,
-                    canonical_unit_id: mwh.id,
-                    canonical_unit_code: mwh.name,
-                }];
-            }
-        } catch {
-            // Leave the selector empty if even the canonical unit lookup fails.
-        }
-        return [];
+        const params = new URLSearchParams();
+        if (revisionId) params.set("dataset_revision_id", revisionId);
+        const query = params.toString();
+        const response = await this.get(`/lookup/electricity-units${query ? `?${query}` : ""}`);
+        if (!Array.isArray(response.data)) throw new Error("Electricity unit lookup returned an invalid response.");
+        const data: UnitOption[] = response.data;
+        electricityUnitsCache.set(cacheKey, { data, timestamp: now });
+        return data;
     }
 
     /**

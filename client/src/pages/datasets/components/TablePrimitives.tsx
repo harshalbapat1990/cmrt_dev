@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { NamedOption } from '../types';
+import { sortNamedOptions, type OptionOrder } from '@/utils/sortOptions';
 
 export const TH = ({ children, right, normalCase }: { children: ReactNode; right?: boolean; normalCase?: boolean }) => (
   <th className={`px-3 py-2.5 text-xs font-semibold ${normalCase ? 'normal-case' : 'uppercase'} tracking-wide text-text-base whitespace-nowrap border-r border-neutral-90 last:border-r-0 ${right ? 'text-right' : 'text-left'}`}>
@@ -13,9 +14,10 @@ export const TD = ({ children, right, muted }: { children: ReactNode; right?: bo
   </td>
 );
 
-export function InlineSelect({ value, options, onChange, placeholder, disabled }: {
-  value: string; options: NamedOption[]; onChange: (v: string) => void; placeholder?: string; disabled?: boolean;
+export function InlineSelect({ value, options, onChange, placeholder, disabled, optionOrder = 'alphabetical' }: {
+  value: string; options: NamedOption[]; onChange: (v: string) => void; placeholder?: string; disabled?: boolean; optionOrder?: OptionOrder;
 }) {
+  const displayOptions = optionOrder === 'provided' ? options : sortNamedOptions(options);
   return (
     <select
       value={value}
@@ -24,7 +26,7 @@ export function InlineSelect({ value, options, onChange, placeholder, disabled }
       className="w-full min-w-0 rounded border border-primary px-1 py-0.5 text-xs bg-white focus:outline-none"
     >
       {placeholder && <option value="">{placeholder}</option>}
-      {options.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
+      {displayOptions.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}
     </select>
   );
 }

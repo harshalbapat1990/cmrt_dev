@@ -1,6 +1,7 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import CancelFill from "../../assets/icons/cancel-fill.svg";
+import { sortOptionsByLabel, type OptionOrder } from "@/utils/sortOptions";
 
 export type MSOption = { label: string; value: string };
 
@@ -25,6 +26,8 @@ export type MultiSelectDropdownProps = {
   /** Behavior */
   closeOnSelect?: boolean; // default false for multi
   withSearch?: boolean;    // default false
+  /** Defaults to alphabetical. Use `provided` for intentionally ranked choices. */
+  optionOrder?: OptionOrder;
 };
 
 const K = {
@@ -51,6 +54,7 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   ariaLabel,
   closeOnSelect = false,
   withSearch = false,
+  optionOrder = "alphabetical",
 }) => {
   const listboxId = useId();
   const generatedButtonId = useId();
@@ -62,23 +66,27 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
 
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const displayOptions = useMemo(
+    () => optionOrder === "provided" ? options : sortOptionsByLabel(options),
+    [options, optionOrder],
+  );
 
   // quick lookup for chip labels
   const labelByValue = useMemo(() => {
     const m = new Map<string, string>();
-    for (const o of options) m.set(o.value, o.label);
+    for (const o of displayOptions) m.set(o.value, o.label);
     return m;
-  }, [options]);
+  }, [displayOptions]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!withSearch || q === "") return options;
-    return options.filter(
+    if (!withSearch || q === "") return displayOptions;
+    return displayOptions.filter(
       (o) =>
         o.label.toLowerCase().includes(q) ||
         o.value.toLowerCase().includes(q)
     );
-  }, [options, query, withSearch]);
+  }, [displayOptions, query, withSearch]);
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {

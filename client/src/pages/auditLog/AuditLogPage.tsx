@@ -13,6 +13,7 @@ import { useUser } from '@/context/UserContext';
 import { useProjectHeader } from '@/context/ProjectHeaderContext';
 import { extractApiError } from '@/utils/utils';
 import type { AuditLogRow } from '@/pages/datasets/types';
+import { compareOptionLabels } from '@/utils/sortOptions';
 
 export const ACTION_BADGE: Record<string, string> = {
   CREATE: 'bg-green-100 text-green-700',
@@ -487,11 +488,11 @@ export default function AuditLogPage() {
                 className="appearance-none border border-gray-300 rounded px-3 py-1.5 pr-8 text-sm bg-white text-text-base focus:outline-none focus:ring-1"
               >
                 <option value="">All actions</option>
-                <option value="CREATE">Create</option>
-                <option value="UPDATE">Update</option>
-                <option value="DELETE">Delete</option>
                 <option value="CLOSE">Close</option>
+                <option value="CREATE">Create</option>
+                <option value="DELETE">Delete</option>
                 <option value="REOPEN">Reopen</option>
+                <option value="UPDATE">Update</option>
               </select>
               <span className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-600">
                 <span className="material-symbols-rounded text-[18px] leading-none">expand_more</span>
@@ -508,7 +509,7 @@ export default function AuditLogPage() {
                 className="appearance-none border border-gray-300 rounded px-3 py-1.5 pr-8 text-sm bg-white text-text-base focus:outline-none focus:ring-1"
               >
                 <option value="">All tables</option>
-                {Object.entries(UI_TABLE_KEY_LABELS).map(([k, label]) => (
+                {Object.entries(UI_TABLE_KEY_LABELS).sort((a, b) => compareOptionLabels(a[1], b[1])).map(([k, label]) => (
                   <option key={k} value={k}>{label}</option>
                 ))}
               </select>
@@ -527,7 +528,7 @@ export default function AuditLogPage() {
                 className="appearance-none border border-gray-300 rounded px-3 py-1.5 pr-8 text-sm bg-white text-text-base focus:outline-none focus:ring-1"
               >
                 <option value="">All stages</option>
-                {Object.entries(STAGE_LABELS).map(([k, label]) => (
+                {Object.entries(STAGE_LABELS).sort((a, b) => compareOptionLabels(a[1], b[1])).map(([k, label]) => (
                   <option key={k} value={k}>{label}</option>
                 ))}
               </select>

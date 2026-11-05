@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { SelectListbox } from "./Select";
+import type { OptionOrder } from "@/utils/sortOptions";
 import Download from "../../assets/icons/download.svg";
 import UploadFile from "../../assets/icons/upload_file.svg";
 import Add from "../../assets/icons/add.svg";
@@ -36,6 +37,7 @@ interface Column<T> {
     item: any;
   }) => React.ReactNode;
   editorType?: any;
+  optionOrder?: OptionOrder;
   getOptions?: (ctx: { row: any; isNew: boolean }) => Promise<any> | null;
   idKey?: keyof T;
   dependsOnKeys?: (keyof T)[];
@@ -188,6 +190,7 @@ const SelectEditor = ({
 }) => {
   const [options, setOptions] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [optionsError, setOptionsError] = useState<string | null>(null);
 
   const depValues = (col.dependsOnKeys || []).map((k) => String(row[k as string] ?? ""));
 
@@ -197,6 +200,7 @@ const SelectEditor = ({
     (async () => {
       if (col.editorType !== "select" || !col.getOptions) {
         setOptions([]);
+        setOptionsError(null);
         return;
       }
       // If there are dependencies, ensure they have values before calling
@@ -208,16 +212,21 @@ const SelectEditor = ({
         });
         if (!ready) {
           setOptions([]);
+          setOptionsError(null);
           return;
         }
       }
       try {
         setLoading(true);
+        setOptionsError(null);
         const res = await col.getOptions({ row, isNew });
         if (cancelled) return;
         setOptions(Array.isArray(res) ? res : []);
       } catch (e) {
-        if (!cancelled) setOptions([]);
+        if (!cancelled) {
+          setOptions([]);
+          setOptionsError("Could not load options. Check your connection and try again.");
+        }
         console.error("Failed to fetch options", e);
       } finally {
         if (!cancelled) setLoading(false);
@@ -237,22 +246,27 @@ const SelectEditor = ({
   const currentValue = getSelectCurrentValue(row, col, options);
 
   return (
-    <SelectListbox
-      value={currentValue}
-      onChange={async (val: string) => {
-        const selected = options.find((o: any) => o.value === val);
-        if (isNew) {
-          await onApplyCascadeNewRow?.(col, selected);
-        } else {
-          await onApplyCascadeExistingRow?.(row, col, selected);
-        }
-        onCommit?.();
-      }}
-      options={options}
-      loading={loading as any}
-      autoFocus={!isNew}
-      minMenuWidth={240}
-    />
+    <div className="min-w-0">
+      <SelectListbox
+        value={currentValue}
+        onChange={async (val: string) => {
+          const selected = options.find((o: any) => o.value === val);
+          if (isNew) {
+            await onApplyCascadeNewRow?.(col, selected);
+          } else {
+            await onApplyCascadeExistingRow?.(row, col, selected);
+          }
+          onCommit?.();
+        }}
+        options={options}
+        optionOrder={col.optionOrder}
+        loading={loading as any}
+        noOptionsLabel={optionsError ? "Options could not be loaded" : "No options available"}
+        autoFocus={!isNew}
+        minMenuWidth={240}
+      />
+      {optionsError && <div role="alert" className="mt-1 text-xs text-red-700">{optionsError}</div>}
+    </div>
   );
 };
 

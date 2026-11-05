@@ -40,6 +40,8 @@ class FakeSessionWithRevision:
                 class _Scalars:
                     def first(self):
                         return rev
+                    def all(self):
+                        return []
                 return _Scalars()
         return _Result()
 
@@ -409,12 +411,13 @@ async def test_project_calculation_uses_and_authorizes_bound_revision(monkeypatc
         assert requested_project_id == project_id
         return [SimpleNamespace(dataset_revision_id=bound_revision_id)]
 
-    async def revision_view(_db, _principal, revision_id):
+    async def get_revision(_db, revision_id):
         calls.append(revision_id)
+        return SimpleNamespace(id=revision_id, status="published", scope_type="ORG", scope_id=uuid4())
 
     monkeypatch.setattr(da.rbac, "require_project_access", require_project_access)
     monkeypatch.setattr(project_revision_crud, "list_project_dataset_revisions_by_project", list_bindings)
-    monkeypatch.setattr(da, "assert_dataset_revision_read_permission", revision_view)
+    monkeypatch.setattr(da, "get_dataset_revision", get_revision)
     principal = Principal(user_id=uuid4(), email="project@example.com")
 
     resolved = await da.assert_project_dataset_revision_read_permission(
@@ -428,6 +431,156 @@ async def test_project_calculation_uses_and_authorizes_bound_revision(monkeypatc
             FakeSessionWithRevision(), principal, project_id, uuid4()
         )
     assert exc_info.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_project_binding_grants_project_members_read_of_published_org_revision(monkeypatch):
+    """A project's assigned published revision is readable in its project context."""
+    import core.dataset_authorization as da
+    import crud.project_dataset_revisions as project_revision_crud
+
+    project_id, revision_id = uuid4(), uuid4()
+
+    async def require_project_access(_db, _principal, requested_project_id, _minimum_access):
+        assert requested_project_id == project_id
+
+    async def list_bindings(_db, requested_project_id):
+        assert requested_project_id == project_id
+        return [SimpleNamespace(dataset_revision_id=revision_id)]
+
+    async def get_revision(_db, requested_revision_id):
+        assert requested_revision_id == revision_id
+        # The revision belongs to an organisation the caller does not manage.
+        return SimpleNamespace(
+            id=revision_id, status="published", scope_type="ORG", scope_id=uuid4()
+        )
+
+    async def should_not_require_owner_scope(_db, _principal, _revision):
+        raise AssertionError("bound published revisions should use project access")
+
+    monkeypatch.setattr(da.rbac, "require_project_access", require_project_access)
+    monkeypatch.setattr(project_revision_crud, "list_project_dataset_revisions_by_project", list_bindings)
+    monkeypatch.setattr(da, "get_dataset_revision", get_revision)
+    monkeypatch.setattr(da, "assert_revision_view_permission", should_not_require_owner_scope)
+
+    resolved = await da.assert_project_dataset_revision_read_permission(
+        FakeSessionWithRevision(),
+        Principal(user_id=uuid4(), email="project-member@example.com"),
+        project_id,
+        revision_id,
+    )
+    assert resolved == revision_id
+
+
+@pytest.mark.asyncio
+async def test_project_lookup_uses_current_binding_even_if_client_revision_is_stale(monkeypatch):
+    import core.dataset_authorization as da
+    import crud.project_dataset_revisions as project_revision_crud
+
+    project_id, current_revision_id, stale_revision_id = uuid4(), uuid4(), uuid4()
+
+    async def require_project_access(_db, _principal, _project_id, _minimum_access):
+        return None
+
+    async def list_bindings(_db, _project_id):
+        return [SimpleNamespace(dataset_revision_id=current_revision_id)]
+
+    async def get_revision(_db, requested_revision_id):
+        assert requested_revision_id == current_revision_id
+        return SimpleNamespace(
+            id=current_revision_id, status="draft", scope_type="ORG", scope_id=uuid4()
+        )
+
+    async def should_not_require_scope_role(_db, _principal, _revision):
+        raise AssertionError("current project lookup should use the binding as authority")
+
+    monkeypatch.setattr(da.rbac, "require_project_access", require_project_access)
+    monkeypatch.setattr(project_revision_crud, "list_project_dataset_revisions_by_project", list_bindings)
+    monkeypatch.setattr(da, "get_dataset_revision", get_revision)
+    monkeypatch.setattr(da, "assert_revision_view_permission", should_not_require_scope_role)
+
+    resolved = await da.assert_project_dataset_revision_read_permission(
+        FakeSessionWithRevision(),
+        Principal(user_id=uuid4(), email="project-member@example.com"),
+        project_id,
+        stale_revision_id,
+        project_binding_is_authoritative=True,
+    )
+    assert resolved == current_revision_id
+
+
+@pytest.mark.asyncio
+async def test_project_binding_does_not_make_draft_revision_readable_to_project_members(monkeypatch):
+    import core.dataset_authorization as da
+    import crud.project_dataset_revisions as project_revision_crud
+
+    project_id, revision_id = uuid4(), uuid4()
+
+    async def require_project_access(_db, _principal, _project_id, _minimum_access):
+        return None
+
+    async def list_bindings(_db, _project_id):
+        return [SimpleNamespace(dataset_revision_id=revision_id)]
+
+    async def get_revision(_db, _revision_id):
+        return SimpleNamespace(
+            id=revision_id, status="draft", scope_type="ORG", scope_id=uuid4()
+        )
+
+    async def deny_draft(_db, _principal, _revision):
+        raise HTTPException(status_code=404, detail="Dataset revision not found")
+
+    monkeypatch.setattr(da.rbac, "require_project_access", require_project_access)
+    monkeypatch.setattr(project_revision_crud, "list_project_dataset_revisions_by_project", list_bindings)
+    monkeypatch.setattr(da, "get_dataset_revision", get_revision)
+    monkeypatch.setattr(da, "assert_revision_view_permission", deny_draft)
+
+    with pytest.raises(HTTPException) as exc_info:
+        await da.assert_project_dataset_revision_read_permission(
+            FakeSessionWithRevision(),
+            Principal(user_id=uuid4(), email="project-member@example.com"),
+            project_id,
+            revision_id,
+        )
+    assert exc_info.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_revision_read_guard_uses_project_binding_when_project_context_is_supplied(monkeypatch):
+    import core.dataset_authorization as da
+
+    project_id, revision_id = uuid4(), uuid4()
+    seen = []
+
+    async def authorize_project_binding(
+        _db, _principal, requested_project, requested_revision,
+        project_binding_is_authoritative=False,
+    ):
+        seen.append((requested_project, requested_revision, project_binding_is_authoritative))
+        return revision_id
+
+    monkeypatch.setattr(da, "assert_project_dataset_revision_read_permission", authorize_project_binding)
+    request = Request({
+        "type": "http",
+        "method": "GET",
+        "path": "/api/lookup/bgm-categories",
+        "query_string": (
+            f"project_id={project_id}&dataset_revision_id={revision_id}".encode()
+        ),
+        "headers": [],
+        "scheme": "http",
+        "server": ("testserver", 80),
+        "client": ("testclient", 50000),
+        "root_path": "",
+    })
+
+    resolved = await require_dataset_read_access(
+        request,
+        FakeSessionWithRevision(),
+        Principal(user_id=uuid4(), email="project-member@example.com"),
+    )
+    assert resolved == revision_id
+    assert seen == [(project_id, revision_id, True)]
 
 
 @pytest.mark.asyncio

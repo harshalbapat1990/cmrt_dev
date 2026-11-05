@@ -123,7 +123,11 @@ async def list_bgm_categories(
     db: AsyncSession = Depends(get_session),
 ):
     """Distinct top-level emissions categories that have BGM rows for the given grades."""
-    dataset_revision_id = dataset_revision_id or authorized_revision_id
+    dataset_revision_id = (
+        authorized_revision_id
+        if project_id is not None
+        else (dataset_revision_id or authorized_revision_id)
+    )
     grade_id_list = [int(g.strip()) for g in grade_ids.split(",") if g.strip().isdigit()]
     ec = EmissionsCategoryRecord
     bgm = BackgroundGradeMetric
@@ -184,7 +188,11 @@ async def list_bgm_subcategories(
     db: AsyncSession = Depends(get_session),
 ):
     """Distinct subcategories (children of category_id) that have BGM rows for the given grades."""
-    dataset_revision_id = dataset_revision_id or authorized_revision_id
+    dataset_revision_id = (
+        authorized_revision_id
+        if project_id is not None
+        else (dataset_revision_id or authorized_revision_id)
+    )
     grade_id_list = [int(g.strip()) for g in grade_ids.split(",") if g.strip().isdigit()]
     ec = EmissionsCategoryRecord
     bgm = BackgroundGradeMetric
@@ -248,7 +256,11 @@ async def list_bgm_sources(
     db: AsyncSession = Depends(get_session),
 ):
     """Distinct emissions_source strings from BGM for the given grades and subcategory."""
-    dataset_revision_id = dataset_revision_id or authorized_revision_id
+    dataset_revision_id = (
+        authorized_revision_id
+        if project_id is not None
+        else (dataset_revision_id or authorized_revision_id)
+    )
     
     grade_id_list = [
         int(g.strip())

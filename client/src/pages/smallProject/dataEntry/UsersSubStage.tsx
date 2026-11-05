@@ -496,6 +496,7 @@ const displayRailSaveState = railSaveState;
                                                 <SelectListbox
                                                     value={row.terrain}
                                                     options={TERRAIN_OPTIONS}
+                                                    optionOrder="provided"
                                                     onChange={(val) =>
                                                     updateRailRow(row.id, { terrain: val })
                                                     }

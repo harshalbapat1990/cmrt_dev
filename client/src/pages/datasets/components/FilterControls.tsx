@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { compareOptionLabels } from '@/utils/sortOptions';
 
 export function MultiSelect({ label, options, selected, onChange }: {
   label: string; options: string[]; selected: string[];
@@ -44,7 +45,7 @@ export function MultiSelect({ label, options, selected, onChange }: {
         <div className="absolute top-full left-0 mt-1 z-50 min-w-44 max-w-72 max-h-60 overflow-y-auto bg-white border border-neutral-80 rounded shadow-lg py-1">
           {options.length === 0
             ? <p className="px-3 py-2 text-xs text-text-base italic">No options</p>
-            : options.map(opt => (
+            : [...options].sort(compareOptionLabels).map(opt => (
                 <label key={opt} className="flex items-center gap-2 px-3 py-1.5 hover:bg-neutral-98 cursor-pointer select-none">
                   <input type="checkbox" className="accent-primary"
                     checked={selected.includes(opt)} onChange={() => toggle(opt)} />

@@ -40,6 +40,7 @@ export default function ReportingFrequency({
               setFrequency(v);
             }}
             options={frequencyOptions}
+            optionOrder="provided"
             placeholder=""
             className="mb-2"
             disabled={disabled}

@@ -159,6 +159,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                             <SelectListbox
                               value={row.mixType}
                               options={MIX_TYPE_OPTIONS}
+                              optionOrder="provided"
                               onChange={(v) => {
                                 updateSimplifiedRow(idx, "mixType", v);
                                 syncSimplifiedRow({ ...row, mixType: v });
@@ -174,6 +175,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                             <SelectListbox
                               value={row.strengthMpa}
                               options={STRENGTH_OPTIONS}
+                              optionOrder="provided"
                               onChange={(v) => {
                                 updateSimplifiedRow(idx, "strengthMpa", v);
                                 syncSimplifiedRow({ ...row, strengthMpa: v });
@@ -263,6 +265,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                         <SelectListbox
                           value={simplifiedDraft.mixType}
                           options={MIX_TYPE_OPTIONS}
+                          optionOrder="provided"
                           onChange={(v) => updateSimplifiedDraft("mixType", v)}
                           aria-label="Mix type"
                         />
@@ -271,6 +274,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                         <SelectListbox
                           value={simplifiedDraft.strengthMpa}
                           options={STRENGTH_OPTIONS}
+                          optionOrder="provided"
                           onChange={(v) => updateSimplifiedDraft("strengthMpa", v)}
                           aria-label="Strength"
                         />
@@ -447,6 +451,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                                   <SelectListbox
                                     value={row.mixType}
                                     options={MIX_TYPE_OPTIONS}
+                                    optionOrder="provided"
                                     onChange={(v) => {
                                       updateMixRow(row.id, "mixType", v);
                                       syncMixRow({ ...row, mixType: v });
@@ -462,6 +467,7 @@ const ConcreteRegister: React.FC<ConcreteRegisterProps> = ({ projectId, readOnly
                                   <SelectListbox
                                     value={row.strengthMpa}
                                     options={STRENGTH_OPTIONS}
+                                    optionOrder="provided"
                                     onChange={(v) => {
                                       updateMixRow(row.id, "strengthMpa", v);
                                       syncMixRow({ ...row, strengthMpa: v });

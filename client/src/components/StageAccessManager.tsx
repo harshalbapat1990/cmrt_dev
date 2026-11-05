@@ -9,6 +9,7 @@ import type {
   StageAccess,
 } from "@/types/authorization";
 import { useToast } from "@/components/common/ToastProvider";
+import { compareOptionLabels } from "@/utils/sortOptions";
 
 const STAGE_LABELS: Record<string, string> = {
   BUSINESS_CASE: "Business case",
@@ -372,7 +373,10 @@ export default function StageAccessManager() {
           }}
           className="w-full max-w-xl rounded border border-slate-300 px-3 py-2 text-sm"
         >
-          {projects.map((project) => (
+          {[...projects].sort((a, b) => compareOptionLabels(
+            a.project_name || a.projectName || a.id,
+            b.project_name || b.projectName || b.id,
+          )).map((project) => (
             <option key={project.id} value={project.id}>
               {project.project_name || project.projectName || project.id}
             </option>
@@ -406,7 +410,10 @@ export default function StageAccessManager() {
                   className="rounded border border-slate-300 bg-white px-3 py-2 text-sm"
                 >
                   <option value="">Select a user to add</option>
-                  {selectableUsers.map((user) => (
+                  {[...selectableUsers].sort((a, b) => compareOptionLabels(
+                    `${a.name} — ${a.email}`,
+                    `${b.name} — ${b.email}`,
+                  )).map((user) => (
                     <option key={user.id} value={user.id}>
                       {user.name} — {user.email}
                     </option>

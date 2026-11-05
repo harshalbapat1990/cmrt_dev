@@ -27,7 +27,11 @@ async def get_benchmark_typecasts(
 ):
     if project_id is not None:
         dataset_revision_id = await assert_project_dataset_revision_read_permission(
-            db, principal, project_id, dataset_revision_id
+            db,
+            principal,
+            project_id,
+            dataset_revision_id,
+            project_binding_is_authoritative=True,
         )
     elif dataset_revision_id is not None:
         await assert_dataset_revision_read_permission(db, principal, dataset_revision_id)

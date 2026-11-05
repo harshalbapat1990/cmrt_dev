@@ -256,6 +256,7 @@ const FilterPanel = ({
           value={draftFilters.submission}
           placeholder="Submission"
           options={SUBMISSION_OPTIONS}
+          optionOrder="provided"
           onChange={(value: string) => updateFilter("submission", value as SubmissionLabel | "")}
         />
 

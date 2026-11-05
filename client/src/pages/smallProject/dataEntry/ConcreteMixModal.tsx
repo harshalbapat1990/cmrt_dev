@@ -305,6 +305,7 @@ export default function ConcreteMixModal({ projectId, stageInstanceId, optionId,
                             <SelectListbox
                                 value={mixType}
                                 options={MIX_TYPE_OPTIONS}
+                                optionOrder="provided"
                                 onChange={(v: string) => setMixType(v)}
                             />
                         </div>
@@ -313,6 +314,7 @@ export default function ConcreteMixModal({ projectId, stageInstanceId, optionId,
                             <SelectListbox
                                 value={strength}
                                 options={STRENGTH_OPTIONS}
+                                optionOrder="provided"
                                 onChange={(v: string) => setStrength(v)}
                             />
                         </div>

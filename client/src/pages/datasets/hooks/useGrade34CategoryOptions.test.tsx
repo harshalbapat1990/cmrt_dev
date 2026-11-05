@@ -13,8 +13,8 @@ describe('useGrade34CategoryOptions', () => {
   it('loads top-level categories and children for the selected category', async () => {
     mockedGet.mockImplementation(async (url = '') => ({
       data: url.includes('top_level_only=true')
-        ? [{ id: 'category-1', name: 'Materials' }]
-        : [{ id: 'subcategory-1', name: 'Ceilings & walls' }],
+        ? [{ id: 'category-z', name: 'Vegetation' }, { id: 'category-a', name: 'Materials' }]
+        : [{ id: 'subcategory-z', name: 'Roads' }, { id: 'subcategory-a', name: 'Ceilings & walls' }],
     }) as never);
 
     const { result, rerender } = renderHook(
@@ -23,13 +23,15 @@ describe('useGrade34CategoryOptions', () => {
     );
 
     await waitFor(() => expect(result.current.categoryOptions).toEqual([
-      { id: 'category-1', name: 'Materials' },
+      { id: 'category-a', name: 'Materials' },
+      { id: 'category-z', name: 'Vegetation' },
     ]));
     expect(mockedGet).toHaveBeenCalledWith('/api/emissions-categories?top_level_only=true&limit=500');
 
     rerender({ categoryId: 'category-1', enabled: true });
     await waitFor(() => expect(result.current.subcategoryOptions).toEqual([
-      { id: 'subcategory-1', name: 'Ceilings & walls' },
+      { id: 'subcategory-a', name: 'Ceilings & walls' },
+      { id: 'subcategory-z', name: 'Roads' },
     ]));
     expect(mockedGet).toHaveBeenCalledWith(
       '/api/emissions-categories?parent_category_id=category-1&limit=500',

@@ -53,8 +53,8 @@ export default function TransportTable({ rows, editCtx }: { rows: TransportRow[]
                   onChange={e => ec.onAddField('__tr_key_type', e.target.value)}
                   className="w-full rounded border border-primary px-1 py-0.5 text-xs bg-white focus:outline-none"
                 >
-                  <option value="material">Material</option>
                   <option value="category">Category</option>
+                  <option value="material">Material</option>
                 </select>
                 {(ec.addDraft.__tr_key_type ?? 'material') === 'material'
                   ? <InlineSelect value={ec.addDraft.material_id ?? ''} options={ec.matOpts} onChange={v => ec.onAddField('material_id', v)} placeholder="— material —" />

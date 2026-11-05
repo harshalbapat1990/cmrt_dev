@@ -856,6 +856,7 @@ if (accessibleStageInstances.length === 0) {
                     value={submission}
                     placeholder="Submission"
                     options={submissionOptions}
+                    optionOrder="provided"
                     onChange={(val) => {
                       setSubmission(val);
                       setIntervalId("");
@@ -872,6 +873,7 @@ if (accessibleStageInstances.length === 0) {
     value={projectOptionId ?? ""}
     placeholder="Option"
     options={projectOptions}
+    optionOrder="provided"
     onChange={(val) => setProjectOptionId(val)}
     className="w-[220px]"
   />
@@ -883,6 +885,7 @@ if (accessibleStageInstances.length === 0) {
                     value={intervalId}
                     placeholder="Period"
                     options={intervalOptions}
+                    optionOrder="provided"
                     onChange={(val) => {
                       setIntervalId(val);
                       setSubmissionPeriodId(val);

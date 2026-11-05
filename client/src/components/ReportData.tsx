@@ -980,6 +980,7 @@ const ReportData: React.FC<ReportDataProps> = ({
                                 value={row.dataQuality}
                                 onChange={(v: string) => handleChange(row.id, "dataQuality")({ target: { value: v } })}
                                 options={dataQualityOptionsFormatted}
+                                optionOrder="provided"
                                 onBlur={() => stopEdit(row.id, "dataQuality")}
                                 aria-label="Data quality"
                                 placeholder=""

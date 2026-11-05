@@ -85,6 +85,7 @@ export function DataEntryStageToolbar({
                 value={activeOptionId ?? ""}
                 onChange={onOptionChange}
                 options={options}
+                optionOrder="provided"
               />
               <div className="relative" ref={moreMenuRef}>
                 {!isReadOnly && (

@@ -12,8 +12,8 @@ describe('useBgmCategoryOptions', () => {
 
   it('loads distinct categories and children scoped to the selected revision and grade', async () => {
     mockedGet.mockImplementation(async (url = '') => ({ data: url.includes('bgm-categories')
-      ? [{ id: 'category-1', name: 'Materials' }]
-      : [{ id: 'subcategory-1', name: 'Ceilings & walls' }],
+      ? [{ id: 'category-z', name: 'Vegetation' }, { id: 'category-a', name: 'Materials' }]
+      : [{ id: 'subcategory-z', name: 'Roads' }, { id: 'subcategory-a', name: 'Ceilings & walls' }],
     }) as never);
 
     const { result, rerender } = renderHook(
@@ -22,7 +22,8 @@ describe('useBgmCategoryOptions', () => {
     );
 
     await waitFor(() => expect(result.current.categoryOptions).toEqual([
-      { id: 'category-1', name: 'Materials' },
+      { id: 'category-a', name: 'Materials' },
+      { id: 'category-z', name: 'Vegetation' },
     ]));
     expect(mockedGet).toHaveBeenCalledWith(
       '/api/lookup/bgm-categories?grade_ids=3&dataset_revision_id=revision-1',
@@ -30,7 +31,8 @@ describe('useBgmCategoryOptions', () => {
 
     rerender({ categoryId: 'category-1', revisionId: 'revision-1', gradeId: '3', enabled: true });
     await waitFor(() => expect(result.current.subcategoryOptions).toEqual([
-      { id: 'subcategory-1', name: 'Ceilings & walls' },
+      { id: 'subcategory-a', name: 'Ceilings & walls' },
+      { id: 'subcategory-z', name: 'Roads' },
     ]));
     expect(mockedGet).toHaveBeenCalledWith(
       '/api/lookup/bgm-subcategories?grade_ids=3&category_id=category-1&dataset_revision_id=revision-1',

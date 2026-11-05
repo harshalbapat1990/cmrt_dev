@@ -40,6 +40,7 @@ export default function InterruptedVehiclesTable({ rows, editCtx }: Props) {
                 <InlineSelect
                   value={ec.addDraft.vehicle_class_id ?? ''}
                   options={ec.vehicleClassOpts}
+                  optionOrder="provided"
                   onChange={v => ec.onAddField('vehicle_class_id', v)}
                   placeholder="— vehicle class —"
                 />

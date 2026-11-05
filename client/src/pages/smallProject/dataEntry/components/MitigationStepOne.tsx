@@ -131,6 +131,7 @@ export const Step1Modal: React.FC<{
                 }))
               }
               options={lifecyclePhaseOptions}
+              optionOrder="provided"
               placeholder="Select project stage"
             />
           </div>

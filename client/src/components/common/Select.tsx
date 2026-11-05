@@ -1,6 +1,7 @@
 
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { sortOptionsByLabel, type OptionOrder } from "@/utils/sortOptions";
 
 type Option = { label: string; value: string; disabled?: boolean; status?: string };
 type SelectListboxProps = {
@@ -21,6 +22,8 @@ type SelectListboxProps = {
   noOptionsLabel?: string;
   status?: string;
   minMenuWidth?: number;
+  /** Defaults to alphabetical. Use `provided` for chronological or ranked choices. */
+  optionOrder?: OptionOrder;
 };
 
 export const SelectListbox: React.FC<SelectListboxProps> = ({
@@ -39,6 +42,7 @@ export const SelectListbox: React.FC<SelectListboxProps> = ({
   noOptionsLabel = "No options",
   status,
   minMenuWidth = 240,
+  optionOrder = "alphabetical",
   ...rest
 }) => {
   const [open, setOpen] = useState(false);
@@ -47,22 +51,27 @@ export const SelectListbox: React.FC<SelectListboxProps> = ({
   const [menuStyles, setMenuStyles] = useState<React.CSSProperties>({});
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  const [activeIndex, setActiveIndex] = useState<number>(() =>
-    Math.max(0, options.findIndex(o => o.value === value))
-  );
+  const [activeIndex, setActiveIndex] = useState<number>(() => {
+    const initialOptions = optionOrder === "provided" ? options : sortOptionsByLabel(options);
+    return Math.max(0, initialOptions.findIndex(o => o.value === value));
+  });
   const [searchText, setSearchText] = useState("");
+  const displayOptions = useMemo(
+    () => optionOrder === "provided" ? options : sortOptionsByLabel(options),
+    [options, optionOrder],
+  );
 
   // Prevent closing on input blur when the user is clicking inside the menu
   const ignoreBlurRef = useRef(false);
   const skipNextOpenRef = useRef(false);
 
-  const selected = useMemo(() => options.find(o => o.value === value), [options, value]);
+  const selected = useMemo(() => displayOptions.find(o => o.value === value), [displayOptions, value]);
 
   const filteredOptions = useMemo(() => {
-    if (!searchText.trim()) return options;
+    if (!searchText.trim()) return displayOptions;
     const lower = searchText.toLowerCase();
-    return options.filter(o => o.label.toLowerCase().includes(lower));
-  }, [options, searchText]);
+    return displayOptions.filter(o => o.label.toLowerCase().includes(lower));
+  }, [displayOptions, searchText]);
 
   useEffect(() => {
     setActiveIndex(0);
@@ -181,9 +190,9 @@ export const SelectListbox: React.FC<SelectListboxProps> = ({
   }, [open, filteredOptions, activeIndex, onChange]);
 
   useEffect(() => {
-    const idx = options.findIndex(o => o.value === value);
+    const idx = displayOptions.findIndex(o => o.value === value);
     if (idx >= 0) setActiveIndex(idx);
-  }, [value, options]);
+  }, [value, displayOptions]);
 
   const statusBadgeClass = (s: string) =>
     s === "Approved" ? "bg-light-green text-success"

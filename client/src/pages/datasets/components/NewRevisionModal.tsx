@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { DatasetRevision } from '../types';
+import { compareOptionLabels } from '@/utils/sortOptions';
 
 type ScopeType = 'DEFAULT' | 'ORG' | 'PROJECT';
 
@@ -177,7 +178,7 @@ export default function NewRevisionModal({
                   className="w-full rounded border border-neutral-80 px-3 py-2 text-sm focus:outline-none focus:border-primary"
                 >
                   <option value="">Select revision…</option>
-                  {activeRevisionList.map(r => (
+                  {[...activeRevisionList].sort((a, b) => compareOptionLabels(a.name, b.name)).map(r => (
                     <option key={r.id} value={r.id}>{r.name} ({r.status})</option>
                   ))}
                 </select>

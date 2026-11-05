@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import type {Option , OperationPanelProps} from "../types/addnewproject";
+import { sortOptionsByLabel } from "@/utils/sortOptions";
 
 const OperationPanel: React.FC<OperationPanelProps> = ({
   title,
@@ -70,7 +71,7 @@ const OperationPanel: React.FC<OperationPanelProps> = ({
             onChange={(e) => onChange(e.target.value)}
           >
             <option value="">{placeholder ?? "Select..."}</option>
-            {options.map((opt) => (
+            {sortOptionsByLabel(options).map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>

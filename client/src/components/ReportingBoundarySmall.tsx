@@ -861,6 +861,7 @@ const ReportingBoundarySmall: React.FC<ReportingBoundarySmallProps> = ({
           <MultiSelectDropdown
             label="Project lifecycle stage"
             options={LIFECYCLE_OPTIONS}
+            optionOrder="provided"
             selected={selectedStages}
             onChange={handleStagesChange}
             placeholder="Select all that apply"

@@ -3,6 +3,7 @@ import http from '@/http';
 import type { DirectSubstitutionRow, NamedOption } from '../types';
 import { TH, TD } from './TablePrimitives';
 import { withJurisdictionBackfill } from '../jurisdictionDefaults';
+import { sortNamedOptions } from '@/utils/sortOptions';
 
 interface Props {
   rows: DirectSubstitutionRow[];
@@ -111,7 +112,7 @@ export default function DirectSubstitutionsTable({ rows, canEdit, revisionId, ju
     <select value={draft.jurisdiction_id} onChange={e => setField('jurisdiction_id', e.target.value)}
       className="w-full min-w-28 rounded border border-primary px-1 py-1 text-xs">
       <option value="">Select jurisdiction</option>
-      {jurisdictions.map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
+      {sortNamedOptions(jurisdictions).map(option => <option key={option.id} value={option.id}>{option.name}</option>)}
     </select>
   );
   const addJurisdictionId = defaultJurisdictionId !== undefined
