@@ -305,8 +305,18 @@ async def get_bindable_dataset_revisions(
 
     org_id = project.proponent_org_id
 
-    default_revs = await list_dataset_revisions(db, status="published", scope_type="DEFAULT")
-    org_revs = await list_dataset_revisions(db, status="published", scope_type="ORG", scope_id=org_id)
-    project_revs = await list_dataset_revisions(db, status="published", scope_type="PROJECT", scope_id=project_id)
+    # These are selector choices rather than a paginated listing. Request a
+    # generous scoped result set so an older published organisation revision
+    # is not silently omitted by the CRUD helper's ordinary 100-row default.
+    selector_limit = 1000
+    default_revs = await list_dataset_revisions(
+        db, status="published", scope_type="DEFAULT", limit=selector_limit
+    )
+    org_revs = await list_dataset_revisions(
+        db, status="published", scope_type="ORG", scope_id=org_id, limit=selector_limit
+    )
+    project_revs = await list_dataset_revisions(
+        db, status="published", scope_type="PROJECT", scope_id=project_id, limit=selector_limit
+    )
 
     return [*default_revs, *org_revs, *project_revs]

@@ -1177,9 +1177,25 @@ async def _calculate_simplified(
     )
     if bau is None:
         raise ValueError(
-            f"No BAU default mix is defined for strength_mpa={request.strength_mpa}. "
-            f"Check that concrete_mix_designs contains rows for this grade "
-            f"and that concrete_mix_assumptions has an active row."
+            f"The selected dataset revision {dataset_revision_id} has no active BAU "
+            f"concrete mix data for strength_mpa={request.strength_mpa}. Add an active "
+            "BAU concrete mix row for this strength and an active assumptions row."
+        )
+
+    missing_bau_inputs: list[str] = []
+    if not bau["total_cementitious_row_found"]:
+        missing_bau_inputs.append("active Total cementitious content row")
+    elif bau["total_cementitious"] is None:
+        missing_bau_inputs.append(
+            f"Total cementitious content for {request.strength_mpa} MPa"
+        )
+    if not bau["assumptions_found"]:
+        missing_bau_inputs.append("active BAU concrete assumptions row")
+    if missing_bau_inputs:
+        raise ValueError(
+            f"The selected dataset revision {dataset_revision_id} is missing "
+            f"{'; '.join(missing_bau_inputs)} required for the "
+            f"{request.strength_mpa} MPa simplified concrete calculation."
         )
 
     total_cementitious: float = bau["total_cementitious"]   # BAU Assumptions!C128
@@ -1344,8 +1360,9 @@ async def _fetch_bau_grade_data(
                              use, or None (default) to fetch and use the platform
                              default (scope_type='DEFAULT').
 
-    Returns None if no rows are found (grade not in concrete_mix_designs, or the
-    requested revision does not exist / is not active).
+    Returns the available rows and explicit completeness flags. The view keeps
+    total rows visible when a strength cell or active assumptions row is missing
+    so callers can report the exact missing input.
 
     GPC / FA / GGBF quantities are NOT stored in the DB — they are always
     computed from total_cementitious + scm formulas in _calculate_simplified.
@@ -1372,21 +1389,23 @@ async def _fetch_bau_grade_data(
         {"rev_id": dataset_revision_id, "grade": strength_mpa},
     )
     rows = result.fetchall()
-    if not rows:
-        return None
 
     total_cementitious: Optional[float] = None
     bau_scm_frac: Optional[float] = None
+    total_cementitious_row_found = False
+    assumptions_found = False
     materials: list[tuple[str, float]] = []
     seen_labels: set[str] = set()
 
     for row in rows:
         m = row._mapping
         if m["is_total_cementitious"]:
+            total_cementitious_row_found = True
             tc_raw  = m["quantity_kg_m3"]
             scm_raw = m["default_max_fly_ash_pct"]
             total_cementitious = float(tc_raw)  if tc_raw  is not None else None
             bau_scm_frac       = float(scm_raw) if scm_raw is not None else None
+            assumptions_found = scm_raw is not None
             continue
 
         code  = str(m["component_code"] or "").strip().lower()
@@ -1405,12 +1424,11 @@ async def _fetch_bau_grade_data(
         qty_raw = m["quantity_kg_m3"]
         materials.append((label, float(qty_raw) if qty_raw is not None else 0.0))
 
-    if total_cementitious is None or bau_scm_frac is None:
-        return None
-
     return {
         "total_cementitious": total_cementitious,
         "bau_scm_frac":       bau_scm_frac,
+        "total_cementitious_row_found": total_cementitious_row_found,
+        "assumptions_found": assumptions_found,
         "materials":          materials,
     }
 

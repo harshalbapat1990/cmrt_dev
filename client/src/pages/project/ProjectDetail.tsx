@@ -305,6 +305,27 @@ export default function ProjectDetail() {
     };
   }, [projectId, clearProjectHeader, setProjectHeader]);
 
+  // Refresh published choices when returning to this page after publishing a
+  // revision in another tab. The selected project binding remains authoritative.
+  useEffect(() => {
+    if (!projectId) return;
+    let cancelled = false;
+    const refreshBindableRevisions = () => {
+      http.get<DatasetRevisionInfo[]>(`/api/project-dataset-revisions/bindable/${projectId}`)
+        .then(({ data }) => {
+          if (!cancelled) setBindableRevisions(data);
+        })
+        .catch(() => {
+          // Keep the last successfully loaded options if a background refresh fails.
+        });
+    };
+    window.addEventListener("focus", refreshBindableRevisions);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", refreshBindableRevisions);
+    };
+  }, [projectId]);
+
   if (loading) {
     return <div className="p-8 text-slate-400">Loading…</div>;
   }
@@ -555,6 +576,9 @@ export default function ProjectDetail() {
 
             <p className="text-xs text-gray-400 mb-4">
               All project calculations use the selected dataset revision. Existing entries are recalculated when you switch revisions.
+            </p>
+            <p className="text-xs text-gray-500 mb-4">
+              Only published global datasets, datasets owned by this project’s organisation, and this project’s own datasets can be assigned. Publish a draft first; return to this page and its choices will refresh.
             </p>
 
             {activeRevision ? (

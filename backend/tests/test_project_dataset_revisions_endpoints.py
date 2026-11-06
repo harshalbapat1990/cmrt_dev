@@ -58,6 +58,39 @@ async def test_user_without_dataset_manager_role_is_rejected(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_bindable_revisions_include_only_published_global_project_org_and_project_scopes(monkeypatch):
+    import routers.project_dataset_revisions as router
+
+    project_id = uuid4()
+    org_id = uuid4()
+    scope_calls = []
+
+    async def get_project(_db, requested_project_id):
+        assert requested_project_id == project_id
+        return SimpleNamespace(id=project_id, proponent_org_id=org_id)
+
+    async def list_revisions(_db, *, status, scope_type, scope_id=None, limit=100):
+        scope_calls.append((status, scope_type, scope_id, limit))
+        return [SimpleNamespace(id=f"{scope_type}-{scope_id}")]
+
+    monkeypatch.setattr(router, "get_project", get_project)
+    monkeypatch.setattr(router, "list_dataset_revisions", list_revisions)
+
+    result = await router.get_bindable_dataset_revisions(project_id, object())
+
+    assert scope_calls == [
+        ("published", "DEFAULT", None, 1000),
+        ("published", "ORG", org_id, 1000),
+        ("published", "PROJECT", project_id, 1000),
+    ]
+    assert [revision.id for revision in result] == [
+        "DEFAULT-None",
+        f"ORG-{org_id}",
+        f"PROJECT-{project_id}",
+    ]
+
+
+@pytest.mark.asyncio
 async def test_list_project_dataset_revisions_by_project_empty(client):
     resp = await client.get(f"/api/project-dataset-revisions/by-project/{_PROJECT_ID}")
     assert resp.status_code == 200
