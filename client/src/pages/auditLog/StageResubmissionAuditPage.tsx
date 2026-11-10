@@ -13,18 +13,9 @@ import {
   TableCell,
   type AuditMeta,
 } from './AuditLogPage';
+import { formatAuditTimestamp } from '@/utils/auditTimestamp';
 
-function _fmtDate(iso: string): string {
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return iso;
-  return d.toLocaleString('en-AU', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
+function _fmtDate(iso: string): string { return formatAuditTimestamp(iso); }
 
 const STAGE_LABELS: Record<string, string> = {
   BUSINESS_CASE: 'Business Case',
@@ -149,7 +140,7 @@ export default function StageResubmissionAuditPage() {
                       <tr key={r.id} className="even:bg-gray-50 hover:bg-blue-50 transition-colors">
                         <td className="px-3 py-2 text-gray-500">
                           {r.performed_at
-                            ? new Date(r.performed_at).toLocaleString('en-AU')
+                            ? formatAuditTimestamp(r.performed_at)
                             : '—'}
                         </td>
                         <td className="px-3 py-2 overflow-hidden">

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useToast } from "@/components/common/ToastProvider"
 import { type AutocompleteOption } from "./common/AutoComplete";
 import UsersService from "../services/Users.service";
+import ProjectAccessService from "@/services/ProjectAccess.service";
 import OrganizationService from "../services/organization.service";
 import useDebounce from "../customHooks/useDebounce";
 import FieldError from "./common/FieldError";
@@ -32,6 +33,7 @@ type ProjectAccessProps = {
   onAddAccessRows?: (rows: AccessTableRow[]) => void;
   onUpdateAccessRow?: (row: AccessTableRow) => void;
   selectedReportingStage?: "business" | "design" | "construction";
+  setupOrganisationId?: string | null;
 };
 
 const EMAIL_REGEX =
@@ -46,6 +48,7 @@ const ProjectAccess: React.FC<ProjectAccessProps> = ({
   onAddAccessRows,
   onUpdateAccessRow,
   selectedReportingStage,
+  setupOrganisationId,
 }) => {
   const [selectedUser, setSelectedUser] = useState<AutocompleteOption | null>(null);
 
@@ -61,6 +64,8 @@ const ProjectAccess: React.FC<ProjectAccessProps> = ({
 
   const [email, setEmail] = useState("");
   const debouncedEmail = useDebounce(email, 400);
+  const [userCandidates, setUserCandidates] = useState<Array<{ user_id: string; display_name: string; email: string }>>([]);
+  const [selectedCandidateId, setSelectedCandidateId] = useState("");
   const [isCheckingUser, setIsCheckingUser] = useState(false);
   const [isUserValid, setIsUserValid] = useState<boolean | null>(null);
   const [userLookupError, setUserLookupError] = useState<string | null>(null);
@@ -155,11 +160,13 @@ const enabledStages = useMemo(() => {
 
   useEffect(() => {
     if(isEditMode) return;
-    if (!debouncedEmail.trim() || !isEmailFormatValid) {
+    if (!debouncedEmail.trim() || (!setupOrganisationId && !isEmailFormatValid)) {
       setIsCheckingUser(false);
       setIsUserValid(null);
       setUserLookupError(null);
       setSelectedUser(null);
+      setUserCandidates([]);
+      setSelectedCandidateId("");
       return;
     }
     let cancelled = false;
@@ -167,6 +174,18 @@ const enabledStages = useMemo(() => {
       try {
         setIsCheckingUser(true);
         setUserLookupError(null);
+        if (setupOrganisationId) {
+          const candidates = await ProjectAccessService.searchProjectSetupUsers(
+            setupOrganisationId,
+            debouncedEmail.trim(),
+          );
+          if (cancelled) return;
+          setUserCandidates(candidates);
+          setSelectedCandidateId("");
+          setSelectedUser(null);
+          setIsUserValid(false);
+          return;
+        }
         const res = await checkEmailExists(debouncedEmail.trim());
         if (cancelled) return;
 
@@ -199,7 +218,7 @@ const enabledStages = useMemo(() => {
     return () => {
       cancelled = true;
     };
-  }, [debouncedEmail, isEmailFormatValid]);
+  }, [debouncedEmail, isEmailFormatValid, setupOrganisationId]);
 
 
   useEffect(() => {
@@ -266,6 +285,8 @@ const enabledStages = useMemo(() => {
     }
     onAddAccessRows?.(rows);
     setEmail("");
+    setUserCandidates([]);
+    setSelectedCandidateId("");
     setSelectedUser(null);
     setAccessByStage(stages.reduce((acc, s) => ({ ...acc, [s]: "" }), {} as AccessByStage));
     setAccessType("");
@@ -477,15 +498,20 @@ const enabledStages = useMemo(() => {
           </div>
           {!isEditMode && (
             <div className="mt-8 text-sm text-text-base">
-            <label htmlFor="user-email">Search by email</label>
+            <label htmlFor="user-email">{setupOrganisationId ? "Search registered users by name or email" : "Search by email"}</label>
             <div className="relative">
               <input
                 id="user-email"
-                type="email"
-                inputMode="email"
-                autoComplete="email"
+                type={setupOrganisationId ? "search" : "email"}
+                inputMode={setupOrganisationId ? "search" : "email"}
+                autoComplete={setupOrganisationId ? "off" : "email"}
                 value={email}
-                onChange={e => setEmail(e.target.value.trim())}
+                onChange={e => {
+                  setEmail(e.target.value);
+                  setSelectedCandidateId("");
+                  setSelectedUser(null);
+                  setIsUserValid(null);
+                }}
                 className="mt-1 h-10 block w-full p-2 rounded-[var(--radius-3)] border border-border-input focus:border-border-input focus:ring-border-input sm:text-sm text-text-table-cell"
               />
               {isUserValid && (
@@ -497,9 +523,37 @@ const enabledStages = useMemo(() => {
               )}
             </div>
             {submitted && !email.trim() && <FieldError message="User email is required" />}
-            {!!email && !isEmailFormatValid && <FieldError message="Enter a valid email address" />}
+            {!setupOrganisationId && !!email && !isEmailFormatValid && <FieldError message="Enter a valid email address" />}
             {isCheckingUser && <div className="text-xs text-text-faint mt-1">Checking user…</div>}
-            {userLookupError && isEmailFormatValid && <FieldError message={userLookupError} />}
+            {userLookupError && (setupOrganisationId || isEmailFormatValid) && <FieldError message={userLookupError} />}
+            {setupOrganisationId && userCandidates.length > 0 && (
+              <select
+                aria-label="Select registered user"
+                value={selectedCandidateId}
+                onChange={(event) => {
+                  const candidate = userCandidates.find((item) => item.user_id === event.target.value);
+                  setSelectedCandidateId(event.target.value);
+                  if (!candidate) {
+                    setSelectedUser(null);
+                    setIsUserValid(false);
+                    return;
+                  }
+                  setSelectedUser({ id: candidate.user_id, label: candidate.display_name, email: candidate.email });
+                  setIsUserValid(true);
+                }}
+                className="mt-2 h-10 block w-full rounded-[var(--radius-3)] border border-border-input bg-white px-2 text-sm"
+              >
+                <option value="">Select a registered user</option>
+                {userCandidates.map((candidate) => (
+                  <option key={candidate.user_id} value={candidate.user_id}>
+                    {candidate.display_name} — {candidate.email}
+                  </option>
+                ))}
+              </select>
+            )}
+            {setupOrganisationId && email.trim().length >= 2 && !isCheckingUser && userCandidates.length === 0 && (
+              <div className="mt-1 text-xs text-text-faint">No active registered user found. Ask them to register first; no invitation will be sent.</div>
+            )}
           </div>)}
           {canShowAccessControls && (showStages ? (
             <>

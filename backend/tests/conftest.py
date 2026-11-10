@@ -109,6 +109,10 @@ class FakeSession:
             return _FakeResult(items if isinstance(items, list) else [items])
         return _FakeResult([])
 
+    async def get(self, model, identity):
+        """Match AsyncSession.get; tests can override this for model fixtures."""
+        return None
+
     @asynccontextmanager
     async def begin_nested(self):
         yield

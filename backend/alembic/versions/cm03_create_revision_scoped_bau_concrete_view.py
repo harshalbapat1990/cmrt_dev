@@ -13,16 +13,17 @@ depends_on = None
 
 
 _CREATE_VIEW = """
-CREATE OR REPLACE VIEW v_bau_default_concrete_mix AS
+CREATE OR REPLACE VIEW public.v_bau_default_concrete_mix AS
 SELECT
     design.dataset_revision_id,
-    strength.strength_mpa,
     design.component_code,
     design.component_label,
+    design.display_order,
+    strength.strength_mpa,
     strength.quantity_kg_m3,
-    (design.component_code = 'total_cementitious_content') AS is_total_cementitious,
-    assumptions.default_max_fly_ash_pct,
-    design.display_order
+    (lower(trim(design.component_code)) = 'total_cementitious_content') AS is_total_cementitious,
+    assumptions.bau_scm_content_pct,
+    assumptions.default_max_fly_ash_pct
 FROM concrete_mix_designs AS design
 CROSS JOIN LATERAL (VALUES
     (20,  design.strength_20_kg_m3),
@@ -46,4 +47,4 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.execute("DROP VIEW IF EXISTS v_bau_default_concrete_mix")
+    op.execute("DROP VIEW IF EXISTS public.v_bau_default_concrete_mix")

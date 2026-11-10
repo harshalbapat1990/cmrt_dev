@@ -74,6 +74,7 @@ jobs:
           docker push ${ACR_SERVER}/cmrt_backend_app:${GITHUB_SHA}
           docker push ${AUSTROADS_ACR_SERVER}/cmrt_backend_app:${IMAGE_TAG}
           docker push ${AUSTROADS_ACR_SERVER}/cmrt_backend_app:${GITHUB_SHA}
+          echo "Backend immutable image: ${AUSTROADS_ACR_SERVER}/cmrt_backend_app:${GITHUB_SHA}" >> "$GITHUB_STEP_SUMMARY"
 
   frontend:
     name: Build & Push Frontend

@@ -6,7 +6,7 @@ describe('dataset filter option ordering', () => {
   it('shows named filter choices alphabetically while returning the original value', () => {
     const onChange = vi.fn();
     render(<MultiSelect label="Category" options={['Zinc', 'asphalt', 'Concrete']} selected={[]} onChange={onChange} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Category' }));
+    fireEvent.click(screen.getByRole('button', { name: /^Category/ }));
 
     const choices = screen.getAllByRole('checkbox').map((checkbox) =>
       checkbox.parentElement?.textContent?.trim(),

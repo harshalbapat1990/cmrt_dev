@@ -1,5 +1,6 @@
 import type { AuditLogRow } from '../types';
 import { TH, TD } from './TablePrimitives';
+import { formatAuditTimestamp } from '@/utils/auditTimestamp';
 
 export default function AuditTrailTable({ rows }: { rows: AuditLogRow[] }) {
   return (
@@ -18,7 +19,7 @@ export default function AuditTrailTable({ rows }: { rows: AuditLogRow[] }) {
       <tbody>
         {rows.map(r => (
           <tr key={r.id} className="even:bg-neutral-98 hover:bg-blue-50">
-            <TD>{r.performed_at ? new Date(r.performed_at).toLocaleString() : '—'}</TD>
+            <TD>{formatAuditTimestamp(r.performed_at)}</TD>
             <TD muted>{r.entity_name ?? r.entity_type}</TD>
             <TD>
               <span className="rounded bg-neutral-200 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide">

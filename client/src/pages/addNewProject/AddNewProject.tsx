@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from "react"
 import SteppedProgressBar from "../../components/common/SteppedProgressBar";
 import ProjectCategory, { type ProjectCategoryValue } from "../../components/ProjectCategory";
 import ReportingStage from "../../components/ReportingStage";
+import StageAccessManager from "@/components/StageAccessManager";
 import CostAndSchedule from "../../components/CostAndSchedule";
 import ProjectSummary, { type ProjectSummaryState } from "../../components/ProjectSummary";
 import ReportingFrequency from "../../components/ReportingFrequency";
@@ -152,6 +153,8 @@ export default function AddNewProject({ mode = "create" }: Props) {
   });
   const [frequency, setFrequency] = useState("");
   const [period, setPeriod] = useState<YearMonth | null>(null);
+  const [constructionEnabled, setConstructionEnabled] = useState(false);
+  const [constructionWasEnabled, setConstructionWasEnabled] = useState(false);
 
   const [projectSummary, setProjectSummary] = useState<ProjectSummaryState>({
     projectName: "",
@@ -323,6 +326,10 @@ export default function AddNewProject({ mode = "create" }: Props) {
         }
 
         if (project.stage_configs && project.stage_configs.length > 0) {
+          const constructionConfig = project.stage_configs.find((sc) => sc.stage === "CONSTRUCTION");
+          const hasConstruction = Boolean(constructionConfig?.enabled);
+          setConstructionEnabled(hasConstruction);
+          setConstructionWasEnabled(hasConstruction);
           const enabledStages = project.stage_configs
             .filter((sc) => sc.enabled)
             .map((sc) => sc.stage);
@@ -583,6 +590,8 @@ const nextErrors: Step3Errors = {
   );
 }, [
   projectSummary,
+  projectTypeId,
+  projectTypecastId,
   selectedCategory,
   boundaryRows,
   operationalLife,
@@ -687,7 +696,7 @@ const nextErrors: Step3Errors = {
             setFormErrors({ submissions: "You must define at least one submission for the Design stage" });
             return;
           }
-          if (!validateReportingFrequency()) return;
+          if (constructionEnabled && !validateReportingFrequency()) return;
         } else if (selectedStage === "business") {
           const bCount = Number(submissions.business ?? "");
           if (!Number.isFinite(bCount) || bCount < 1) {
@@ -699,7 +708,7 @@ const nextErrors: Step3Errors = {
             setFormErrors({ submissions: "You must define at least one submission for the Design stage" });
             return;
           }
-          if (!validateReportingFrequency()) return;
+          if (constructionEnabled && !validateReportingFrequency()) return;
         }
       }
     }
@@ -713,6 +722,7 @@ const nextErrors: Step3Errors = {
     isContractor,
     validateReportingFrequency,
     selectedStage,
+    constructionEnabled,
     submissions,
     validateStep3,
     frequency,
@@ -755,7 +765,7 @@ const nextErrors: Step3Errors = {
         const designNum = parseInt(submissions.design || "0", 10);
         stage_configs = [
           { stage: "DESIGN", enabled: true, num_reports_required: isNaN(designNum) ? 0 : designNum },
-          { stage: "CONSTRUCTION", enabled: true, frequency: freqEnum },
+          { stage: "CONSTRUCTION", enabled: constructionEnabled, frequency: constructionEnabled ? freqEnum : undefined },
         ];
       } else {
         const businessNum = parseInt(submissions.business || "0", 10);
@@ -763,7 +773,7 @@ const nextErrors: Step3Errors = {
         stage_configs = [
           { stage: "BUSINESS_CASE", enabled: true, num_reports_required: isNaN(businessNum) ? 0 : businessNum },
           { stage: "DESIGN", enabled: true, num_reports_required: isNaN(designNum) ? 0 : designNum },
-          { stage: "CONSTRUCTION", enabled: true, frequency: freqEnum },
+          { stage: "CONSTRUCTION", enabled: constructionEnabled, frequency: constructionEnabled ? freqEnum : undefined },
         ];
       }
     }
@@ -850,7 +860,10 @@ const nextErrors: Step3Errors = {
     try {
       if (isEdit && projectId) {
         // PATCH request for edit mode
-        await http.patch(`/api/projects/${projectId}`, payload);
+        const enablingConstruction = constructionEnabled && !constructionWasEnabled;
+        await http.patch(`/api/projects/${projectId}`, payload, enablingConstruction
+          ? { params: { auto_generate_submissions: true, periods: 1 } }
+          : undefined);
         closeCompleteConfirm();
         navigate?.(`/projects/${projectId}`);
       } else {
@@ -878,6 +891,7 @@ const nextErrors: Step3Errors = {
     selectedCategory,
     selectedStage,
     submissions,
+    constructionEnabled,
     frequency,
     period,
     projectSummary,
@@ -900,6 +914,9 @@ const nextErrors: Step3Errors = {
     navigate,
     boundaryRows,
     closeCompleteConfirm,
+    constructionWasEnabled,
+    projectTypeId,
+    projectTypecastId,
   ]);
 
   return (
@@ -1011,6 +1028,16 @@ const nextErrors: Step3Errors = {
                   ) : (
                     <ReportingStage
                       readOnly={isEdit}
+                      constructionEnabled={selectedStage === "construction" ? true : constructionEnabled}
+                      onConstructionEnabledChange={(enabled) => {
+                        setConstructionEnabled(enabled);
+                        if (!enabled) {
+                          setFrequency("");
+                          setPeriod(null);
+                          setFormErrors((prev) => ({ ...prev, frequency: null, period: null }));
+                        }
+                      }}
+                      constructionReadOnly={isEdit && constructionWasEnabled}
                       selectedStage={selectedStage}
                       stageError={formErrors.stage ?? null}
                       submissionsError={formErrors.submissions ?? null}
@@ -1020,6 +1047,7 @@ const nextErrors: Step3Errors = {
                           setSubmissions(prev => ({ ...prev, [selectedStage]: "" }));
                           if (formErrors.submissions) setFormErrors(e => ({ ...e, submissions: null }));
                         }
+                        if (val === "construction") setConstructionEnabled(true);
                         setSelectedStage(val);
                       }}
                       submissions={submissions}
@@ -1134,9 +1162,7 @@ const nextErrors: Step3Errors = {
                 <div>
                   <div className="mb-4 text-2xl text-text-base">{isEdit ? "Review project access" : `Grant access to ${projectSummary.projectName}`}</div>
                   {isEdit ? (
-                    <div className="p-6 bg-blue-50 border border-blue-200 rounded-[var(--radius-3)] text-sm text-blue-700">
-                      <strong>Note:</strong> Stage-level access is managed from Manage User Access. Project setup editing will not change existing stage assignments.
-                    </div>
+                    projectId ? <StageAccessManager projectId={projectId} /> : null
                   ) : (
                     <div className="p-6 bg-white rounded-[var(--radius-3)]">
                       <div className="mb-4 text-text-dark text-base">Search and add users</div>
@@ -1309,6 +1335,7 @@ const nextErrors: Step3Errors = {
                                           onAddAccessRows={addAccessRows}
                                           onUpdateAccessRow={updateAccessRow}
                                           selectedReportingStage={selectedStage || undefined}
+                                          setupOrganisationId={user?.organisation_id}
                                         />
                                       </Modal>
                     </>

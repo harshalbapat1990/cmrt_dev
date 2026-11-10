@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import ProjectsService from "@/services/Projects.service";
 import ProjectAccessService from "@/services/ProjectAccess.service";
-import orgAdminService from "@/services/orgAdmin.service";
 import type {
   ProjectAccess,
   ProjectAccessMember,
@@ -20,13 +19,6 @@ const STAGE_LABELS: Record<string, string> = {
 
 const ACCESS_OPTIONS: Array<"VIEW" | "EDIT"> = ["VIEW", "EDIT"];
 
-type OrgUser = {
-  id: string;
-  name: string;
-  email: string;
-  has_org_admin_role?: boolean;
-};
-
 type ProjectListItem = {
   id: string;
   project_name?: string;
@@ -37,6 +29,8 @@ type ProjectDetail = {
   project_class?: string;
   stage_configs?: Array<{ stage: string; enabled: boolean }>;
 };
+
+type AssignableUser = { user_id: string; display_name: string; email: string };
 
 function stageLabel(stage: StageAccess) {
   return stage.stage_label || STAGE_LABELS[stage.stage] || stage.stage;
@@ -61,6 +55,7 @@ function StageAccessEditModal({
   stages,
   onClose,
   onSave,
+  onRemove,
   saving,
   enabledStageIds,
 }: {
@@ -69,6 +64,7 @@ function StageAccessEditModal({
   stages: StageAccess[];
   onClose: () => void;
   onSave: (assignments: ProjectStageAssignment[]) => Promise<void>;
+  onRemove: () => Promise<void>;
   saving: boolean;
   enabledStageIds: Set<string>;
 }) {
@@ -161,6 +157,16 @@ function StageAccessEditModal({
         </div>
 
         <div className="flex justify-end gap-3 border-t px-6 py-4">
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm(`Remove all project access for ${member.display_name}?`)) void onRemove();
+            }}
+            disabled={saving}
+            className="mr-auto rounded border border-red-300 px-4 py-2 text-sm text-red-700 disabled:opacity-50"
+          >
+            Remove all access
+          </button>
           <button type="button" onClick={onClose} disabled={saving} className="rounded border border-slate-300 px-4 py-2 text-sm text-slate-700">
             Cancel
           </button>
@@ -173,11 +179,11 @@ function StageAccessEditModal({
   );
 }
 
-export default function StageAccessManager() {
+export default function StageAccessManager({ projectId }: { projectId?: string }) {
   const { success, error } = useToast();
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
-  const [users, setUsers] = useState<OrgUser[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [users, setUsers] = useState<AssignableUser[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState(projectId ?? "");
   const [selectedProjectAccess, setSelectedProjectAccess] = useState<ProjectAccess | null>(null);
   const [projectDetails, setProjectDetails] = useState<ProjectDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -186,16 +192,15 @@ export default function StageAccessManager() {
   const [editingMember, setEditingMember] = useState<ProjectAccessMember | null>(null);
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
+  const [userSearch, setUserSearch] = useState("");
+  const [userSearchLoading, setUserSearchLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        const [projectList, orgUsers] = await Promise.all([
-          ProjectsService.fetchAllProjects(),
-          orgAdminService.fetchOrgUsers(true),
-        ]);
+        const projectList = projectId ? [] : await ProjectsService.fetchAllProjects();
 
         if (cancelled) return;
 
@@ -205,16 +210,9 @@ export default function StageAccessManager() {
           projectName: item.projectName,
         }));
 
-        const normalizedUsers = (Array.isArray(orgUsers) ? orgUsers : []).map((item: any) => ({
-          id: String(item.id ?? item.user_id),
-          name: item.display_name || item.name || item.email || "Unknown",
-          email: item.email || "",
-          has_org_admin_role: Boolean(item.has_org_admin_role),
-        }));
-
         setProjects(normalizedProjects);
-        setUsers(normalizedUsers);
-        if (normalizedProjects[0]) setSelectedProjectId(normalizedProjects[0].id);
+        if (projectId) setSelectedProjectId(projectId);
+        else if (normalizedProjects[0]) setSelectedProjectId(normalizedProjects[0].id);
       } catch {
         if (!cancelled) error("Failed to load stage access administration data.");
       } finally {
@@ -225,7 +223,30 @@ export default function StageAccessManager() {
     return () => {
       cancelled = true;
     };
-  }, [error]);
+  }, [error, projectId]);
+
+  useEffect(() => {
+    const term = userSearch.trim();
+    if (!selectedProjectId || term.length < 2) {
+      setUsers([]);
+      setUserSearchLoading(false);
+      return;
+    }
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      setUserSearchLoading(true);
+      ProjectAccessService.searchAssignableUsers(selectedProjectId, term)
+        .then((results) => { if (!cancelled) setUsers(results); })
+        .catch((err: any) => {
+          if (!cancelled) {
+            setUsers([]);
+            error(err?.response?.data?.detail || "Failed to search registered users.");
+          }
+        })
+        .finally(() => { if (!cancelled) setUserSearchLoading(false); });
+    }, 250);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [selectedProjectId, userSearch, error]);
 
   useEffect(() => {
     if (!selectedProjectId) {
@@ -307,21 +328,19 @@ export default function StageAccessManager() {
   }, [selectedProjectAccess]);
 
   const selectableUsers = useMemo(
-    () =>
-      users.filter(
-        (user) =>
-          !user.has_org_admin_role &&
-          !projectAdminIds.has(user.id),
-      ),
+    () => users.filter((user) => !projectAdminIds.has(user.user_id)),
     [projectAdminIds, users],
   );
 
-  const selectedUser = selectableUsers.find((user) => user.id === selectedUserId);
+  const selectedUser = selectableUsers.find((user) => user.user_id === selectedUserId);
 
   const openNewMember = () => {
-    setEditingMember({
-      user_id: selectedUser?.id ?? selectedUserId,
-      display_name: selectedUser?.name ?? "",
+    const existingMember = selectedProjectAccess?.members.find(
+      (member) => member.user_id === selectedUser?.user_id,
+    );
+    setEditingMember(existingMember ?? {
+      user_id: selectedUser?.user_id ?? selectedUserId,
+      display_name: selectedUser?.display_name ?? "",
       email: selectedUser?.email ?? "",
       assignments: [],
     });
@@ -362,7 +381,7 @@ export default function StageAccessManager() {
         </p>
       </div>
 
-      <div className="rounded border border-slate-200 bg-white p-5">
+      {!projectId && <div className="rounded border border-slate-200 bg-white p-5">
         <label className="mb-2 block text-sm font-medium text-slate-700">Project</label>
         <select
           value={selectedProjectId}
@@ -382,7 +401,7 @@ export default function StageAccessManager() {
             </option>
           ))}
         </select>
-      </div>
+      </div>}
 
       {accessLoading ? (
         <div className="text-sm text-slate-500">Loading stage access…</div>
@@ -390,32 +409,39 @@ export default function StageAccessManager() {
         <>
           <div className="rounded border border-slate-200 bg-white">
             <div className="border-b border-slate-200 px-5 py-4">
-              <div className="text-base font-medium text-slate-900">{selectedProject?.project_name || selectedProject?.projectName}</div>
+              <div className="text-base font-medium text-slate-900">{selectedProject?.project_name || selectedProject?.projectName || selectedProjectAccess.project_name}</div>
               <div className="mt-1 text-sm text-slate-500">
                 {enabledStageIds.size} enabled stage{enabledStageIds.size === 1 ? "" : "s"}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 border-b bg-slate-50 p-4 md:grid-cols-[1fr_auto]">
+            <div className="grid grid-cols-1 gap-3 border-b bg-slate-50 p-4 md:grid-cols-2">
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search members…"
                 className="rounded border border-slate-300 bg-white px-3 py-2 text-sm"
               />
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                <input
+                  value={userSearch}
+                  onChange={(event) => { setUserSearch(event.target.value); setSelectedUserId(""); }}
+                  placeholder="Find registered user by name or email…"
+                  aria-label="Find registered user by name or email"
+                  className="min-w-60 flex-1 rounded border border-slate-300 bg-white px-3 py-2 text-sm"
+                />
                 <select
                   value={selectedUserId}
                   onChange={(event) => setSelectedUserId(event.target.value)}
                   className="rounded border border-slate-300 bg-white px-3 py-2 text-sm"
                 >
-                  <option value="">Select a user to add</option>
+                  <option value="">{userSearch.length < 2 ? "Search for a user" : "Select a user"}</option>
                   {[...selectableUsers].sort((a, b) => compareOptionLabels(
-                    `${a.name} — ${a.email}`,
-                    `${b.name} — ${b.email}`,
+                    `${a.display_name} — ${a.email}`,
+                    `${b.display_name} — ${b.email}`,
                   )).map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name} — {user.email}
+                    <option key={user.user_id} value={user.user_id}>
+                      {user.display_name} — {user.email}
                     </option>
                   ))}
                 </select>
@@ -428,6 +454,10 @@ export default function StageAccessManager() {
                   Add access
                 </button>
               </div>
+              {userSearchLoading && <div className="text-xs text-slate-500">Searching users…</div>}
+              {userSearch.trim().length >= 2 && !userSearchLoading && selectableUsers.length === 0 && (
+                <div className="text-xs text-slate-500">No active registered user found. Ask the person to register, then search again. No invitation will be sent.</div>
+              )}
             </div>
 
             <div className="overflow-x-auto">
@@ -503,6 +533,7 @@ export default function StageAccessManager() {
             stages={stages}
             onClose={() => setEditingMember(null)}
             onSave={saveMember}
+            onRemove={() => saveMember([])}
             saving={saving}
             enabledStageIds={enabledStageIds}
           />

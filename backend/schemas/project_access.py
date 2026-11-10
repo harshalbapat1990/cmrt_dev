@@ -45,6 +45,12 @@ class ProjectAccessOut(BaseModel):
     members: List[ProjectAccessMemberOut]
 
 
+class ProjectUserSearchResult(BaseModel):
+    user_id: UUID
+    display_name: str
+    email: str
+
+
 class StageAccessAssignmentIn(BaseModel):
     stage_instance_id: UUID
     access: StageAccess

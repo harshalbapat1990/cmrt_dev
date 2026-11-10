@@ -14,6 +14,7 @@ import { useProjectHeader } from '@/context/ProjectHeaderContext';
 import { extractApiError } from '@/utils/utils';
 import type { AuditLogRow } from '@/pages/datasets/types';
 import { compareOptionLabels } from '@/utils/sortOptions';
+import { formatAuditTimestamp, parseAuditTimestamp } from '@/utils/auditTimestamp';
 
 export const ACTION_BADGE: Record<string, string> = {
   CREATE: 'bg-green-100 text-green-700',
@@ -146,9 +147,7 @@ export function _fmt(value: unknown): string {
 }
 
 export function _fmtDate(iso: string): string {
-  const d = new Date(iso);
-  if (isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
+  return formatAuditTimestamp(iso);
 }
 
 export function Section({ title, rows }: { title: string; rows: Array<[string, string]> }) {
@@ -427,8 +426,8 @@ export default function AuditLogPage() {
     if (sortDir === 'asc') {
       out = [...out].sort(
         (a, b) =>
-          new Date(a.performed_at ?? 0).getTime() -
-          new Date(b.performed_at ?? 0).getTime(),
+          (parseAuditTimestamp(a.performed_at)?.getTime() ?? 0) -
+          (parseAuditTimestamp(b.performed_at)?.getTime() ?? 0),
       );
     }
     return out;
@@ -634,7 +633,7 @@ export default function AuditLogPage() {
                 return (
                   <tr key={r.id} className="even:bg-gray-50 hover:bg-blue-50 transition-colors">
                     <td className="px-3 py-2 text-gray-500">
-                      {r.performed_at ? new Date(r.performed_at).toLocaleString('en-AU') : '—'}
+                      {formatAuditTimestamp(r.performed_at)}
                     </td>
                     <td className="px-3 py-2 overflow-hidden">
                       <StageCell row={r} />

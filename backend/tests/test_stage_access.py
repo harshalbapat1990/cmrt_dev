@@ -33,7 +33,9 @@ from core.authorization_policy import (
     AccessLevel,
     ROLE_ALLOWED_SCOPES,
     STAGE_ACCESS_MANAGERS,
+    PROJECT_USER_ACCESS_MANAGERS,
     can_manage_stage_access,
+    can_manage_project_user_access,
     stage_access_for_role,
 )
 
@@ -127,6 +129,52 @@ def test_mixed_roles_with_org_admin_can_manage_stage_access():
             ORG_ADMIN,
         }
     ) is True
+
+
+def test_project_admin_can_manage_users_only_for_authorized_projects():
+    assert can_manage_project_user_access({PROJECT_ADMIN}) is True
+    assert can_manage_project_user_access({ORG_ADMIN}) is True
+    assert can_manage_project_user_access({SUPER_ADMIN}) is False
+
+
+@pytest.mark.asyncio
+async def test_org_admin_project_setup_search_returns_active_users_across_organisations(monkeypatch):
+    from types import SimpleNamespace
+    from conftest import FakeSession
+    from core.security import Principal
+    import routers.project_access as project_access_router
+
+    organisation_id = uuid4()
+    user_id = uuid4()
+    db = FakeSession(execute_returns=[SimpleNamespace(
+        id=user_id,
+        email="person@another-org.example",
+        first_name="Alex",
+        last_name="Taylor",
+    )])
+
+    async def _roles(_db, _user_id, _organisation_id):
+        return {ORG_ADMIN}
+
+    monkeypatch.setattr(project_access_router, "get_org_scoped_role_names", _roles)
+    principal = Principal(
+        user_id=uuid4(),
+        email="admin@example.com",
+        oidc_issuer="test",
+        oidc_sub="admin",
+        organization_id=organisation_id,
+    )
+
+    result = await project_access_router.search_project_setup_users(
+        organisation_id, "Alex", principal, db
+    )
+
+    assert len(result) == 1
+    assert result[0].user_id == user_id
+    assert result[0].email == "person@another-org.example"
+    assert result[0].display_name == "Alex Taylor"
+    assert PROJECT_ADMIN not in STAGE_ACCESS_MANAGERS
+    assert PROJECT_USER_ACCESS_MANAGERS == {ORG_ADMIN, PROJECT_ADMIN}
 
 
 # ============================================================================

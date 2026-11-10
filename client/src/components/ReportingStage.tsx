@@ -35,6 +35,9 @@ type ReportingStageProps = {
   rfFrequencyError?: string | null;
   rfPeriodError?: string | null;
   readOnly?: boolean;
+  constructionEnabled?: boolean;
+  onConstructionEnabledChange?: (enabled: boolean) => void;
+  constructionReadOnly?: boolean;
 };
 
 const submissionSetupTooltip = "This can't be edited later in the project once created.";
@@ -53,6 +56,9 @@ const ReportingStage: React.FC<ReportingStageProps> = ({
   rfFrequencyError,
   rfPeriodError,
   readOnly = false,
+  constructionEnabled = true,
+  onConstructionEnabledChange,
+  constructionReadOnly = false,
 }) => {
   const [expanded, setExpanded] = useState<{
     business: boolean;
@@ -68,8 +74,8 @@ const ReportingStage: React.FC<ReportingStageProps> = ({
   //Which submissions are editable based on the selected reporting stage
 const getVisibleStages = (): StageValue[] => {
   if (!selectedStage) return [];
-  if (selectedStage === "business") return ["business", "design", "construction"];
-  if (selectedStage === "design") return ["design", "construction"];
+  if (selectedStage === "business") return constructionEnabled ? ["business", "design", "construction"] : ["business", "design"];
+  if (selectedStage === "design") return constructionEnabled ? ["design", "construction"] : ["design"];
   if (selectedStage === "construction") return ["construction"];
   return [];
 };
@@ -314,7 +320,7 @@ const isVisible = (stage: StageValue) => visibleStages.includes(stage);
     <div className="w-full">
       {readOnly && (
         <div className="p-4 bg-blue-50 border border-blue-200 rounded-[var(--radius-3)] mb-4 text-sm text-blue-700">
-          <strong>Note:</strong> Project Stages and corresponding submissions cannot be changed. They are shown here for reference only.
+          <strong>Note:</strong> Existing project stages and submissions are shown for reference. Construction reporting can be configured below if it has not been enabled yet.
         </div>
       )}
 
@@ -381,6 +387,21 @@ const isVisible = (stage: StageValue) => visibleStages.includes(stage);
               : "Check applicable submissions and enter how many are expected at each stage."}
           </div>
           {submissionsError && <FieldError message={submissionsError} />}
+          {(selectedStage === "business" || selectedStage === "design") && onConstructionEnabledChange && (
+            <label className="mb-4 flex items-start gap-3 rounded border border-slate-200 bg-white p-4 text-sm">
+              <input
+                type="checkbox"
+                checked={constructionEnabled}
+                disabled={constructionReadOnly}
+                onChange={(event) => onConstructionEnabledChange(event.target.checked)}
+                className="mt-0.5"
+              />
+              <span>
+                <span className="block font-medium text-text-base">Set up Construction reporting now</span>
+                <span className="mt-1 block text-text-faint">Leave this unchecked if Construction is not yet funded or scheduled. An administrator can configure it later.</span>
+              </span>
+            </label>
+          )}
 
           <div className="flex flex-col gap-4">
             {/* BUSINESS */}
@@ -459,7 +480,7 @@ const isVisible = (stage: StageValue) => visibleStages.includes(stage);
                     setPeriod={(v) => onRfPeriodChange?.(v)}
                     frequencyError={rfFrequencyError}
                     periodError={rfPeriodError}
-                    disabled={readOnly}
+                    disabled={constructionReadOnly}
                   />
                 </div>
               </div>

@@ -44,6 +44,36 @@ def test_bau_view_migration_unpivots_50mpa_and_scopes_active_rows_and_assumption
     assert "WHERE design.is_active = TRUE" in source
     assert "assumptions.is_active = TRUE" in source
     assert "assumptions.dataset_revision_id IS NOT DISTINCT FROM design.dataset_revision_id" in source
+    assert "assumptions.bau_scm_content_pct" in source
+    # Preserve the pre-existing Azure view contract so CREATE OR REPLACE does
+    # not attempt to remove or reorder its columns.
+    projected_columns = source.split("SELECT", 2)[-1].split("FROM concrete_mix_designs", 1)[0]
+    expected_order = [
+        "design.dataset_revision_id",
+        "design.component_code",
+        "design.component_label",
+        "design.display_order",
+        "strength.strength_mpa",
+        "strength.quantity_kg_m3",
+        "is_total_cementitious",
+        "assumptions.bau_scm_content_pct",
+        "assumptions.default_max_fly_ash_pct",
+    ]
+    positions = [projected_columns.index(column) for column in expected_order]
+    assert positions == sorted(positions)
+
+
+def test_follow_up_migration_only_appends_missing_bau_scm_column():
+    migration = Path(__file__).parents[1] / "alembic" / "versions" / "cm04_append_bau_scm_view_column.py"
+    source = migration.read_text(encoding="utf-8")
+
+    assert "revision = \"cm04_append_bau_scm_view_column\"" in source
+    assert "down_revision = \"cm03_bau_concrete_view\"" in source
+    assert "NOT EXISTS" in source
+    assert "attname = 'bau_scm_content_pct'" in source
+    assert "CREATE OR REPLACE VIEW public.v_bau_default_concrete_mix" in source
+    assert "DROP VIEW" not in source
+    assert "CASCADE" not in source
 
 
 @pytest.mark.asyncio

@@ -103,6 +103,13 @@ STAGE_ACCESS_MANAGERS: Final[frozenset[str]] = frozenset(
     }
 )
 
+PROJECT_USER_ACCESS_MANAGERS: Final[frozenset[str]] = frozenset(
+    {
+        ORG_ADMIN,
+        PROJECT_ADMIN,
+    }
+)
+
 
 # ---------------------------------------------------------------------------
 # Which scopes are valid for each role?
@@ -143,3 +150,8 @@ def access_name(level: AccessLevel) -> str:
 def can_manage_stage_access(role_names: set[str]) -> bool:
     """Return whether any effective role can manage stage assignments."""
     return bool(role_names.intersection(STAGE_ACCESS_MANAGERS))
+
+
+def can_manage_project_user_access(role_names: set[str]) -> bool:
+    """Whether the caller may manage ordinary users for an authorized project."""
+    return bool(role_names.intersection(PROJECT_USER_ACCESS_MANAGERS))

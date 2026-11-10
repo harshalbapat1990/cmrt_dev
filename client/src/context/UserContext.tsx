@@ -4,6 +4,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
   type ReactNode,
 } from 'react';
 import http from '@/http';
@@ -43,8 +44,11 @@ const initialState: UserState = {
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<UserState>(initialState);
+  const refreshInFlight = useRef<Promise<void> | null>(null);
 
-  const refreshUser = useCallback(async () => {
+  const refreshUser = useCallback((): Promise<void> => {
+    if (refreshInFlight.current) return refreshInFlight.current;
+    const refresh = (async () => {
     let profile: MeProfile;
     try {
       const meRes = await http.get('/api/me');
@@ -81,10 +85,25 @@ export function UserProvider({ children }: { children: ReactNode }) {
       // into an apparent logged-out user.
       setState({ user: profile, roles: [], isLoaded: true, needsRegistration: false, pendingEmail: null });
     }
+    })();
+    refreshInFlight.current = refresh.finally(() => { refreshInFlight.current = null; });
+    return refreshInFlight.current;
   }, []);
 
   useEffect(() => {
     refreshUser();
+  }, [refreshUser]);
+
+  useEffect(() => {
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') void refreshUser();
+    };
+    window.addEventListener('focus', refreshWhenVisible);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => {
+      window.removeEventListener('focus', refreshWhenVisible);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    };
   }, [refreshUser]);
 
   const logout = useCallback(async () => {

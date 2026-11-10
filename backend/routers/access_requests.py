@@ -37,6 +37,9 @@ from models.roles import Role
 from models.project import Project as ProjectModel
 from models.user_roles import UserRole
 from models.access_requests import AccessRequest
+from models.project_stage_instances import ProjectStageInstance
+from models.project_stage_config import ProjectStageConfig
+from models.users import User
 from schemas.access_requests import AccessRequestCreate, AccessRequestDecision, AccessRequestOut, AccessRequestEnrichedOut
 
 router = APIRouter(prefix="/api/access-requests", tags=["access-requests"])
@@ -297,74 +300,118 @@ async def approve_request(
                 detail="Only PROJECT_ADMIN or ORG_ADMIN can approve project access requests",
             )
 
-    obj = await approve_access_request(
-        db, request_id, principal.user_id, body.decision_note
-    )
+    try:
+        role_result = await db.execute(
+            select(Role).where(Role.id == obj.requested_role_id)
+        ) if obj.requested_role_id else None
+        role = role_result.scalars().first() if role_result else None
 
-    if obj.requested_role_id and obj.target_user_id:
-        role_query = select(Role).where(
-            Role.name == SUPER_ADMIN if obj.request_type == SUPER_ADMIN else Role.id == obj.requested_role_id
-        )
-        role_res = await db.execute(role_query)
-        role = role_res.scalars().first()
-        if role:
-            await assert_can_grant_role(
-                db, principal, role.name, obj.scope_type, obj.scope_id
+        if obj.requested_role_id and role is None:
+            raise HTTPException(status_code=409, detail="The role requested is no longer configured. Contact an administrator.")
+
+        if obj.request_type in (PROJECT_EDITOR, PROJECT_VIEWER):
+            if role is None or obj.project_id is None or obj.target_user_id is None:
+                raise HTTPException(status_code=422, detail="The project access request is missing its requested role, target user, or project.")
+            if role.name != obj.request_type:
+                raise HTTPException(status_code=409, detail="The requested access role does not match the request type.")
+            target = await db.get(User, obj.target_user_id)
+            if target is None or not target.is_active:
+                raise HTTPException(status_code=404, detail="The requested user is no longer active.")
+            # These roles grant stage access only. The request is project-scoped
+            # for review, so materialize it on each currently enabled stage.
+            enabled_stages = await db.execute(
+                select(ProjectStageInstance.id)
+                .join(ProjectStageConfig,
+                      and_(ProjectStageConfig.project_id == ProjectStageInstance.project_id,
+                           ProjectStageConfig.stage == ProjectStageInstance.stage))
+                .where(ProjectStageInstance.project_id == obj.project_id,
+                       ProjectStageConfig.enabled.is_(True))
             )
-            existing_res = await db.execute(
-                select(UserRole).where(
-                    and_(
-                        UserRole.user_id == obj.target_user_id,
-                        UserRole.role_id == obj.requested_role_id,
-                        UserRole.scope_type == obj.scope_type,
-                        UserRole.scope_id == obj.scope_id,
-                    )
-                )
+            stage_ids = list(enabled_stages.scalars().all())
+            project = await db.get(ProjectModel, obj.project_id)
+            project_class = getattr(getattr(project, "project_class", None), "value", getattr(project, "project_class", None))
+            if project_class == "RECURRING":
+                recurring_stage = await db.execute(select(ProjectStageInstance.id).where(
+                    ProjectStageInstance.project_id == obj.project_id,
+                    ProjectStageInstance.stage == "RECURRING",
+                ))
+                stage_ids.extend(recurring_stage.scalars().all())
+            stage_ids = list(dict.fromkeys(stage_ids))
+            if not stage_ids:
+                raise HTTPException(status_code=409, detail="This project has no enabled stages to grant access to.")
+            for stage_id in stage_ids:
+                existing_result = await db.execute(select(UserRole).where(
+                    UserRole.user_id == obj.target_user_id,
+                    UserRole.role_id == role.id,
+                    UserRole.scope_type == "STAGE",
+                    UserRole.scope_id == stage_id,
+                ))
+                existing = existing_result.scalars().first()
+                if existing is not None:
+                    if not existing.is_active:
+                        existing.is_active = True
+                        await db.flush()
+                        grant = existing
+                        action = "REACTIVATE"
+                    else:
+                        continue
+                else:
+                    grant = await create_user_role(db, user_id=obj.target_user_id,
+                        role_id=role.id, scope_type="STAGE", scope_id=stage_id, is_active=True)
+                    action = "GRANT"
+                await write_audit_event(db, entity_type="user_role", entity_id=grant.id,
+                    action=action, performed_by=principal.user_id,
+                    performed_by_org=principal.organization_id,
+                    metadata={"target_user_id": str(obj.target_user_id), "role": role.name,
+                              "scope_type": "STAGE", "scope_id": str(stage_id),
+                              "access_request_id": str(obj.id)})
+        elif obj.request_type in (PROJECT_ADMIN, "ORG_ADMIN", SUPER_ADMIN) and not obj.requested_role_id:
+            raise HTTPException(status_code=422, detail="The request is missing its requested role.")
+        elif obj.requested_role_id and obj.target_user_id:
+            role_query = select(Role).where(
+                Role.name == SUPER_ADMIN if obj.request_type == SUPER_ADMIN else Role.id == obj.requested_role_id
             )
+            role_res = await db.execute(role_query)
+            role = role_res.scalars().first()
+            if role is None:
+                raise HTTPException(status_code=409, detail="The role requested is no longer configured. Contact an administrator.")
+            target = await db.get(User, obj.target_user_id)
+            if target is None or not target.is_active:
+                raise HTTPException(status_code=404, detail="The requested user is no longer active.")
+            await assert_can_grant_role(db, principal, role.name, obj.scope_type, obj.scope_id)
+            existing_res = await db.execute(select(UserRole).where(and_(
+                UserRole.user_id == obj.target_user_id, UserRole.role_id == role.id,
+                UserRole.scope_type == obj.scope_type, UserRole.scope_id == obj.scope_id)))
             existing_ur = existing_res.scalars().first()
             if existing_ur:
                 if not existing_ur.is_active:
                     existing_ur.is_active = True
-                    await db.flush()
-                    await write_audit_event(
-                        db, entity_type="user_role", entity_id=existing_ur.id,
-                        action="REACTIVATE_SUPER_ADMIN" if role.name == SUPER_ADMIN else "REACTIVATE",
-                        performed_by=principal.user_id,
-                        performed_by_org=principal.organization_id,
-                        metadata={"target_user_id": str(obj.target_user_id), "role": role.name, "scope_type": obj.scope_type},
-                    )
+                    grant = existing_ur
+                    action = "REACTIVATE_SUPER_ADMIN" if role.name == SUPER_ADMIN else "REACTIVATE"
+                else:
+                    grant = None
+                    action = ""
             else:
-                granted_role = await create_user_role(
-                    db,
-                    user_id=obj.target_user_id,
-                    role_id=role.id,
-                    scope_type=obj.scope_type,
-                    scope_id=obj.scope_id,
-                    is_active=True,
-                )
-                await write_audit_event(
-                    db, entity_type="user_role", entity_id=granted_role.id,
-                    action="GRANT_SUPER_ADMIN" if role.name == SUPER_ADMIN else "GRANT",
-                    performed_by=principal.user_id,
+                grant = await create_user_role(db, user_id=obj.target_user_id, role_id=role.id,
+                    scope_type=obj.scope_type, scope_id=obj.scope_id, is_active=True)
+                action = "GRANT_SUPER_ADMIN" if role.name == SUPER_ADMIN else "GRANT"
+            if grant:
+                await write_audit_event(db, entity_type="user_role", entity_id=grant.id,
+                    action=action, performed_by=principal.user_id,
                     performed_by_org=principal.organization_id,
-                    metadata={"target_user_id": str(obj.target_user_id), "role": role.name, "scope_type": obj.scope_type},
-                )
+                    metadata={"target_user_id": str(obj.target_user_id), "role": role.name,
+                              "scope_type": obj.scope_type, "scope_id": str(obj.scope_id) if obj.scope_id else None})
 
-    await write_audit_event(
-        db,
-        entity_type="access_request",
-        entity_id=obj.id,
-        action="APPROVE",
-        performed_by=principal.user_id,
-        performed_by_org=principal.organization_id,
-        metadata={
-            "decision_note": body.decision_note,
-            "target_user_id": str(obj.target_user_id),
-            "request_type": obj.request_type,
-        },
-    )
-    await db.commit()
-    return obj
+        obj = await approve_access_request(db, request_id, principal.user_id, body.decision_note)
+        await write_audit_event(db, entity_type="access_request", entity_id=obj.id, action="APPROVE",
+            performed_by=principal.user_id, performed_by_org=principal.organization_id,
+            metadata={"decision_note": body.decision_note, "target_user_id": str(obj.target_user_id),
+                      "request_type": obj.request_type})
+        await db.commit()
+        return obj
+    except Exception:
+        await db.rollback()
+        raise
 
 
 @router.post("/{request_id}/reject", response_model=AccessRequestOut)

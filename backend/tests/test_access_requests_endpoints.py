@@ -123,6 +123,40 @@ def patch_ar_crud(monkeypatch: pytest.MonkeyPatch):
 # Tests
 # ---------------------------------------------------------------------------
 
+def _install_role_backed_approval_session(app):
+    """Give approval endpoint tests the role and active user a real DB has."""
+    from types import SimpleNamespace
+    from core.session import get_session
+    from conftest import _FakeResult
+    import routers.access_requests as ar_router
+
+    role = SimpleNamespace(id=uuid4(), name="ORG_ADMIN")
+
+    class ApprovalSession:
+        async def execute(self, query):
+            if "from roles" in str(query).lower():
+                return _FakeResult([role])
+            return _FakeResult([])
+
+        async def get(self, model, identity):
+            if model is ar_router.User:
+                return SimpleNamespace(id=identity, is_active=True)
+            return None
+
+        async def flush(self):
+            return None
+
+        async def commit(self):
+            return None
+
+        async def rollback(self):
+            return None
+
+    async def override_session():
+        yield ApprovalSession()
+
+    app.dependency_overrides[get_session] = override_session
+
 @pytest.mark.asyncio
 async def test_create_access_request(client):
     """POST /api/access-requests → 201 with PENDING status."""
@@ -221,8 +255,9 @@ async def test_get_access_request_found(client):
 
 
 @pytest.mark.asyncio
-async def test_approve_access_request(client):
+async def test_approve_access_request(client, app):
     """POST /api/access-requests/{id}/approve → 200 APPROVED status."""
+    _install_role_backed_approval_session(app)
     org_id = str(uuid4())
     create_r = await client.post(
         "/api/access-requests",
@@ -424,9 +459,11 @@ async def test_project_admin_can_view_specific_request_for_their_project(client,
 
 
 @pytest.mark.asyncio
-async def test_first_approval_wins_second_returns_409(client, monkeypatch):
+async def test_first_approval_wins_second_returns_409(client, app, monkeypatch):
     """Once a request is approved, a second approve attempt returns 409."""
     import routers.access_requests as ar_router
+
+    _install_role_backed_approval_session(app)
 
     _store2: dict[UUID, DummyAR] = {}
 
@@ -481,3 +518,86 @@ async def test_first_approval_wins_second_returns_409(client, monkeypatch):
     # Second admin tries to approve → 409 (already closed)
     r = await client.post(f"/api/access-requests/{ar_id}/approve", json={})
     assert r.status_code == 409
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("approver_role", ["ORG_ADMIN", "PROJECT_ADMIN"])
+async def test_project_access_approval_creates_stage_scoped_role(approver_role, monkeypatch):
+    """Approving a project request must create a real stage role, not a project-scoped editor/viewer."""
+    from types import SimpleNamespace
+    from conftest import FakeSession
+    from core.security import Principal
+    from schemas.access_requests import AccessRequestDecision
+    import routers.access_requests as ar_router
+
+    project_id, org_id, request_id = uuid4(), uuid4(), uuid4()
+    target_user_id, requested_role_id, stage_id = uuid4(), uuid4(), uuid4()
+    request = DummyAR(
+        id=request_id,
+        request_type="PROJECT_EDITOR",
+        status="PENDING",
+        requester_user_id=target_user_id,
+        target_user_id=target_user_id,
+        requested_role_id=requested_role_id,
+        scope_type="PROJECT",
+        scope_id=project_id,
+        organisation_id=org_id,
+        project_id=project_id,
+    )
+    role = SimpleNamespace(id=requested_role_id, name="PROJECT_EDITOR")
+    db = FakeSession(execute_returns=[role, [stage_id], []])
+    assigned = []
+
+    async def _get_model(model, identifier):
+        if model is ar_router.User:
+            return SimpleNamespace(is_active=True)
+        if model is ar_router.ProjectModel:
+            return SimpleNamespace(project_class=SimpleNamespace(value="SMALL"))
+        return None
+
+    async def _roles(_db, _user_id, project_id=None):
+        return {approver_role}
+
+    async def _org_roles(_db, _user_id, _org_id):
+        return {"ORG_ADMIN"} if approver_role == "ORG_ADMIN" else set()
+
+    async def _create_role(_db, **kwargs):
+        assigned.append(kwargs)
+        return SimpleNamespace(id=uuid4())
+
+    async def _approve(_db, _request_id, reviewer_id, note):
+        request.status = "APPROVED"
+        request.reviewed_by_user_id = reviewer_id
+        request.decision_note = note
+        return request
+
+    async def _audit(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(ar_router, "get_access_request", lambda _db, _id: _get_request(request))
+    monkeypatch.setattr(ar_router, "get_effective_role_names", _roles)
+    monkeypatch.setattr(ar_router, "get_org_scoped_role_names", _org_roles)
+    monkeypatch.setattr(ar_router, "create_user_role", _create_role)
+    monkeypatch.setattr(ar_router, "approve_access_request", _approve)
+    monkeypatch.setattr(ar_router, "write_audit_event", _audit)
+    monkeypatch.setattr(db, "get", _get_model)
+
+    result = await ar_router.approve_request(
+        request_id,
+        AccessRequestDecision(),
+        Principal(user_id=uuid4(), email="admin@example.com", oidc_issuer="test", oidc_sub="admin", organization_id=org_id),
+        db,
+    )
+
+    assert result.status == "APPROVED"
+    assert assigned == [{
+        "user_id": target_user_id,
+        "role_id": requested_role_id,
+        "scope_type": "STAGE",
+        "scope_id": stage_id,
+        "is_active": True,
+    }]
+
+
+async def _get_request(request):
+    return request

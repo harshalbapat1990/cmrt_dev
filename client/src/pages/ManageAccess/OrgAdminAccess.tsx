@@ -184,7 +184,7 @@ const OrgAdminAccessPage: React.FC = () => {
         setOrgItems((prev) => prev.filter((x) => x.id !== r.id));
         error("This request was already reviewed by another admin.");
       } else {
-        error("Failed to approve. Please try again.");
+        error(e?.response?.data?.detail || "Failed to approve. Please try again.");
       }
     } finally {
       closeOrgModal();
@@ -370,7 +370,7 @@ const OrgAdminAccessPage: React.FC = () => {
         setProjItems((prev) => prev.filter((x) => x.id !== r.id));
         error("This request was already reviewed by another admin.");
       } else {
-        error("Failed to approve. Please try again.");
+        error(e?.response?.data?.detail || "Failed to approve. Please try again.");
       }
     } finally {
       closeProjModal();

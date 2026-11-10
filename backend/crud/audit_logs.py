@@ -7,7 +7,7 @@ Helpers for writing and querying audit log entries.
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -60,6 +60,9 @@ async def write_audit_event(
         old_value=old_value,
         new_value=new_value,
         event_metadata=metadata,
+        # The legacy column is TIMESTAMP WITHOUT TIME ZONE. Store UTC explicitly
+        # as a naive value so clients can format it in the user's chosen zone.
+        performed_at=datetime.now(timezone.utc).replace(tzinfo=None),
     )
     db.add(log)
     await db.flush()

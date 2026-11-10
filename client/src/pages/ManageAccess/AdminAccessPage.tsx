@@ -10,6 +10,7 @@ import SearchInput from "../../components/SearchInput";
 import accessRequestsService from "../../services/accessRequests.service";
 import userRolesService, { type UserRoleEnriched } from "../../services/userRoles.service";
 import http from "@/http";
+import StageAccessManager from "@/components/StageAccessManager";
 
 type SortDir = "asc" | "desc";
 type SortBy = "requester" | "projectName" | "dateRequested";
@@ -100,7 +101,7 @@ const AdminAccessPage: React.FC = () => {
         setItems((prev) => prev.filter((x) => x.id !== r.id));
         error('This request was already reviewed by another admin.');
       } else {
-        error('Failed to approve. Please try again.');
+        error(e?.response?.data?.detail || 'Failed to approve. Please try again.');
       }
     } finally {
       closeModal();
@@ -134,16 +135,19 @@ const AdminAccessPage: React.FC = () => {
             <TabButton active={tab === "review"} onClick={() => setTab("review")}>
               Review access requests
             </TabButton>
+            <TabButton active={tab === "projects"} onClick={() => setTab("projects")}>
+              Manage project users
+            </TabButton>
           </div>
         </div>
 
-        <AccessTable
-          items={sorted}
-          onOpen={openModal}
-          maxHeight={560}
-          sortByProp={sortBy === "dateRequested" ? sortBy : undefined}
-          sortDirProp={sortDir}
-        />
+        {tab === "review" ? <AccessTable
+            items={sorted}
+            onOpen={openModal}
+            maxHeight={560}
+            sortByProp={sortBy === "dateRequested" ? sortBy : undefined}
+            sortDirProp={sortDir}
+          /> : <StageAccessManager />}
       </div>
 
       <ReviewModal
