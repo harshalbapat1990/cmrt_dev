@@ -114,3 +114,65 @@ async def test_super_admin_pending_actions_include_period_identity_and_keep_opti
     assert results[1].approval_status == "awaiting_approval"
     assert "proponent_org_id" not in str(session.queries[0])
     assert "user_roles.scope_id" not in str(session.queries[0])
+
+
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("status", "stage"),
+    [("awaiting_approval", "CONSTRUCTION"), ("reopen_requested", "RECURRING")],
+)
+async def test_pending_period_statuses_are_returned_once_with_distinct_period_ids(
+    monkeypatch, status, stage
+):
+    import routers.me as me_router
+
+    async def effective_roles(_db, _user_id):
+        return {"SUPER_ADMIN"}
+
+    monkeypatch.setattr(me_router, "get_effective_role_names", effective_roles)
+    period_rows = [
+        {
+            "project_id": uuid4(),
+            "project_name": "Period project",
+            "stage_instance_id": uuid4(),
+            "stage": stage,
+            "num_reports_required": 1,
+            "approval_status": status,
+            "period_id": uuid4(),
+            "period_label": label,
+        }
+        for label in ("Mar 2027", "Apr 2027")
+    ]
+    session = _Session([[], period_rows])
+
+    actions = await me_router.get_pending_actions(
+        principal=SimpleNamespace(user_id=uuid4(), organization_id=None),
+        db=session,
+    )
+
+    assert [action.approval_status for action in actions] == [status, status]
+    assert [action.period_label for action in actions] == ["Mar 2027", "Apr 2027"]
+    assert len({action.period_id for action in actions}) == 2
+    assert all(action.workflow_source == "reporting_period" for action in actions)
+
+
+@pytest.mark.asyncio
+async def test_non_admin_pending_actions_are_limited_to_projects_with_admin_roles(monkeypatch):
+    import routers.me as me_router
+
+    async def effective_roles(_db, _user_id):
+        return {"PROJECT_VIEWER"}
+
+    monkeypatch.setattr(me_router, "get_effective_role_names", effective_roles)
+    session = _Session()
+
+    actions = await me_router.get_pending_actions(
+        principal=SimpleNamespace(user_id=uuid4(), organization_id=None),
+        db=session,
+    )
+
+    assert actions == []
+    assert len(session.queries) == 2
+    assert all("project_id IN (SELECT user_roles.scope_id" in str(query) for query in session.queries)

@@ -21,6 +21,7 @@ vi.mock("@/services/ConstructionPeriods.service", () => ({
 vi.mock("@/services/ProjectOptions.service", () => ({
     default: {
         ensureOptions: vi.fn().mockResolvedValue([]),
+        requestReopen: vi.fn().mockResolvedValue([]),
         approveReopen: vi.fn(),
         rejectReopen: vi.fn(),
     },
@@ -118,6 +119,39 @@ describe("useWorkflowActions period confirmations", () => {
         expect(ConstructionPeriodsService.listPeriods).toHaveBeenCalledWith("stage-1");
         expect(params.success).toHaveBeenCalledWith("Reopen request sent to admin");
         expect(result.current.periodWorkflowOpen).toBeNull();
+    });
+
+    it("keeps the Business Case and Design reopen flow on the project-option API", async () => {
+        const params = createParams();
+        params.activePeriod = null;
+        const { result } = renderHook(() => useWorkflowActions(params));
+        act(() => result.current.setReopenModalOpen(true));
+
+        await act(async () => result.current.submitReopenRequest());
+
+        expect(ProjectOptionsService.requestReopen).toHaveBeenCalledWith("option-1", "");
+        expect(ConstructionPeriodsService.requestReopen).not.toHaveBeenCalled();
+        expect(result.current.reopenModalOpen).toBe(false);
+        expect(params.success).toHaveBeenCalledWith("Reopen request sent to admin");
+    });
+
+    it("retains the legacy reopen modal and exposes an API failure for retry", async () => {
+        vi.mocked(ProjectOptionsService.requestReopen).mockRejectedValueOnce({
+            response: { data: { detail: "The report is no longer approved" } },
+        });
+        const params = createParams();
+        params.activePeriod = null;
+        const { result } = renderHook(() => useWorkflowActions(params));
+        act(() => {
+            result.current.setReopenJustification("Please correct the report");
+            result.current.setReopenModalOpen(true);
+        });
+
+        await act(async () => result.current.submitReopenRequest());
+
+        expect(result.current.reopenModalOpen).toBe(true);
+        expect(result.current.reopenJustification).toBe("Please correct the report");
+        expect(result.current.reopenRequestError).toBe("The report is no longer approved");
     });
 
     it("refreshes recurring period summaries together with project option totals", async () => {
