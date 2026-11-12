@@ -13,6 +13,22 @@ export const CALCULATED_CONCRETE_COMPONENT_CODES = [
 
 export type CalculatedConcreteComponentCode = typeof CALCULATED_CONCRETE_COMPONENT_CODES[number];
 
+/** Canonical component rows and order shared by the editor and its CSV export. */
+export const CONCRETE_MIX_COMPONENTS = [
+  { code: "total_cementitious_content", label: "Total cementitious content", kind: "input" },
+  { code: "general_purpose_cement", label: "General purpose cement", kind: "calc", calc: "general_purpose_cement" },
+  { code: "fly_ash", label: "Fly ash", kind: "calc", calc: "fly_ash" },
+  { code: "ggbf_slag", label: "GGBF slag", kind: "calc", calc: "ggbf_slag" },
+  { code: "silica_fume", label: "Silica Fume", kind: "input" },
+  { code: "fine_aggregates", label: "Fine Aggregates", kind: "input" },
+  { code: "coarse_aggregates", label: "Coarse Aggregates", kind: "input" },
+  { code: "recycled_aggregates", label: "Recycled Aggregates", kind: "input" },
+  { code: "manufactured_sand", label: "Manufactured sand", kind: "input" },
+  { code: "mains_water", label: "Mains Water", kind: "input" },
+  { code: "onsite_recycled_water", label: "Onsite Recycled / Captured Water", kind: "input" },
+  { code: "admixture", label: "Admixture", kind: "input" },
+] as const;
+
 export const normalizeConcreteMixComponentCode = (code: string): string => code.trim().toLowerCase();
 
 /** Select one stable row per logical component, preferring its canonical code. */
@@ -86,14 +102,27 @@ export function calculateConcreteMixComponents(
 export function prepareConcreteMixCsvRows(
   rows: ConcreteMixDesignRow[],
   assumptions: ConcreteMixAssumption | null,
-): ConcreteMixDesignRow[] {
+): Array<Pick<ConcreteMixDesignRow, "component_label" | ConcreteMixStrengthField>> {
   const uniqueRows = deduplicateConcreteMixRows(rows);
-  const totalRow = uniqueRows.find(row => normalizeConcreteMixComponentCode(row.component_code) === "total_cementitious_content");
+  const byCode = new Map(
+    uniqueRows.map(row => [normalizeConcreteMixComponentCode(row.component_code), row]),
+  );
+  const totalRow = byCode.get("total_cementitious_content");
   const calculated = calculateConcreteMixComponents(assumptions, totalRow);
-  return uniqueRows.map(row => {
-    const componentCode = normalizeConcreteMixComponentCode(row.component_code) as CalculatedConcreteComponentCode;
-    if (!CALCULATED_CONCRETE_COMPONENT_CODES.includes(componentCode)) return row;
-    return { ...row, ...calculated[componentCode] };
+
+  return CONCRETE_MIX_COMPONENTS.map(component => {
+    const row = byCode.get(component.code);
+    const strengths = Object.fromEntries(STRENGTH_FIELDS.map(({ field }) => {
+      if (component.kind === "calc" && component.calc) {
+        return [field, calculated[component.calc][field] ?? null];
+      }
+      return [field, row?.[field] ?? null];
+    })) as Record<ConcreteMixStrengthField, string | number | null>;
+
+    return {
+      component_label: component.label,
+      ...strengths,
+    };
   });
 }
 

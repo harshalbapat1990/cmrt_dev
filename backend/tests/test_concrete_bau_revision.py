@@ -120,8 +120,34 @@ async def test_simplified_calculation_reports_specific_missing_bau_input(
     request = service.ConcreteSimplifiedRegisterRequest(
         project_id=uuid4(), mix_type="Precast", strength_mpa=50, scm_pct=30, volume_m3=1
     )
-    with pytest.raises(ValueError, match=expected_missing):
+    with pytest.raises(ValueError, match=expected_missing) as exc_info:
         await service.calculator.calculate_simplified(
             _Session([row] if row else []), request
         )
+    message = str(exc_info.value)
+    assert str(revision_id) in message
+    assert "50 MPa" in message
+    assert "does not substitute another revision" in message
+
+
+def test_bau_materialization_migration_only_repairs_empty_revisions():
+    migration = (
+        Path(__file__).parents[1]
+        / "alembic"
+        / "versions"
+        / "cm05_materialize_bau_concrete_revisions.py"
+    )
+    source = migration.read_text(encoding="utf-8")
+
+    assert 'revision = "cm05_materialize_bau_concrete_revisions"' in source
+    assert 'down_revision = "cm04_append_bau_scm_view_column"' in source
+    assert "if _has_populated_mix(connection, target_id):" in source
+    assert "parent_revision_id" in source
+    assert "scope_type = 'DEFAULT' AND status = 'published'" in source
+    assert "IS NOT DISTINCT FROM :source_id" in source
+    assert "strength_50_kg_m3" in source
+    assert "target_has_assumptions" in source
+    assert "DROP TABLE" not in source
+    assert "DROP VIEW" not in source
+    assert "CASCADE" not in source
 

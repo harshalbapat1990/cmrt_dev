@@ -1178,8 +1178,10 @@ async def _calculate_simplified(
     if bau is None:
         raise ValueError(
             f"The selected dataset revision {dataset_revision_id} has no active BAU "
-            f"concrete mix data for strength_mpa={request.strength_mpa}. Add an active "
-            "BAU concrete mix row for this strength and an active assumptions row."
+            f"concrete mix rows for {request.strength_mpa} MPa. Check that the revision "
+            "contains an active Total cementitious content row with a value for this "
+            "strength and an active BAU concrete assumptions row. The calculation uses "
+            "the project's assigned revision and does not substitute another revision."
         )
 
     missing_bau_inputs: list[str] = []
@@ -1195,7 +1197,9 @@ async def _calculate_simplified(
         raise ValueError(
             f"The selected dataset revision {dataset_revision_id} is missing "
             f"{'; '.join(missing_bau_inputs)} required for the "
-            f"{request.strength_mpa} MPa simplified concrete calculation."
+            f"{request.strength_mpa} MPa simplified concrete calculation. "
+            "The calculation uses the project's assigned revision and does not "
+            "substitute another revision."
         )
 
     total_cementitious: float = bau["total_cementitious"]   # BAU Assumptions!C128

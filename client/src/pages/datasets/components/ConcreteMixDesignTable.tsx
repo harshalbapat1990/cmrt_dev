@@ -6,30 +6,10 @@ import {
   type ConcreteMixEditCtx,
   type ConcreteMixStrengthField,
 } from '../types';
-import { calculateConcreteMixComponents, deduplicateConcreteMixRows, normalizeConcreteMixComponentCode } from '../concreteMixCalculations';
+import { calculateConcreteMixComponents, CONCRETE_MIX_COMPONENTS, deduplicateConcreteMixRows, normalizeConcreteMixComponentCode } from '../concreteMixCalculations';
 import { TH, TD, InlineInput, SaveCancelButtons } from './TablePrimitives';
 
 type RowKind = 'input' | 'calc';
-const COMPONENT_ORDER: ReadonlyArray<{
-  code: string;
-  label: string;
-  kind: RowKind;
-
-  calc?: 'general_purpose_cement' | 'fly_ash' | 'ggbf_slag';
-}> = [
-  { code: 'total_cementitious_content', label: 'Total cementitious content', kind: 'input' },
-  { code: 'general_purpose_cement',     label: 'General purpose cement',     kind: 'calc', calc: 'general_purpose_cement' },
-  { code: 'fly_ash',                    label: 'Fly ash',                    kind: 'calc', calc: 'fly_ash' },
-  { code: 'ggbf_slag',                  label: 'GGBF slag',                  kind: 'calc', calc: 'ggbf_slag' },
-  { code: 'silica_fume',                label: 'Silica Fume',                kind: 'input' },
-  { code: 'fine_aggregates',            label: 'Fine Aggregates',            kind: 'input' },
-  { code: 'coarse_aggregates',          label: 'Coarse Aggregates',          kind: 'input' },
-  { code: 'recycled_aggregates',        label: 'Recycled Aggregates',        kind: 'input' },
-  { code: 'manufactured_sand',          label: 'Manufactured sand',          kind: 'input' },
-  { code: 'mains_water',                label: 'Mains Water',                kind: 'input' },
-  { code: 'onsite_recycled_water',      label: 'Onsite Recycled / Captured Water', kind: 'input' },
-  { code: 'admixture',                  label: 'Admixture',                  kind: 'input' },
-];
 
 const STRENGTH_FIELDS: ReadonlyArray<{ strength: typeof CONCRETE_MIX_STRENGTHS[number]; field: ConcreteMixStrengthField }> = [
   { strength: 20,  field: 'strength_20_kg_m3'  },
@@ -286,7 +266,7 @@ export default function ConcreteMixDesignTable({ assumptions, rows, editCtx }: P
           </tr>
         </thead>
         <tbody>
-          {COMPONENT_ORDER.map(comp => {
+          {CONCRETE_MIX_COMPONENTS.map(comp => {
             const row = byCode.get(comp.code);
             return (
               <tr
@@ -308,7 +288,7 @@ export default function ConcreteMixDesignTable({ assumptions, rows, editCtx }: P
                   </div>
                 </TD>
                 {STRENGTH_FIELDS.map(s =>
-                  renderCell(row, s.field, comp.kind, comp.calc, comp.code)
+                  renderCell(row, s.field, comp.kind, comp.kind === 'calc' ? comp.calc : undefined, comp.code)
                 )}
               </tr>
             );

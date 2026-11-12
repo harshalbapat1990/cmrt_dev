@@ -101,12 +101,24 @@ describe("concrete mix calculation and CSV preparation", () => {
 
     const exported = prepareConcreteMixCsvRows(rows, assumptions("0.30", "0.20"));
 
-    expect(exported.map(row => row.component_code)).toEqual(rows.map(row => row.component_code));
-    expect(exported[0]).toBe(total);
+    expect(exported.map(row => row.component_label)).toEqual([
+      "Total cementitious content",
+      "General purpose cement",
+      "Fly ash",
+      "GGBF slag",
+      "Silica Fume",
+      "Fine Aggregates",
+      "Coarse Aggregates",
+      "Recycled Aggregates",
+      "Manufactured sand",
+      "Mains Water",
+      "Onsite Recycled / Captured Water",
+      "Admixture",
+    ]);
     expect(exported[1].strength_20_kg_m3).toBeCloseTo(350);
     expect(exported[2].strength_20_kg_m3).toBeCloseTo(100);
     expect(exported[3].strength_20_kg_m3).toBeCloseTo(50);
-    expect(exported[4]).toBe(input);
+    expect(exported[5].strength_20_kg_m3).toBe(123);
   });
 
   it("exports one canonical row when active data contains case or whitespace variants", () => {
@@ -123,13 +135,37 @@ describe("concrete mix calculation and CSV preparation", () => {
 
     const exported = prepareConcreteMixCsvRows(variants, assumptions("0.30", "0.20"));
 
-    expect(exported.map(row => row.component_code)).toEqual([
-      "total_cementitious_content",
-      "fly_ash",
-      "fine_aggregates",
-    ]);
-    expect(exported[1].strength_20_kg_m3).toBeCloseTo(100);
+    expect(exported).toHaveLength(12);
+    expect(exported.filter(row => row.component_label === "Fly ash")).toHaveLength(1);
+    expect(exported.find(row => row.component_label === "Fly ash")?.strength_20_kg_m3).toBeCloseTo(100);
+    expect(exported.filter(row => row.component_label === "Fine Aggregates")).toHaveLength(1);
     expect(deduplicateConcreteMixRows(variants)).toHaveLength(3);
+  });
+
+  it("exports only canonical table rows and canonical labels when legacy aliases exist", () => {
+    const total = mixRow("total_cementitious_content", "Total cementitious content", {
+      strength_20_kg_m3: 280,
+    });
+    const onsite = mixRow("onsite_recycled_water", "Onsite   Recycled / Captured Water", {
+      strength_20_kg_m3: 0,
+    });
+    const exported = prepareConcreteMixCsvRows([
+      total,
+      mixRow("general_purpose_cement", "General purpose cement", { strength_20_kg_m3: 280 }),
+      mixRow("ggbf_slag", "GGBF slag", { strength_20_kg_m3: 0 }),
+      mixRow("legacy_general_purpose_cement", "General purpose cement", { strength_20_kg_m3: 280 }),
+      onsite,
+      mixRow("legacy_onsite_water", "Onsite Recycled / Captured Water", { strength_20_kg_m3: 0 }),
+    ], assumptions("0.40", "0.30"));
+
+    expect(exported).toHaveLength(12);
+    expect(exported[1]).toMatchObject({ component_label: "General purpose cement", strength_20_kg_m3: 168 });
+    expect(exported[3].component_label).toBe("GGBF slag");
+    expect(exported[3].strength_20_kg_m3).toBeCloseTo(28);
+    expect(exported.filter(row => row.component_label === "General purpose cement")).toHaveLength(1);
+    expect(exported.filter(row => row.component_label === "GGBF slag")).toHaveLength(1);
+    expect(exported.filter(row => row.component_label === "Onsite Recycled / Captured Water")).toHaveLength(1);
+    expect(exported[10].component_label).toBe("Onsite Recycled / Captured Water");
   });
 
   it("recalculates the next export when assumptions or total cementitious values change", () => {

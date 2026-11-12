@@ -127,10 +127,9 @@ function StageAccessEditModal({
                 <div key={stage.stage_instance_id} className="flex items-center justify-between rounded border border-slate-200 px-4 py-3">
                   <div>
                     <div className="text-sm font-medium text-slate-800">{stageLabel(stage)}</div>
-                    <div className="text-xs text-slate-400">
-                      Stage ID: {stage.stage_instance_id}
-                      {!enabledStageIds.has(stage.stage_instance_id) ? " · Disabled" : ""}
-                    </div>
+                    {!enabledStageIds.has(stage.stage_instance_id) && (
+                      <div className="text-xs text-slate-400">Disabled</div>
+                    )}
                   </div>
                   <select
                     value={form[stage.stage_instance_id] ?? ""}
