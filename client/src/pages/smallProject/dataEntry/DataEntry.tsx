@@ -159,7 +159,9 @@ const ConstructionStage = () => {
     const [concreteMixEditTarget, setConcreteMixEditTarget] = useState<DataEntryRow | null>(null);
 
     const [fugitiveList, setFugitiveList] = useState<FugitiveOption[]>([]);
-    const [selectedConstructionMonth, setSelectedConstructionMonth] = useState<string | null>(null);
+    const [selectedConstructionMonth, setSelectedConstructionMonth] = useState<string | null>(
+        () => searchParams.get("periodId"),
+    );
     const [constructionPeriods, setConstructionPeriods] = useState<ConstructionPeriod[]>([]);
     const {
         designReportNum,
@@ -279,8 +281,10 @@ const ConstructionStage = () => {
     const {
         adminDecisionOpen, setAdminDecisionOpen,
         decisionComments, setDecisionComments,
+        decisionError, setDecisionError,
         reopenModalOpen, setReopenModalOpen,
         reopenJustification, setReopenJustification,
+        reopenRequestError, setReopenRequestError,
         submitModalOpen, setSubmitModalOpen,
         periodWorkflowOpen, setPeriodWorkflowOpen,
         refreshOptionTotals,
@@ -636,6 +640,8 @@ const ConstructionStage = () => {
                 setAdminDecisionOpen={setAdminDecisionOpen}
                 decisionComments={decisionComments}
                 setDecisionComments={setDecisionComments}
+                decisionError={decisionError}
+                setDecisionError={setDecisionError}
                 triggerAdminDecision={triggerAdminDecision}
                 reopenModalOpen={reopenModalOpen}
                 setReopenModalOpen={setReopenModalOpen}
@@ -643,6 +649,8 @@ const ConstructionStage = () => {
                 _projectName={_projectName}
                 reopenJustification={reopenJustification}
                 setReopenJustification={setReopenJustification}
+                reopenRequestError={reopenRequestError}
+                setReopenRequestError={setReopenRequestError}
                 submitReopenRequest={submitReopenRequest}
                 submitModalOpen={submitModalOpen}
                 setSubmitModalOpen={setSubmitModalOpen}
@@ -1044,6 +1052,7 @@ const ConstructionStage = () => {
                                 onAdminDecision={(decision) => {
                                     setAdminDecisionOpen(decision);
                                     setDecisionComments("");
+                                    setDecisionError(null);
                                 }}
                                 onShowMitigations={() => {
                                     setShowMitigations(true);
@@ -1065,7 +1074,13 @@ const ConstructionStage = () => {
                         {!showMitigations && canRequestStageReopen(activeStageAccess, isProjAdmin, isApproved) && (
                             <div className="fixed bottom-6 left-6 z-30">
                                 <button
-                                    onClick={() => setReopenModalOpen(true)}
+                                    onClick={() => {
+                                        if (isConstructionStage || isRecurringStage) {
+                                            setPeriodWorkflowOpen("requestReopen");
+                                        } else {
+                                            setReopenModalOpen(true);
+                                        }
+                                    }}
                                     className="w-[250px] bg-white cursor-pointer text-text-table-cell border border-text-table-cell rounded-[var(--radius-3)] px-4 py-2 text-sm hover:bg-neutral-50"
                                 >
                                     Request to reopen

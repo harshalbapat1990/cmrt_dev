@@ -14,21 +14,26 @@ import { useUser } from "@/context/UserContext";
 import ProjectAccess from "../../../components/ProjectAccess";
 import { Modal } from "../../../components/common/Modal";
 import accessRequestsService, { type AccessRequestEnriched } from "@/services/accessRequests.service";
+import { pendingActionUrl } from "./pendingActionNavigation";
 
 interface PendingActionItem {
   project_id: string;
   project_name: string;
   stage_instance_id: string;
-  stage: "BUSINESS_CASE" | "DESIGN" | "CONSTRUCTION";
-  report_number: number;
+  stage: "BUSINESS_CASE" | "DESIGN" | "CONSTRUCTION" | "RECURRING";
+  report_number: number | null;
   num_reports_required: number;
-  approval_status: "submitted" | "pending_reopen";
+  approval_status: "submitted" | "pending_reopen" | "awaiting_approval" | "reopen_requested";
+  workflow_source: "project_option" | "reporting_period";
+  period_id: string | null;
+  period_label: string | null;
 }
 
 const STAGE_LABEL: Record<string, string> = {
   BUSINESS_CASE: "Business Case",
   DESIGN: "Design",
   CONSTRUCTION: "Construction",
+  RECURRING: "Recurring",
 };
 
 // Types
@@ -86,11 +91,11 @@ const ProjectsPage: React.FC<Props> = ({
   }, [role]);
 
   const pendingApprovals = useMemo(
-    () => pendingActions.filter((s) => s.approval_status === "submitted"),
+    () => pendingActions.filter((s) => s.approval_status === "submitted" || s.approval_status === "awaiting_approval"),
     [pendingActions]
   );
   const pendingReopens = useMemo(
-    () => pendingActions.filter((s) => s.approval_status === "pending_reopen"),
+    () => pendingActions.filter((s) => s.approval_status === "pending_reopen" || s.approval_status === "reopen_requested"),
     [pendingActions]
   );
 
@@ -322,12 +327,12 @@ const ProjectsPage: React.FC<Props> = ({
                   ) : (
                     pendingApprovals.map((item) => (
                       <button
-                        key={`${item.stage_instance_id}-${item.report_number}`}
+                        key={item.period_id ?? `${item.stage_instance_id}-${item.report_number}`}
                         type="button"
                         className="w-full text-left px-3 py-2 hover:bg-info-border/20 cursor-pointer border-b border-info-border/15 last:border-b-0"
                         onClick={() =>
                           navigate(
-                            `/dataEntry?projectId=${item.project_id}&stageInstanceId=${item.stage_instance_id}&reportNumber=${item.report_number}`
+                            pendingActionUrl(item)
                           )
                         }
                       >
@@ -336,7 +341,9 @@ const ProjectsPage: React.FC<Props> = ({
                         </div>
                         <div className="text-xs text-info-text/70 leading-4">
                           {STAGE_LABEL[item.stage] ?? item.stage}
-                          {item.num_reports_required > 1 && ` (${item.report_number} of ${item.num_reports_required})`}
+                          {item.workflow_source === "reporting_period"
+                            ? ` — ${item.period_label ?? "Reporting period"}`
+                            : item.num_reports_required > 1 && ` (${item.report_number} of ${item.num_reports_required})`}
                         </div>
                       </button>
                     ))
@@ -374,12 +381,12 @@ const ProjectsPage: React.FC<Props> = ({
                   ) : (
                     pendingReopens.map((item) => (
                       <button
-                        key={`${item.stage_instance_id}-${item.report_number}`}
+                        key={item.period_id ?? `${item.stage_instance_id}-${item.report_number}`}
                         type="button"
                         className="w-full text-left px-4 py-2.5 cursor-pointer hover:bg-neutral-50 cursor-pointer border-b border-color-border last:border-b-0"
                         onClick={() =>
                           navigate(
-                            `/dataEntry?projectId=${item.project_id}&stageInstanceId=${item.stage_instance_id}&reportNumber=${item.report_number}`
+                            pendingActionUrl(item)
                           )
                         }
                       >
@@ -388,7 +395,9 @@ const ProjectsPage: React.FC<Props> = ({
                         </div>
                         <div className="text-xs text-text-faint leading-4">
                           {STAGE_LABEL[item.stage] ?? item.stage}
-                          {item.num_reports_required > 1 && ` (${item.report_number} of ${item.num_reports_required})`}
+                          {item.workflow_source === "reporting_period"
+                            ? ` — ${item.period_label ?? "Reporting period"}`
+                            : item.num_reports_required > 1 && ` (${item.report_number} of ${item.num_reports_required})`}
                         </div>
                       </button>
                     ))

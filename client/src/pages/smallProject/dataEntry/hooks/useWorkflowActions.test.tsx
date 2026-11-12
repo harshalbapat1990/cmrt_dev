@@ -1,5 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Dispatch, SetStateAction } from "react";
 import type { ConstructionPeriod } from "@/services/ConstructionPeriods.service";
 import type { ProjectOption } from "@/services/ProjectOptions.service";
@@ -11,12 +11,19 @@ import { useWorkflowActions } from "./useWorkflowActions";
 vi.mock("@/services/ConstructionPeriods.service", () => ({
     ConstructionPeriodsService: {
         reject: vi.fn().mockResolvedValue({}),
+        requestReopen: vi.fn().mockResolvedValue({}),
+        approveReopen: vi.fn().mockResolvedValue({}),
+        rejectReopen: vi.fn().mockResolvedValue({}),
         listPeriods: vi.fn().mockResolvedValue([]),
     },
 }));
 
 vi.mock("@/services/ProjectOptions.service", () => ({
-    default: { ensureOptions: vi.fn().mockResolvedValue([]) },
+    default: {
+        ensureOptions: vi.fn().mockResolvedValue([]),
+        approveReopen: vi.fn(),
+        rejectReopen: vi.fn(),
+    },
 }));
 
 vi.mock("@/services/ActivityData.service", () => ({ default: { seedFromDesign: vi.fn() } }));
@@ -68,6 +75,51 @@ function createParams() {
 }
 
 describe("useWorkflowActions period confirmations", () => {
+    beforeEach(() => vi.clearAllMocks());
+
+    it("routes admin approval of a period reopen request through the period API", async () => {
+        const params = createParams();
+        params.activePeriod = { ...period, status: "reopen_requested" };
+        const { result } = renderHook(() => useWorkflowActions(params));
+        act(() => result.current.setAdminDecisionOpen("approveReopen"));
+
+        await act(async () => result.current.triggerAdminDecision());
+
+        expect(ConstructionPeriodsService.approveReopen).toHaveBeenCalledWith("period-1", undefined);
+        expect(ProjectOptionsService.approveReopen).not.toHaveBeenCalled();
+        expect(ConstructionPeriodsService.listPeriods).toHaveBeenCalledWith("stage-1");
+        expect(result.current.adminDecisionOpen).toBeNull();
+    });
+
+    it("routes admin rejection of a period reopen request through the period API", async () => {
+        const params = createParams();
+        params.activePeriod = { ...period, status: "reopen_requested" };
+        const { result } = renderHook(() => useWorkflowActions(params));
+        act(() => {
+            result.current.setDecisionComments("Not enough detail");
+            result.current.setAdminDecisionOpen("denyReopen");
+        });
+
+        await act(async () => result.current.triggerAdminDecision());
+
+        expect(ConstructionPeriodsService.rejectReopen).toHaveBeenCalledWith("period-1", "Not enough detail");
+        expect(ProjectOptionsService.rejectReopen).not.toHaveBeenCalled();
+        expect(ConstructionPeriodsService.listPeriods).toHaveBeenCalledWith("stage-1");
+    });
+
+    it("requests a period reopen and refreshes the period list on success", async () => {
+        const params = createParams();
+        const { result } = renderHook(() => useWorkflowActions(params));
+        act(() => result.current.setPeriodWorkflowOpen("requestReopen"));
+
+        await act(async () => result.current.handlePeriodWorkflowConfirm("  Needs correction  "));
+
+        expect(ConstructionPeriodsService.requestReopen).toHaveBeenCalledWith("period-1", "Needs correction");
+        expect(ConstructionPeriodsService.listPeriods).toHaveBeenCalledWith("stage-1");
+        expect(params.success).toHaveBeenCalledWith("Reopen request sent to admin");
+        expect(result.current.periodWorkflowOpen).toBeNull();
+    });
+
     it("refreshes recurring period summaries together with project option totals", async () => {
         const refreshedPeriod = { ...period, period_emissions_tco2e: 42, all_periods_emissions_tco2e: 84 };
         vi.mocked(ConstructionPeriodsService.listPeriods).mockResolvedValueOnce([refreshedPeriod]);

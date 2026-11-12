@@ -7,22 +7,29 @@ import pytest
 
 
 class _Mappings:
+    def __init__(self, rows=()):
+        self.rows = rows
+
     def all(self):
-        return []
+        return self.rows
 
 
 class _Result:
+    def __init__(self, rows=()):
+        self.rows = rows
+
     def mappings(self):
-        return _Mappings()
+        return _Mappings(self.rows)
 
 
 class _Session:
-    def __init__(self):
-        self.query = None
+    def __init__(self, results=()):
+        self.queries = []
+        self.results = list(results)
 
     async def execute(self, query):
-        self.query = query
-        return _Result()
+        self.queries.append(query)
+        return _Result(self.results.pop(0) if self.results else ())
 
 
 @pytest.mark.asyncio
@@ -33,12 +40,8 @@ class _Session:
         ({"ORG_ADMIN"}, uuid4(), "project.proponent_org_id =", "user_roles.scope_id"),
     ],
 )
-async def test_pending_actions_are_scoped_for_the_admin_roles(
-    monkeypatch,
-    roles,
-    organisation_id,
-    expected_fragment,
-    unexpected_fragment,
+async def test_pending_actions_scope_both_sources_for_admin_roles(
+    monkeypatch, roles, organisation_id, expected_fragment, unexpected_fragment
 ):
     import routers.me as me_router
 
@@ -51,33 +54,63 @@ async def test_pending_actions_are_scoped_for_the_admin_roles(
     monkeypatch.setattr(me_router, "get_effective_role_names", effective_roles)
     monkeypatch.setattr(me_router, "get_org_scoped_role_names", org_roles)
 
-    principal = SimpleNamespace(user_id=uuid4(), organization_id=organisation_id)
     session = _Session()
-    await me_router.get_pending_actions(principal=principal, db=session)
+    await me_router.get_pending_actions(
+        principal=SimpleNamespace(user_id=uuid4(), organization_id=organisation_id),
+        db=session,
+    )
 
-    sql = str(session.query)
-    assert expected_fragment in sql
-    assert unexpected_fragment not in sql
-    if "PROJECT_ADMIN" in roles:
-        assert "user_roles.is_active = true" in sql
+    assert len(session.queries) == 2
+    for query in session.queries:
+        sql = str(query)
+        assert expected_fragment in sql
+        assert unexpected_fragment not in sql
+    assert "user_roles.is_active = true" in str(session.queries[0]) if "PROJECT_ADMIN" in roles else True
+    assert "project_reporting_submission.status IN" in str(session.queries[1])
+    assert "project_stage_instances.stage IN" in str(session.queries[1])
 
 
 @pytest.mark.asyncio
-async def test_super_admin_pending_actions_are_platform_wide(monkeypatch):
+async def test_super_admin_pending_actions_include_period_identity_and_keep_option_actions(monkeypatch):
     import routers.me as me_router
 
     async def effective_roles(_db, _user_id):
         return {"SUPER_ADMIN"}
 
     monkeypatch.setattr(me_router, "get_effective_role_names", effective_roles)
+    project_id, stage_id, period_id = uuid4(), uuid4(), uuid4()
+    option_row = {
+        "project_id": project_id,
+        "project_name": "Project",
+        "stage_instance_id": stage_id,
+        "stage": "DESIGN",
+        "report_number": 2,
+        "num_reports_required": 2,
+        "approval_status": "submitted",
+    }
+    period_row = {
+        "project_id": project_id,
+        "project_name": "Project",
+        "stage_instance_id": stage_id,
+        "stage": "RECURRING",
+        "num_reports_required": 1,
+        "approval_status": "awaiting_approval",
+        "period_id": period_id,
+        "period_label": "Mar 2027",
+    }
+    session = _Session([[option_row], [period_row]])
 
-    session = _Session()
-    await me_router.get_pending_actions(
+    results = await me_router.get_pending_actions(
         principal=SimpleNamespace(user_id=uuid4(), organization_id=None),
         db=session,
     )
 
-    sql = str(session.query)
-    assert "project_options.approval_status IN" in sql
-    assert "proponent_org_id" not in sql
-    assert "user_roles.scope_id" not in sql
+    assert len(results) == 2
+    assert results[0].workflow_source == "project_option"
+    assert results[0].report_number == 2
+    assert results[1].workflow_source == "reporting_period"
+    assert results[1].period_id == period_id
+    assert results[1].period_label == "Mar 2027"
+    assert results[1].approval_status == "awaiting_approval"
+    assert "proponent_org_id" not in str(session.queries[0])
+    assert "user_roles.scope_id" not in str(session.queries[0])

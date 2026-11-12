@@ -80,6 +80,7 @@ const PeriodWorkflowModal: React.FC<PeriodWorkflowModalProps> = ({
     const [loading, setLoading] = useState(false);
     const backdropRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const config = action ? ACTION_CONFIG[action] : null;
 
     useEffect(() => {
         if (open) {
@@ -87,17 +88,15 @@ const PeriodWorkflowModal: React.FC<PeriodWorkflowModalProps> = ({
             setError("");
             setLoading(false);
         }
-    }, [open]);
+    }, [open, action]);
 
     useEffect(() => {
         if (open && config?.reasonRequired) {
             setTimeout(() => textareaRef.current?.focus(), 50);
         }
-    }, [open]);
+    }, [open, config?.reasonRequired]);
 
-    if (!open || !action || !period) return null;
-
-    const config = ACTION_CONFIG[action];
+    if (!open || !action || !period || !config) return null;
 
     const handleBackdrop = (e: React.MouseEvent) => {
         if (e.target === backdropRef.current) onCancel();
@@ -112,6 +111,9 @@ const PeriodWorkflowModal: React.FC<PeriodWorkflowModalProps> = ({
         setLoading(true);
         try {
             await onConfirm(reason.trim() || undefined);
+        } catch (cause) {
+            const detail = (cause as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+            setError(typeof detail === "string" ? detail : "The request could not be completed. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -153,7 +155,7 @@ const PeriodWorkflowModal: React.FC<PeriodWorkflowModalProps> = ({
                             placeholder={`Enter ${(config.reasonLabel ?? "reason").toLowerCase()}…`}
                         />
                         {error && (
-                            <p className="mt-1 text-xs text-red-600">{error}</p>
+                            <p role="alert" className="mt-1 text-xs text-red-600">{error}</p>
                         )}
                     </div>
                 )}

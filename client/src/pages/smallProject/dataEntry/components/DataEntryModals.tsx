@@ -58,6 +58,8 @@ interface DataEntryModalsProps {
     setAdminDecisionOpen: Dispatch<SetStateAction<AdminDecisionAction | null>>;
     decisionComments: string;
     setDecisionComments: (v: string) => void;
+    decisionError: string | null;
+    setDecisionError: (v: string | null) => void;
     triggerAdminDecision: () => void;
     reopenModalOpen: boolean;
     setReopenModalOpen: (v: boolean) => void;
@@ -65,6 +67,8 @@ interface DataEntryModalsProps {
     _projectName: string | null;
     reopenJustification: string;
     setReopenJustification: (v: string) => void;
+    reopenRequestError: string | null;
+    setReopenRequestError: (v: string | null) => void;
     submitReopenRequest: () => void;
     submitModalOpen: boolean;
     setSubmitModalOpen: (v: boolean) => void;
@@ -99,9 +103,9 @@ export function DataEntryModals({
     deleteLargeYearConfirmOpen, setDeleteLargeYearConfirmOpen, handleDeleteLargeYear,
     concreteMixModalType, setConcreteMixModalType, concreteMixEditTarget, setConcreteMixEditTarget,
     projectId, updateRows, computeEmissionsForRow,
-    adminDecisionOpen, setAdminDecisionOpen, decisionComments, setDecisionComments, triggerAdminDecision,
+    adminDecisionOpen, setAdminDecisionOpen, decisionComments, setDecisionComments, decisionError, setDecisionError, triggerAdminDecision,
     reopenModalOpen, setReopenModalOpen, activeStage, _projectName,
-    reopenJustification, setReopenJustification, submitReopenRequest,
+    reopenJustification, setReopenJustification, reopenRequestError, setReopenRequestError, submitReopenRequest,
     submitModalOpen, setSubmitModalOpen, handleReportSubmission,
     isBusinessCaseStage, activeStageInstance, manageOptionsOpen, setManageOptionsOpen,
     activeReportNumber, currentReportSubOptions, onOptionsChange,
@@ -264,7 +268,8 @@ export function DataEntryModals({
                 open={!!adminDecisionOpen}
                 adminDecisionOpen={adminDecisionOpen}
                 decisionComments={decisionComments}
-                onDecisionCommentsChange={setDecisionComments}
+                error={decisionError}
+                onDecisionCommentsChange={(value) => { setDecisionComments(value); setDecisionError(null); }}
                 onClose={() => setAdminDecisionOpen(null)}
                 onConfirm={triggerAdminDecision}
             />
@@ -277,8 +282,9 @@ export function DataEntryModals({
                     id="justification"
                     className="border border-border-input w-full rounded-[var(--radius-3)] h-28 p-3 mb-8"
                     value={reopenJustification}
-                    onChange={(e) => setReopenJustification(e.target.value)}
+                    onChange={(e) => { setReopenJustification(e.target.value); setReopenRequestError(null); }}
                 />
+                {reopenRequestError && <p role="alert" className="mb-4 text-sm text-red-700">{reopenRequestError}</p>}
                 <div className="text-right mt-4">
                     <button className="px-4 py-2 rounded mr-2" onClick={() => setReopenModalOpen(false)}>Cancel</button>
                     <button className="bg-primary text-white px-4 py-2 rounded cursor-pointer disabled:opacity-60"

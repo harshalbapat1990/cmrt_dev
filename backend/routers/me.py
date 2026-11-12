@@ -231,9 +231,12 @@ class PendingActionOut(BaseModel):
     project_name: str
     stage_instance_id: UUID
     stage: str
-    report_number: int
+    report_number: Optional[int] = None
     num_reports_required: int = 1
     approval_status: str
+    workflow_source: str = "project_option"
+    period_id: Optional[UUID] = None
+    period_label: Optional[str] = None
 
 
 @router.get("/pending-actions", response_model=List[PendingActionOut])
@@ -245,8 +248,9 @@ async def get_pending_actions(
     from models.roles import Role
     from models.project import Project
     from models.project_options import ProjectOption
+    from models.project_reporting_submission import ProjectReportingSubmission
     from models.project_stage_instances import ProjectStageInstance
-    from sqlalchemy import distinct, func as sqlfunc
+    from sqlalchemy import func as sqlfunc
 
     PENDING_STATUSES = ("submitted", "pending_reopen")
 
@@ -265,52 +269,8 @@ async def get_pending_actions(
     else:
         project_scope = "project_admin"
 
-    if project_scope is None:
-        q = (
-            select(
-                Project.id.label("project_id"),
-                Project.project_name.label("project_name"),
-                ProjectStageInstance.id.label("stage_instance_id"),
-                ProjectStageInstance.stage.label("stage"),
-                ProjectOption.report_number.label("report_number"),
-                sqlfunc.coalesce(ProjectStageInstance.num_reports_required, 1).label("num_reports_required"),
-                ProjectOption.approval_status.label("approval_status"),
-            )
-            .select_from(ProjectOption)
-            .join(ProjectStageInstance, ProjectStageInstance.id == ProjectOption.stage_instance_id)
-            .join(Project, Project.id == ProjectOption.project_id)
-            .where(ProjectOption.approval_status.in_(PENDING_STATUSES))
-            .distinct(ProjectOption.stage_instance_id, ProjectOption.report_number)
-            .order_by(ProjectOption.stage_instance_id, ProjectOption.report_number)
-        )
-    elif project_scope == "organisation":
-        q = (
-            select(
-                Project.id.label("project_id"),
-                Project.project_name.label("project_name"),
-                ProjectStageInstance.id.label("stage_instance_id"),
-                ProjectStageInstance.stage.label("stage"),
-                ProjectOption.report_number.label("report_number"),
-                sqlfunc.coalesce(ProjectStageInstance.num_reports_required, 1).label("num_reports_required"),
-                ProjectOption.approval_status.label("approval_status"),
-            )
-            .select_from(ProjectOption)
-            .join(ProjectStageInstance, ProjectStageInstance.id == ProjectOption.stage_instance_id)
-            .join(Project, Project.id == ProjectOption.project_id)
-            .where(
-                ProjectOption.approval_status.in_(PENDING_STATUSES),
-                Project.proponent_org_id == principal.organization_id,
-            )
-            .distinct(
-                ProjectOption.stage_instance_id,
-                ProjectOption.report_number,
-            )
-            .order_by(
-                ProjectOption.stage_instance_id,
-                ProjectOption.report_number,
-            )
-        )
-    else:
+    admin_project_ids_subq = None
+    if project_scope == "project_admin":
         admin_project_ids_subq = (
             select(UserRole.scope_id)
             .join(Role, Role.id == UserRole.role_id)
@@ -321,33 +281,65 @@ async def get_pending_actions(
                 Role.name == PROJECT_ADMIN,
             )
         )
-        q = (
-            select(
-                Project.id.label("project_id"),
-                Project.project_name.label("project_name"),
-                ProjectStageInstance.id.label("stage_instance_id"),
-                ProjectStageInstance.stage.label("stage"),
-                ProjectOption.report_number.label("report_number"),
-                sqlfunc.coalesce(ProjectStageInstance.num_reports_required, 1).label("num_reports_required"),
-                ProjectOption.approval_status.label("approval_status"),
-            )
-            .select_from(ProjectOption)
-            .join(ProjectStageInstance, ProjectStageInstance.id == ProjectOption.stage_instance_id)
-            .join(Project, Project.id == ProjectOption.project_id)
-            .where(
-                ProjectOption.approval_status.in_(PENDING_STATUSES),
-                ProjectOption.project_id.in_(admin_project_ids_subq),
-            )
-            .distinct(
-                ProjectOption.stage_instance_id,
-                ProjectOption.report_number,
-            )
-            .order_by(
-                ProjectOption.stage_instance_id,
-                ProjectOption.report_number,
-            )
-        )
 
-    result = await db.execute(q)
-    rows = result.mappings().all()
+    option_query = (
+        select(
+            Project.id.label("project_id"),
+            Project.project_name.label("project_name"),
+            ProjectStageInstance.id.label("stage_instance_id"),
+            ProjectStageInstance.stage.label("stage"),
+            ProjectOption.report_number.label("report_number"),
+            sqlfunc.coalesce(ProjectStageInstance.num_reports_required, 1).label("num_reports_required"),
+            ProjectOption.approval_status.label("approval_status"),
+        )
+        .select_from(ProjectOption)
+        .join(ProjectStageInstance, ProjectStageInstance.id == ProjectOption.stage_instance_id)
+        .join(Project, Project.id == ProjectOption.project_id)
+        .where(ProjectOption.approval_status.in_(PENDING_STATUSES))
+    )
+    if project_scope == "organisation":
+        option_query = option_query.where(Project.proponent_org_id == principal.organization_id)
+    elif project_scope == "project_admin":
+        option_query = option_query.where(ProjectOption.project_id.in_(admin_project_ids_subq))
+    option_query = (
+        option_query
+        .distinct(ProjectOption.stage_instance_id, ProjectOption.report_number)
+        .order_by(ProjectOption.stage_instance_id, ProjectOption.report_number)
+    )
+
+    period_query = (
+        select(
+            Project.id.label("project_id"),
+            Project.project_name.label("project_name"),
+            ProjectStageInstance.id.label("stage_instance_id"),
+            ProjectStageInstance.stage.label("stage"),
+            sqlfunc.coalesce(ProjectStageInstance.num_reports_required, 1).label("num_reports_required"),
+            ProjectReportingSubmission.status.label("approval_status"),
+            ProjectReportingSubmission.id.label("period_id"),
+            ProjectReportingSubmission.period_label.label("period_label"),
+        )
+        .select_from(ProjectReportingSubmission)
+        .join(ProjectStageInstance, ProjectStageInstance.id == ProjectReportingSubmission.stage_instance_id)
+        .join(Project, Project.id == ProjectReportingSubmission.project_id)
+        .where(
+            ProjectReportingSubmission.status.in_(("awaiting_approval", "reopen_requested")),
+            ProjectStageInstance.stage.in_(("CONSTRUCTION", "RECURRING")),
+            ProjectStageInstance.project_id == ProjectReportingSubmission.project_id,
+        )
+    )
+    if project_scope == "organisation":
+        period_query = period_query.where(Project.proponent_org_id == principal.organization_id)
+    elif project_scope == "project_admin":
+        period_query = period_query.where(ProjectReportingSubmission.project_id.in_(admin_project_ids_subq))
+    period_query = period_query.order_by(ProjectReportingSubmission.period_start_date)
+
+    option_rows = (await db.execute(option_query)).mappings().all()
+    period_rows = (await db.execute(period_query)).mappings().all()
+    rows = [
+        {**dict(row), "workflow_source": "project_option"}
+        for row in option_rows
+    ] + [
+        {**dict(row), "report_number": None, "workflow_source": "reporting_period"}
+        for row in period_rows
+    ]
     return [PendingActionOut(**dict(r)) for r in rows]

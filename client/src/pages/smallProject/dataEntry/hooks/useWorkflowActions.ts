@@ -36,8 +36,10 @@ export function useWorkflowActions({
 }: UseWorkflowActionsParams) {
     const [adminDecisionOpen, setAdminDecisionOpen] = useState<AdminDecisionAction | null>(null);
     const [decisionComments, setDecisionComments] = useState("");
+    const [decisionError, setDecisionError] = useState<string | null>(null);
     const [reopenModalOpen, setReopenModalOpen] = useState(false);
     const [reopenJustification, setReopenJustification] = useState("");
+    const [reopenRequestError, setReopenRequestError] = useState<string | null>(null);
     const [submitModalOpen, setSubmitModalOpen] = useState(false);
     const [periodWorkflowOpen, setPeriodWorkflowOpen] = useState<PeriodWorkflowAction | null>(null);
 
@@ -89,13 +91,31 @@ export function useWorkflowActions({
     };
 
     const triggerAdminDecision = async () => {
-        if (!activeOptionId) return;
+        if (!activeOptionId && activePeriod?.status !== "reopen_requested") return;
+        setDecisionError(null);
         const status = activeOption?.approval_status ?? "draft";
         const isReopenRequested =
             activePeriod?.status === "reopen_requested" || status === "pending_reopen";
 
         let updatedOpts: ProjectOption[] = [];
         try {
+            if (activePeriod?.status === "reopen_requested" && adminDecisionOpen === "approveReopen") {
+                await ConstructionPeriodsService.approveReopen(activePeriod.id, decisionComments || undefined);
+                success(`${activeStage} period reopen request approved`);
+                setAdminDecisionOpen(null);
+                setDecisionComments("");
+                await refreshConstructionPeriods();
+                return;
+            }
+            if (activePeriod?.status === "reopen_requested" && adminDecisionOpen === "denyReopen") {
+                await ConstructionPeriodsService.rejectReopen(activePeriod.id, decisionComments.trim());
+                success(`${activeStage} period reopen request rejected`);
+                setAdminDecisionOpen(null);
+                setDecisionComments("");
+                await refreshConstructionPeriods();
+                return;
+            }
+            if (!activeOptionId) return;
             if (adminDecisionOpen === "approve" && status === "submitted") {
                 updatedOpts = await ProjectOptionsService.approveReport(activeOptionId, decisionComments);
                 success(`${activeStage} stage is approved by the administrator`);
@@ -117,12 +137,14 @@ export function useWorkflowActions({
                 return prev.map((o) => map.get(o.id) ?? o);
             });
         } catch (e) {
-            console.error("Admin decision failed", e);
+            const detail = (e as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+            setDecisionError(typeof detail === "string" ? detail : "The decision could not be saved. Please try again.");
         }
     };
 
     const submitReopenRequest = async () => {
         if (!activeOptionId) return;
+        setReopenRequestError(null);
         try {
             const updatedOpts = await ProjectOptionsService.requestReopen(
                 activeOptionId,
@@ -136,7 +158,8 @@ export function useWorkflowActions({
             setReopenModalOpen(false);
             setReopenJustification("");
         } catch (e) {
-            console.error("Reopen request failed", e);
+            const detail = (e as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail;
+            setReopenRequestError(typeof detail === "string" ? detail : "Could not submit the reopen request. Please try again.");
         }
     };
 
@@ -207,10 +230,14 @@ export function useWorkflowActions({
         setAdminDecisionOpen,
         decisionComments,
         setDecisionComments,
+        decisionError,
+        setDecisionError,
         reopenModalOpen,
         setReopenModalOpen,
         reopenJustification,
         setReopenJustification,
+        reopenRequestError,
+        setReopenRequestError,
         submitModalOpen,
         setSubmitModalOpen,
         periodWorkflowOpen,

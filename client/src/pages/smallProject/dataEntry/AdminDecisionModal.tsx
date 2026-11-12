@@ -4,6 +4,7 @@ interface AdminDecisionModalProps {
     open: boolean;
     adminDecisionOpen: AdminDecisionType | null;
     decisionComments: string;
+    error?: string | null;
     onDecisionCommentsChange: (value: string) => void;
     onClose: () => void;
     onConfirm: () => void;
@@ -13,6 +14,7 @@ export function AdminDecisionModal({
     open,
     adminDecisionOpen,
     decisionComments,
+    error,
     onDecisionCommentsChange,
     onClose,
     onConfirm,
@@ -41,6 +43,7 @@ export function AdminDecisionModal({
                         value={decisionComments}
                         onChange={(e) => onDecisionCommentsChange(e.target.value)}
                     />
+                    {error && <p role="alert" className="mt-2 text-sm text-red-700">{error}</p>}
                     <div className="text-right mt-4">
                         <button
                             className="border border-neutral-300 px-4 py-2 cursor-pointer rounded mr-2"
