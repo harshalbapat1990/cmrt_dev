@@ -49,7 +49,7 @@ const ACTION_CONFIG: Record<
         confirmLabel: "Send Request",
         reasonLabel: "Reason for reopening",
         reasonRequired: true,
-        confirmClass: "bg-primary-600 hover:bg-primary-700 text-white",
+        confirmClass: "bg-primary text-white hover:brightness-95",
     },
     approveReopen: {
         title: "Approve Reopen Request",

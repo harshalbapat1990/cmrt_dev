@@ -29,6 +29,22 @@ const period: ConstructionPeriod = {
 };
 
 describe("PeriodWorkflowModal reopen failures", () => {
+  it("renders the reopen request action with the visible brand button style", () => {
+    render(
+      <PeriodWorkflowModal
+        open
+        action="requestReopen"
+        period={period}
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
+    );
+
+    const button = screen.getByRole("button", { name: "Send Request" });
+    expect(button.className).toContain("bg-primary");
+    expect(button.className).not.toContain("bg-primary-600");
+  });
+
   it("shows the API error and retains the reason so the user can retry", async () => {
     const onConfirm = vi.fn().mockRejectedValue({ response: { data: { detail: "Period is no longer approved" } } });
     render(
