@@ -1,7 +1,7 @@
 """Materialize populated BAU mix data in empty dataset-revision scaffolds.
 
 Revision ID: cm05_materialize_bau_concrete_revisions
-Revises: cm04_append_bau_scm_view_column
+Revises: cm04_expand_alembic_version_num
 
 Some older revisions contain only empty concrete mix rows created by opening
 the editor. The simplified register intentionally reads only the assigned
@@ -19,7 +19,7 @@ from alembic import op
 
 
 revision = "cm05_materialize_bau_concrete_revisions"
-down_revision = "cm04_append_bau_scm_view_column"
+down_revision = "cm04_expand_alembic_version_num"
 branch_labels = None
 depends_on = None
 

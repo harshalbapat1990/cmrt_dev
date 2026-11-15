@@ -140,7 +140,7 @@ def test_bau_materialization_migration_only_repairs_empty_revisions():
     source = migration.read_text(encoding="utf-8")
 
     assert 'revision = "cm05_materialize_bau_concrete_revisions"' in source
-    assert 'down_revision = "cm04_append_bau_scm_view_column"' in source
+    assert 'down_revision = "cm04_expand_alembic_version_num"' in source
     assert "if _has_populated_mix(connection, target_id):" in source
     assert "parent_revision_id" in source
     assert "scope_type = 'DEFAULT' AND status = 'published'" in source
@@ -150,4 +150,18 @@ def test_bau_materialization_migration_only_repairs_empty_revisions():
     assert "DROP TABLE" not in source
     assert "DROP VIEW" not in source
     assert "CASCADE" not in source
+
+
+def test_alembic_version_column_is_expanded_before_long_revision_is_stamped():
+    versions = Path(__file__).parents[1] / "alembic" / "versions"
+    widening = (versions / "cm04_expand_alembic_version_num.py").read_text(encoding="utf-8")
+    materialization = (versions / "cm05_materialize_bau_concrete_revisions.py").read_text(encoding="utf-8")
+
+    assert 'revision = "cm04_expand_alembic_version_num"' in widening
+    assert 'down_revision = "cm04_append_bau_scm_view_column"' in widening
+    assert '"version_num"' in widening
+    assert "length=255" in widening
+    assert "op.alter_column" in widening
+    assert 'down_revision = "cm04_expand_alembic_version_num"' in materialization
+    assert len("cm05_materialize_bau_concrete_revisions") > 32
 
