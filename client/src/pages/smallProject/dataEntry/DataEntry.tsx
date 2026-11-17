@@ -40,6 +40,7 @@ import { usePrimaryStageRows } from "./hooks/usePrimaryStageRows";
 import { useCopyDataLoader } from "./hooks/useCopyDataLoader";
 import { useConstructionPeriodRows } from "./hooks/useConstructionPeriodRows";
 import { resolveRecurringActivityForRow } from "./recurringSelectors";
+import { groupRecurringRowsByActivity } from "./recurringSelectors";
 import { useDataEntryStageContext } from "./hooks/useDataEntryStageContext";
 import { useDataEntryOptionLoading } from "./hooks/useDataEntryOptionLoading";
 import { useDataEntryWorkflowViewState } from "./hooks/useDataEntryWorkflowViewState";
@@ -88,6 +89,7 @@ const ConstructionStage = () => {
     const { setProjectHeader, clearProjectHeader } = useProjectHeader();
     const [activeStage, setActiveStage] = useState<StageLabel>("Business case");
     const [activeSubStage, setActiveSubStage] = useState("Construction");
+    const [uploadActivity, setUploadActivity] = useState<string | null>(null);
     const [showMitigations, setShowMitigations] = useState(false);
     const [showCompleteness, setShowCompleteness] = useState(false);
     const [activeReportNumber, setActiveReportNumber] = useState(1);
@@ -203,6 +205,7 @@ const ConstructionStage = () => {
         constructionG3Columns,
         bcDetailedColumns,
         electricityColumns,
+        recurringElectricityColumns,
         useB1G2Columns,
         useB1G3Columns,
         concreteRegSimplifiedColumns,
@@ -318,6 +321,8 @@ const ConstructionStage = () => {
             refreshOptionTotals,
             projectOptionId: activeOptionId,
             projectStageInstanceId: activeStageInstance?.id ?? null,
+            activeStage,
+            activePeriod,
         });
 
     usePrimaryStageRows({
@@ -412,6 +417,7 @@ const ConstructionStage = () => {
         projectId,
         activeOptionId,
         activePeriod,
+        reportingBoundaries,
         constructionStartDate,
         constructionEndDate,
         opsStartYear,
@@ -443,6 +449,7 @@ const ConstructionStage = () => {
         reportingBoundaries,
         apiRowToUiRow,
         updateRows,
+        updateElectricityRows: (rows) => updateRows("electricity", rows),
     });
 
 
@@ -598,10 +605,11 @@ const ConstructionStage = () => {
         <>
             <DataEntryModals
                 uploadTarget={uploadTarget}
-                setUploadTarget={setUploadTarget}
-                parseFile={parseFile}
-                validateUpload={validateUpload}
-                onUploadSuccess={onUploadSuccess}
+                setUploadTarget={(value) => { setUploadTarget(value); if (!value) setUploadActivity(null); }}
+                uploadActivity={uploadActivity}
+                parseFile={(file, key, activity) => parseFile(file, key, activity ?? undefined)}
+                validateUpload={(rows, key, activity) => validateUpload(rows, key, activity ?? undefined)}
+                onUploadSuccess={(rows, key, activity) => onUploadSuccess(rows, key, activity ?? undefined)}
                 deleteTarget={deleteTarget}
                 setDeleteTarget={setDeleteTarget}
                 doDeleteRow={doDeleteRow}
@@ -991,7 +999,53 @@ const ConstructionStage = () => {
                                     period={activePeriod}
                                     activities={recurringActivities}
                                     rowsByActivity={recurringRowsByActivity}
+                                    electricityRowsByActivity={groupRecurringRowsByActivity(reportingBoundaries, tableRows.electricity)}
                                     columnsForActivity={columnsForRecurringActivity}
+                                    electricityColumns={recurringElectricityColumns}
+                                    electricityError={tableErrors["electricity"]}
+                                    onElectricityRowsChange={(activity, updater) => {
+                                        const currentRows = tableRows.electricity.filter((row) => resolveRecurringActivityForRow(row, reportingBoundaries) === activity);
+                                        const nextRows = typeof updater === "function" ? updater(currentRows) : updater;
+                                        updateRows("electricity", (previous) => [
+                                            ...previous.filter((row) => resolveRecurringActivityForRow(row, reportingBoundaries) !== activity),
+                                            ...nextRows,
+                                        ]);
+                                    }}
+                                    onRequestUpload={(key, activity) => { setUploadActivity(activity); setUploadTarget(key); }}
+                                    onDeleteElectricityRow={!isReadOnly ? (id) => setDeleteTarget({ id: String(id), tableKey: "electricity" }) : undefined}
+                                    onElectricityCellChange={(activity) => (change) => {
+                                        if (change.key === "emission_source") {
+                                            if (change.item._fromBoundary && String(change.value ?? "") !== String(change.item.emission_source ?? "")) {
+                                                setErrorForKey("electricity", "Change electricity sources in the project reporting boundary settings.");
+                                                return;
+                                            }
+                                            const boundary = reportingBoundaries.find((item) => item.category.trim().toLowerCase() === "electricity"
+                                                && item.stage_or_activity === activity
+                                                && item.source?.trim().toLowerCase() === String(change.value ?? "").trim().toLowerCase());
+                                            onCellChangeFor("electricity")({
+                                                ...change,
+                                                item: { ...change.item, reporting_boundary_id: boundary?.id, stage_or_activity: activity },
+                                            });
+                                            return;
+                                        }
+                                        onCellChangeFor("electricity")(change);
+                                    }}
+                                    onElectricityRowPatch={(activity) => ({ id, patch, item }) => {
+                                        const source = patch.emission_source;
+                                        if (source !== undefined) {
+                                            if (item._fromBoundary && String(source ?? "") !== String(item.emission_source ?? "")) {
+                                                setErrorForKey("electricity", "Change electricity sources in the project reporting boundary settings.");
+                                                return;
+                                            }
+                                            const boundary = reportingBoundaries.find((entry) => entry.category.trim().toLowerCase() === "electricity"
+                                                && entry.stage_or_activity === activity
+                                                && entry.source?.trim().toLowerCase() === String(source ?? "").trim().toLowerCase());
+                                            onRowPatchFor("electricity")({ id, patch: { ...patch, reporting_boundary_id: boundary?.id, stage_or_activity: activity }, item });
+                                            return;
+                                        }
+                                        onRowPatchFor("electricity")({ id, patch, item });
+                                    }}
+                                    onElectricityCancel={onCancelFor("electricity")}
                                     onActivityRowsChange={(activity, updater) => {
                                         const currentRows = recurringRowsByActivity[activity] ?? [];
                                         const nextRows = typeof updater === "function" ? updater(currentRows) : updater;
@@ -1000,10 +1054,17 @@ const ConstructionStage = () => {
                                             ...nextRows,
                                         ]);
                                     }}
-                                    saveNewRow={(draft, tableKey, activity) => handleSaveNewRow({
-                                        ...draft,
-                                        extra_fields: { ...(draft.extra_fields ?? {}), stage_or_activity: activity },
-                                    }, tableKey)}
+                                    saveNewRow={(draft, tableKey, activity) => {
+                                        const boundary = reportingBoundaries.find((item) => item.stage_or_activity === activity
+                                            && item.category.trim().toLowerCase() === "electricity"
+                                            && item.source?.trim().toLowerCase() === String(draft.emission_source ?? draft.emissions_source_name ?? "").trim().toLowerCase());
+                                        const year = activePeriod?.period_start_date ? new Date(activePeriod.period_start_date).getUTCFullYear() : undefined;
+                                        return handleSaveNewRow({
+                                            ...draft,
+                                            ...(tableKey === "electricity" ? { year, ...(boundary ? { reporting_boundary_id: boundary.id } : {}) } : {}),
+                                            extra_fields: { ...(draft.extra_fields ?? {}), stage_or_activity: activity, ...(boundary ? { reporting_boundary_id: boundary.id } : {}) },
+                                        }, tableKey);
+                                    }}
                                     renderEditor={renderEditor}
                                     accordionState={accordionState}
                                     setAccordionState={setAccordionState}

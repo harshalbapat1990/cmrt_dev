@@ -64,7 +64,11 @@ export function createNewRowSaveHandler({
 
         const config = resolveTableConfig(tableKey, projectId);
         const requiredKeys = (config.rules ?? [])
-            .filter((rule) => rule.required)
+            .filter((rule) => rule.required && !(
+                tableKey === "electricity"
+                && activeStageInstance?.stage === "RECURRING"
+                && rule.key === "year"
+            ))
             .map((rule) => rule.key);
         const isMissing = requiredKeys.some(
             (key) => draft[key] === undefined || draft[key] === null || draft[key] === ""

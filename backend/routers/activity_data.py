@@ -437,6 +437,10 @@ async def bulk_upsert_rows(
         None,
         description="Scope delete/replace to this mitigation (activity_data.project_mitigation_id).",
     ),
+    replace_stage_or_activity: Optional[str] = Query(
+        None,
+        description="When replacing recurring electricity rows, restrict the replacement to this activity group.",
+    ),
     db: AsyncSession = Depends(get_session),
     principal: Principal = Depends(get_current_principal),
 ):
@@ -451,8 +455,9 @@ async def bulk_upsert_rows(
         AccessLevel.EDIT
     )
     any_period_id = next((r.submission_period_id for r in payload if r.submission_period_id), None)
-    _assert_stage_not_locked(stage_instance, any_period_id)
-    await _assert_period_editable(db, any_period_id)
+    effective_period_id = any_period_id or submission_period_id
+    _assert_stage_not_locked(stage_instance, effective_period_id)
+    await _assert_period_editable(db, effective_period_id)
 
     if project_mitigation_id is None and ui_table_key in AUTO_SUBSTITUTION_TABLE_KEYS:
         await preclean_linked_auto_substitution_mitigations(db, stage_instance_id, ui_table_key, payload)
@@ -468,6 +473,7 @@ async def bulk_upsert_rows(
         project_mitigation_id=project_mitigation_id,
         replace_option_id=project_option_id,
         replace_submission_period_id=submission_period_id,
+        replace_stage_or_activity=replace_stage_or_activity,
     )
     for row in rows:
         await calculate_and_store(db, row)

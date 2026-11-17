@@ -6,7 +6,7 @@ import { isElectricityTable, type UploadKey } from "../stageConstants";
 import { resolveTableConfig, normalizeRules } from "../tableConfigRegistry";
 import { parseFileToRows } from "../../../../utils/parseFileToRows";
 import { validateRows } from "../../../../utils/ValidateRows";
-import type { DataEntryRow, StageInstance } from "../dataEntryTypes";
+import type { DataEntryRow, ReportingBoundary, StageInstance } from "../dataEntryTypes";
 import { toDataEntryRows } from "../dataEntryValidation";
 
 type RowUpdater = (
@@ -19,6 +19,7 @@ interface Params {
   projectId: string;
   activeOptionId: string | null;
   activePeriod: ConstructionPeriod | null;
+  reportingBoundaries: ReportingBoundary[];
   getRows: (key: UploadKey) => DataEntryRow[];
   updateRows: RowUpdater;
   setErrorForKey: (key: UploadKey, error: string | null) => void;
@@ -34,6 +35,7 @@ export function createRowUploadOperations({
   projectId,
   activeOptionId,
   activePeriod,
+  reportingBoundaries,
   getRows,
   updateRows,
   setErrorForKey,
@@ -79,19 +81,58 @@ export function createRowUploadOperations({
     }
   };
 
-  const parseFile = (file: File, tableKey: UploadKey) => {
-    const config = resolveTableConfig(tableKey, projectId);
-    return parseFileToRows(file, config.fileHeaders ?? [], ["quantity"], {}).then(toDataEntryRows);
+  const enrichRecurringElectricity = (rows: DataEntryRow[], tableKey: UploadKey, activity?: string) => {
+    if (tableKey !== "electricity" || activeStageInstance?.stage !== "RECURRING") return rows;
+    if (!activity || !activePeriod?.period_start_date) throw new Error("Select a recurring activity and reporting period before uploading electricity.");
+    const year = new Date(activePeriod.period_start_date).getUTCFullYear();
+    return rows.map((row) => {
+      const source = String(row.emission_source ?? row.emissions_source_name ?? "").trim().toLowerCase();
+      const boundary = reportingBoundaries.find((item) => item.category.trim().toLowerCase() === "electricity"
+        && item.stage_or_activity === activity && String(item.source ?? "").trim().toLowerCase() === source);
+      if (!boundary) throw new Error(`No Electricity reporting boundary matches '${row.emission_source ?? ""}' for ${activity}.`);
+      return {
+        ...row,
+        year,
+        reporting_boundary_id: boundary.id,
+        stage_or_activity: activity,
+        emissions_category: "Electricity",
+        emissions_subcategory: "Electricity",
+        emission_source: boundary.source,
+        unit_display: row.unit_display ?? "MWh",
+      };
+    });
   };
 
-  const validateUpload = (parsedRows: DataEntryRow[], tableKey: UploadKey) => {
+  const parseFile = (file: File, tableKey: UploadKey, activity?: string) => {
+    const config = resolveTableConfig(tableKey, projectId);
+    const fileHeaders = tableKey === "electricity" && activeStageInstance?.stage === "RECURRING"
+      ? (config.fileHeaders ?? []).filter((header) => header.key !== "year")
+      : config.fileHeaders ?? [];
+    const quantityKeys = isElectricityTable(tableKey) ? ["quantity_mwh"] : ["quantity"];
+    return parseFileToRows(file, fileHeaders, quantityKeys, {}).then(toDataEntryRows).then((rows) => enrichRecurringElectricity(rows, tableKey, activity));
+  };
+
+  const validateUpload = (parsedRows: DataEntryRow[], tableKey: UploadKey, activity?: string) => {
     const config = resolveTableConfig(tableKey, projectId);
     const rules = normalizeRules(config.rules);
-    return validateRows(parsedRows, rules);
+    try { return Promise.resolve(validateRows(enrichRecurringElectricity(parsedRows, tableKey, activity), rules)); }
+    catch (error) { return Promise.resolve({ validRows: [], errors: [error instanceof Error ? error.message : "Invalid recurring electricity upload."] }); }
   };
 
-  const onUploadSuccess = async (validRows: DataEntryRow[], tableKey: UploadKey) => {
-    updateRows(tableKey, validRows);
+  const onUploadSuccess = async (validRows: DataEntryRow[], tableKey: UploadKey, activity?: string) => {
+    try { validRows = enrichRecurringElectricity(validRows, tableKey, activity); }
+    catch (error) { setErrorForKey(tableKey, error instanceof Error ? error.message : "Invalid recurring electricity rows."); return; }
+    const updateUploadedRows = (rows: DataEntryRow[]) => {
+      if (tableKey === "electricity" && activeStageInstance?.stage === "RECURRING" && activity) {
+        updateRows("electricity", (previous) => [
+          ...previous.filter((row) => (row.stage_or_activity ?? row.extra_fields?.stage_or_activity) !== activity),
+          ...rows,
+        ]);
+      } else {
+        updateRows(tableKey, rows);
+      }
+    };
+    updateUploadedRows(validRows);
     if (!activeStageInstance || !projectId) return;
 
     if (tableKey === "componentRepl") {
@@ -158,7 +199,7 @@ export function createRowUploadOperations({
         };
       }));
 
-      updateRows(tableKey, rowsToSave);
+      updateUploadedRows(rowsToSave);
       const payload: ActivityDataCreate[] = rowsToSave.map((row) => {
         const extraFields: Record<string, unknown> = { ...row };
         delete extraFields._fromApi;
@@ -186,9 +227,17 @@ export function createRowUploadOperations({
       if (["constructionG2", "constructionG3"].includes(tableKey) && !activePeriod) {
         throw new Error("No active construction period selected");
       }
-      const saved = await ActivityDataService.bulkUpsert(activeStageInstance.id, tableKey, payload);
+      const saved = await ActivityDataService.bulkUpsert(
+        activeStageInstance.id,
+        tableKey,
+        payload,
+        null,
+        activeOptionId,
+        tableKey === "electricity" ? activePeriod?.id : undefined,
+        tableKey === "electricity" && activeStageInstance.stage === "RECURRING" ? activity : undefined,
+      );
       if (tableKey === "component") await syncComponentUploadToReplacement(saved);
-      updateRows(tableKey, saved.map(apiRowToUiRow));
+      updateUploadedRows(saved.map(apiRowToUiRow));
       setErrorForKey(tableKey, null);
       await refreshOptionTotals();
     } catch (error) {

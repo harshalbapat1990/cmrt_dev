@@ -11,6 +11,7 @@ interface Params {
     reportingBoundaries: ReportingBoundary[];
     apiRowToUiRow: (row: ActivityDataOut) => DataEntryRow;
     updateRows: (key: "recurringG3", rows: DataEntryRow[]) => void;
+    updateElectricityRows?: (rows: DataEntryRow[]) => void;
 }
 
 /** Loads recurring emissions rows and creates blank rows for uncovered boundaries. */
@@ -21,10 +22,12 @@ export function useRecurringPeriodRows({
     reportingBoundaries,
     apiRowToUiRow,
     updateRows,
+    updateElectricityRows,
 }: Params): void {
     useEffect(() => {
         if (!activeStageInstance || !periodId) return;
         updateRows("recurringG3", []);
+        updateElectricityRows?.([]);
         let cancelled = false;
         void (async () => {
             try {
@@ -40,15 +43,47 @@ export function useRecurringPeriodRows({
                     row.reporting_boundary_id ?? row.extra_fields?.reporting_boundary_id,
                 ).filter((id): id is string => Boolean(id)));
                 const placeholders = await Promise.all(reportingBoundaries
-                    .filter((boundary) => !existingBoundaryIds.has(boundary.id))
+                    .filter((boundary) => boundary.category.trim().toLowerCase() !== "electricity" && !existingBoundaryIds.has(boundary.id))
                     .map((boundary) => createBoundaryPlaceholder(boundary, projectId)));
                 if (!cancelled) updateRows("recurringG3", [...rows, ...placeholders]);
+                const electricityRaw = await ActivityDataService.fetchRows(
+                    activeStageInstance.id,
+                    "electricity",
+                    undefined,
+                    periodId,
+                );
+                if (cancelled) return;
+                const electricityRows = (Array.isArray(electricityRaw) ? electricityRaw : []).map(apiRowToUiRow);
+                const existingElectricityBoundaryIds = new Set(electricityRows.map((row) =>
+                    row.reporting_boundary_id ?? row.extra_fields?.reporting_boundary_id,
+                ).filter((id): id is string => Boolean(id)));
+                const electricityPlaceholders = reportingBoundaries
+                    .filter((boundary) => boundary.category.trim().toLowerCase() === "electricity" && !existingElectricityBoundaryIds.has(boundary.id))
+                    .map((boundary) => electricityBoundaryRow(boundary));
+                if (!cancelled) updateElectricityRows?.([...electricityRows, ...electricityPlaceholders]);
             } catch (error) {
                 console.error("Failed to load recurringG3 rows:", error);
             }
         })();
         return () => { cancelled = true; };
-    }, [activeStageInstance, periodId, projectId, reportingBoundaries, apiRowToUiRow, updateRows]);
+    }, [activeStageInstance, periodId, projectId, reportingBoundaries, apiRowToUiRow, updateRows, updateElectricityRows]);
+}
+
+function electricityBoundaryRow(boundary: ReportingBoundary): DataEntryRow {
+    return {
+        id: `__BOUNDARY_${boundary.id}__`,
+        _fromBoundary: true,
+        reporting_boundary_id: boundary.id,
+        stage_or_activity: boundary.stage_or_activity,
+        emissions_category: "Electricity",
+        emissions_subcategory: "Electricity",
+        emission_source: boundary.source ?? "",
+        quantity_mwh: null,
+        unit_display: "MWh",
+        unit_code: "MWh",
+        emissions_tco2e: null,
+        total_emissions_tco2e: null,
+    };
 }
 
 async function createBoundaryPlaceholder(boundary: ReportingBoundary, projectId: string): Promise<DataEntryRow> {

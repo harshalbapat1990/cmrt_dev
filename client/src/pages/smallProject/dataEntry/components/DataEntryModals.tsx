@@ -18,10 +18,11 @@ type SelectOption = { label: string; value: string };
 
 interface DataEntryModalsProps {
     uploadTarget: UploadKey | null;
+    uploadActivity?: string | null;
     setUploadTarget: (v: UploadKey | null) => void;
-    parseFile: (file: File, key: UploadKey) => Promise<DataEntryRow[]>;
-    validateUpload: (rows: DataEntryRow[], key: UploadKey) => Promise<{ validRows: DataEntryRow[]; errors: string[] }>;
-    onUploadSuccess: (rows: DataEntryRow[], key: UploadKey) => void | Promise<void>;
+    parseFile: (file: File, key: UploadKey, activity?: string) => Promise<DataEntryRow[]>;
+    validateUpload: (rows: DataEntryRow[], key: UploadKey, activity?: string) => Promise<{ validRows: DataEntryRow[]; errors: string[] }>;
+    onUploadSuccess: (rows: DataEntryRow[], key: UploadKey, activity?: string) => void | Promise<void>;
     deleteTarget: { id: string; tableKey: UploadKey } | null;
     setDeleteTarget: (v: { id: string; tableKey: UploadKey } | null) => void;
     doDeleteRow: () => Promise<void>;
@@ -92,7 +93,7 @@ interface DataEntryModalsProps {
 }
 
 export function DataEntryModals({
-    uploadTarget, setUploadTarget, parseFile, validateUpload, onUploadSuccess,
+    uploadTarget, uploadActivity, setUploadTarget, parseFile, validateUpload, onUploadSuccess,
     deleteTarget, setDeleteTarget, doDeleteRow,
     designSeedConfirmOpen, pendingDesignReportNum, reDesignSeedLoading,
     onCancelDesignSeed, onConfirmDesignSeed,
@@ -118,9 +119,9 @@ export function DataEntryModals({
                 <UploadModal
                     open={!!uploadTarget}
                     onClose={() => setUploadTarget(null)}
-                    parseFile={(file) => parseFile(file, uploadTarget!)}
-                    validateRows={(rows) => validateUpload(rows, uploadTarget!)}
-                    onSuccess={(rows) => onUploadSuccess(rows, uploadTarget!)}
+                    parseFile={(file) => parseFile(file, uploadTarget!, uploadActivity ?? undefined)}
+                    validateRows={(rows) => validateUpload(rows, uploadTarget!, uploadActivity ?? undefined)}
+                    onSuccess={(rows) => onUploadSuccess(rows, uploadTarget!, uploadActivity ?? undefined)}
                 />
             )}
 

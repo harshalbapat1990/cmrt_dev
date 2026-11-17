@@ -141,6 +141,7 @@ async def bulk_upsert_activity_data(
     project_mitigation_id: Optional[UUID] = None,
     replace_option_id: Optional[UUID] = None,
     replace_submission_period_id: Optional[UUID] = None,
+    replace_stage_or_activity: Optional[str] = None,
 ) -> List[ActivityData]:
     if project_mitigation_id is not None:
         q_del = select(ActivityData).where(
@@ -154,7 +155,7 @@ async def bulk_upsert_activity_data(
         #option_ids = {r.project_option_id for r in rows}
         #for opt_id in option_ids:
         scopes = {(r.project_option_id, r.submission_period_id) for r in rows}
-        if not scopes and replace_option_id is not None:
+        if not scopes and (replace_option_id is not None or replace_submission_period_id is not None):
             scopes = {(replace_option_id, replace_submission_period_id)}
         for opt_id, period_id in scopes:
             q = select(ActivityData).where(
@@ -171,6 +172,12 @@ async def bulk_upsert_activity_data(
                 q = q.where(ActivityData.submission_period_id == period_id)
             else:
                 q = q.where(ActivityData.submission_period_id.is_(None))
+            activity = replace_stage_or_activity
+            if activity is None and rows:
+                row_activity = (rows[0].extra_fields or {}).get("stage_or_activity")
+                activity = row_activity if isinstance(row_activity, str) else None
+            if activity is not None:
+                q = q.where(ActivityData.extra_fields["stage_or_activity"].astext == activity)
             existing = (await db.execute(q)).scalars().all()
             for ex in existing:
                 await db.delete(ex)

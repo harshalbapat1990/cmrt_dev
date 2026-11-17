@@ -17,6 +17,7 @@ import type { MeProfile } from "@/context/UserContext";
 import type {
     DataEntryRow,
     FugitiveOption,
+    ReportingBoundary,
     StageInstance,
     TableRowMap,
 } from "../dataEntryTypes";
@@ -42,6 +43,7 @@ interface UseRowOperationsParams {
     projectId: string;
     activeOptionId: string | null;
     activePeriod: ConstructionPeriod | null;
+    reportingBoundaries: ReportingBoundary[];
     constructionStartDate: string | null;
     constructionEndDate: string | null;
     opsStartYear: number | null;
@@ -70,6 +72,7 @@ export function useRowOperations({
     projectId,
     activeOptionId,
     activePeriod,
+    reportingBoundaries,
     constructionStartDate,
     constructionEndDate,
     opsStartYear,
@@ -101,13 +104,16 @@ export function useRowOperations({
     );
 
     const validateElectricityYear = useCallback(
-        (tableKey: UploadKey, row: DataEntryRow) => validateElectricityYearValue(tableKey, row, {
+        (tableKey: UploadKey, row: DataEntryRow) => {
+            if (tableKey === "electricity" && activeStageInstance?.stage === "RECURRING") return null;
+            return validateElectricityYearValue(tableKey, row, {
             constructionStartDate,
             constructionEndDate,
             opsStartYear,
             operationalLifeYears,
-        }),
-        [constructionStartDate, constructionEndDate, opsStartYear, operationalLifeYears]
+            });
+        },
+        [activeStageInstance?.stage, constructionStartDate, constructionEndDate, opsStartYear, operationalLifeYears]
     );
 
     const validateComponentReplLife = useCallback(
@@ -172,7 +178,9 @@ export function useRowOperations({
             try {
                 let metricId: string | null = null;
                 let unit_id: string | null = finalRow.unit_id ?? null;
-                const quantity = finalRow.quantity;
+                const quantity = tableKey === "electricity"
+                    ? finalRow.quantity_mwh ?? finalRow.quantity
+                    : finalRow.quantity;
 
                 if (tableKey === "refurbishment") {
                     unit_id = null;
@@ -211,7 +219,7 @@ export function useRowOperations({
                     emissions_tco2e: finalEmissionsNum,
                     ui_table_key: tableKey,
                     extra_fields,
-                    ...(["constructionG2", "constructionG3", "recurringG3"].includes(tableKey) && activePeriod
+                    ...(["constructionG2", "constructionG3", "electricity", "recurringG3"].includes(tableKey) && activePeriod
                         ? { submission_period_id: activePeriod.id }
                         : {}),
                 });
@@ -314,6 +322,7 @@ export function useRowOperations({
         refreshOptionTotals,
         recalcElectricitySiblings,
         validateElectricityYear,
+        electricityUsesPeriodYear: activeStageInstance?.stage === "RECURRING",
         validateComponentReplLife,
         handleSaveBoundaryRow,
         syncComponentQtyToReplacement,
@@ -325,6 +334,7 @@ export function useRowOperations({
         projectId,
         activeOptionId,
         activePeriod,
+        reportingBoundaries,
         getRows,
         updateRows,
         setErrorForKey,

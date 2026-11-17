@@ -27,6 +27,9 @@ type TableWrapperProps = {
   onActionSelect?: (value: string) => void;
   onCellDoubleClick?: (key: string, row: any) => void;
   isConstructionStage?: boolean;
+  children?: React.ReactNode;
+  /** Render a simple always-open subsection inside another TableWrapper. */
+  collapsible?: boolean;
 };
 
 const TableWrapper: React.FC<TableWrapperProps> = ({
@@ -53,6 +56,8 @@ const TableWrapper: React.FC<TableWrapperProps> = ({
   onActionSelect,
   onCellDoubleClick,
   isConstructionStage = false,
+  children,
+  collapsible = true,
 }) => {
 
   const isElectricityTable = uploadKey === "electricity" || uploadKey === "opEnergyElectricity";
@@ -62,26 +67,28 @@ const TableWrapper: React.FC<TableWrapperProps> = ({
   const actionsBtn = uploadKey === "concreteRegDetailed";
 
   return (
-    <div className="space-y-8 mx-12 mb-12 bg-white p-6 border border-neutral-90 rounded-[var(--radius-3)]">
+    <div className={collapsible
+      ? "space-y-8 mx-12 mb-12 bg-white p-6 border border-neutral-90 rounded-[var(--radius-3)]"
+      : "space-y-3 mb-6"}>
       <div className="flex items-center justify-between mb-4">
-        <div className="text-2xl font-light text-text-dark">
+        <div className={collapsible ? "text-2xl font-light text-text-dark" : "text-lg font-medium text-text-dark"}>
           <span className="mr-1.5">{title}</span>
           {tooltip ? <InfoTooltip text={tooltip} iconSize={20} /> : null}
         </div>
-        <button
-          type="button"
-          onClick={() =>
-            setAccordionState((prev) => ({ ...prev, [accordionKey]: !prev[accordionKey] }))
-          }
-          className="w-5 h-5 inline-flex items-center cursor-pointer justify-center focus:outline-none focus:ring-2 focus:ring-primary rounded"
-        >
-          <span className="material-symbols-rounded">
-            {accordionState[accordionKey] ? "keyboard_arrow_up" : "keyboard_arrow_down"}
-          </span>
-        </button>
+        {collapsible && <button
+            type="button"
+            onClick={() =>
+              setAccordionState((prev) => ({ ...prev, [accordionKey]: !prev[accordionKey] }))
+            }
+            className="w-5 h-5 inline-flex items-center cursor-pointer justify-center focus:outline-none focus:ring-2 focus:ring-primary rounded"
+          >
+            <span className="material-symbols-rounded">
+              {accordionState[accordionKey] ? "keyboard_arrow_up" : "keyboard_arrow_down"}
+            </span>
+          </button>}
       </div>
 
-      {accordionState[accordionKey] && (
+      {(!collapsible || accordionState[accordionKey]) && (
         <>
           {error && (
             <div className="text-danger text-sm font-medium mb-2 px-1 flex items-center gap-1">
@@ -89,6 +96,8 @@ const TableWrapper: React.FC<TableWrapperProps> = ({
               {error}
             </div>
           )}
+
+          {children}
 
           <Table
             data={rows}

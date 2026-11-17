@@ -17,6 +17,8 @@ export type CalcCtx = {
     project_stage_instance_id: string | null,
     ops_start_year?: number;
     tableKey: string;
+    active_stage?: string;
+    submission_period_id?: string | null;
     construction_start_year: string;
     construction_end_year: string;
 };
@@ -72,6 +74,8 @@ interface EmissionsCalcParams {
     refreshOptionTotals: () => Promise<void>;
     projectOptionId?: string | null;
     projectStageInstanceId?: string | null;
+    activeStage?: string;
+    activePeriod?: { id?: string; period_start_date?: string | null } | null;
 }
 
 export function useEmissionsCalc({
@@ -83,7 +87,9 @@ export function useEmissionsCalc({
     constructionEndDate,
     refreshOptionTotals,
     projectOptionId,
-    projectStageInstanceId
+    projectStageInstanceId,
+    activeStage,
+    activePeriod,
 }: EmissionsCalcParams) {
     const datasetRevisionRef = useRef<{ projectId: string | null; loaded: boolean; value: string | null }>({
         projectId: null,
@@ -119,6 +125,9 @@ export function useEmissionsCalc({
 
     const computeEmissionsForRow = useCallback(
         async (tableKey: UploadKey, row: DataEntryRow): Promise<Partial<DataEntryRow> | null> => {
+            const calculationRow = tableKey === "electricity" && activeStage === "Recurring" && activePeriod?.period_start_date
+                ? { ...row, year: new Date(activePeriod.period_start_date).getUTCFullYear() }
+                : row;
             if ((tableKey === "asset" || tableKey === "component") && !projectId) {
                 return null;
             }
@@ -137,11 +146,13 @@ export function useEmissionsCalc({
                 project_stage_instance_id: projectStageInstanceId ?? null,
                 ops_start_year: opsStartYear ?? undefined,
                 tableKey,
+                active_stage: activeStage,
+                submission_period_id: activeStage === "Recurring" ? activePeriod?.id ?? null : null,
                 construction_start_year: constructionStartDate ?? "",
                 construction_end_year: constructionEndDate ?? "",
             };
 
-            if (!hasAllRequired(row, calcCfg.requiredKeys)) {
+            if (!hasAllRequired(calculationRow, calcCfg.requiredKeys)) {
                 return { total_emissions_tco2e: "-", emissions_tco2e: "-" };
             }
 
@@ -167,7 +178,7 @@ export function useEmissionsCalc({
                 }
             }
 
-            const payload = calcCfg.buildPayload(row, ctx);
+            const payload = calcCfg.buildPayload(calculationRow, ctx);
             if (!payload) {
                 return { total_emissions_tco2e: "-", emissions_tco2e: "-" };
             }
@@ -180,7 +191,7 @@ export function useEmissionsCalc({
 
             try {
                 const res = await calcCfg.calculate(payloadWithDatasetRevision, ctx, tableKey);
-                const mappedRow = calcCfg.mapResultToRow(res, row) ?? {};
+                const mappedRow = calcCfg.mapResultToRow(res, calculationRow) ?? {};
                 const v =
                     mappedRow.total_emissions_tco2e ??
                     mappedRow.emissions_tco2e ??
@@ -211,6 +222,8 @@ export function useEmissionsCalc({
             constructionEndDate,
             projectOptionId,
             projectStageInstanceId,
+            activeStage,
+            activePeriod,
             resolveDatasetRevisionId,
         ]
     );

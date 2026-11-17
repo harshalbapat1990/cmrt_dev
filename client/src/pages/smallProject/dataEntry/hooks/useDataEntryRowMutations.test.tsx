@@ -114,6 +114,58 @@ describe("useDataEntryRowMutations synchronized component deletion", () => {
     expect(refreshOptionTotals).toHaveBeenCalledOnce();
   });
 
+  it("calculates and saves recurring electricity quantity edits without a row year", async () => {
+    const row: DataEntryRow = {
+      id: "electricity-1",
+      emission_source: "Grid Electricity",
+      quantity_mwh: null,
+      _fromApi: true,
+    };
+    const setRows = vi.fn();
+    const computeEmissionsForRow = vi.fn(async () => ({
+      total_emissions_tco2e: 12.5,
+      location_based_tco2e: 12.5,
+      market_based_tco2e: 11,
+    }));
+    vi.mocked(ActivityDataService.updateRow).mockResolvedValue(undefined as never);
+
+    const { result } = renderHook(() => useDataEntryRowMutations({
+      projectId: "project-1",
+      user: null,
+      fugitiveList: [],
+      getRows: () => [row],
+      updateRows: vi.fn(),
+      setErrorForKey: vi.fn(),
+      getCalcConfig: () => null,
+      computeEmissionsForRow,
+      refreshOptionTotals: vi.fn(async () => undefined),
+      recalcElectricitySiblings: async () => undefined,
+      validateElectricityYear: () => null,
+      electricityUsesPeriodYear: true,
+      validateComponentReplLife: () => null,
+      handleSaveBoundaryRow: async () => undefined,
+      syncComponentQtyToReplacement: async () => undefined,
+      deleteTarget: null,
+      setDeleteTarget: vi.fn(),
+    }));
+
+    await act(async () => result.current.onCellChange("electricity", setRows)({
+      id: "electricity-1",
+      key: "quantity_mwh",
+      value: 25,
+      item: row,
+    }));
+
+    expect(computeEmissionsForRow).toHaveBeenCalledWith("electricity", expect.objectContaining({
+      emission_source: "Grid Electricity",
+      quantity_mwh: 25,
+    }));
+    expect(ActivityDataService.updateRow).toHaveBeenCalledWith("electricity-1", expect.objectContaining({
+      quantity: 25,
+      emissions_tco2e: 12.5,
+    }));
+  });
+
   it("deletes the linked replacement row before removing the component", async () => {
     const component: DataEntryRow = { id: "component-1" };
     const replacement: DataEntryRow = {

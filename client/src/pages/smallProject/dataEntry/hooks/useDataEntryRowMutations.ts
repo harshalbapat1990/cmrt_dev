@@ -20,6 +20,7 @@ interface UseDataEntryRowMutationsParams {
     refreshOptionTotals: () => Promise<void>;
     recalcElectricitySiblings: (key: UploadKey, excludeId: string | null, rows: DataEntryRow[], setRows: React.Dispatch<React.SetStateAction<DataEntryRow[]>>) => Promise<void>;
     validateElectricityYear: (key: UploadKey, row: DataEntryRow) => string | null;
+    electricityUsesPeriodYear?: boolean;
     validateComponentReplLife: (key: UploadKey, row: DataEntryRow) => string | null;
     handleSaveBoundaryRow: (id: string, key: UploadKey, row: DataEntryRow, setRows: React.Dispatch<React.SetStateAction<DataEntryRow[]>>) => Promise<void>;
     syncComponentQtyToReplacement: (
@@ -48,6 +49,7 @@ export function useDataEntryRowMutations({
     refreshOptionTotals,
     recalcElectricitySiblings,
     validateElectricityYear,
+    electricityUsesPeriodYear = false,
     validateComponentReplLife,
     handleSaveBoundaryRow,
     syncComponentQtyToReplacement,
@@ -71,7 +73,14 @@ export function useDataEntryRowMutations({
                         return;
                     }
                     setErrorForKey(tableKey, null);
-                    if (updatedRow.emission_source && updatedRow.year && updatedRow.quantity_mwh) {
+                    const hasQuantity = updatedRow.quantity_mwh !== undefined
+                        && updatedRow.quantity_mwh !== null
+                        && updatedRow.quantity_mwh !== ""
+                        && Number.isFinite(Number(updatedRow.quantity_mwh));
+                    const yearIsAvailable = tableKey === "electricity" && electricityUsesPeriodYear
+                        ? true
+                        : updatedRow.year !== undefined && updatedRow.year !== null && updatedRow.year !== "";
+                    if (updatedRow.emission_source && hasQuantity && yearIsAvailable) {
                         const calc = await computeEmissionsForRow(tableKey, updatedRow);
                         if (!calc) return;
                         const nextRow = {

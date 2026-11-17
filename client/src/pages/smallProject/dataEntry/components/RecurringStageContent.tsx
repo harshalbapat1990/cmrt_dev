@@ -14,8 +14,17 @@ interface Props extends Pick<TableProps,
     period: ConstructionPeriod;
     activities: string[];
     rowsByActivity: Record<string, DataEntryRow[]>;
+    electricityRowsByActivity: Record<string, DataEntryRow[]>;
     columnsForActivity: (activity: string) => TableProps["columns"];
+    electricityColumns: TableProps["columns"];
+    electricityError?: string | null;
     onActivityRowsChange: (activity: string, updater: SetStateAction<DataEntryRow[]>) => void;
+    onElectricityRowsChange: (activity: string, updater: SetStateAction<DataEntryRow[]>) => void;
+    onRequestUpload: (key: UploadKey, activity: string) => void;
+    onDeleteElectricityRow?: (id: string | number) => void;
+    onElectricityCellChange?: (activity: string) => TableProps["onCellChange"];
+    onElectricityRowPatch?: (activity: string) => TableProps["onRowPatch"];
+    onElectricityCancel?: TableProps["onCancel"];
     saveNewRow: (draft: DataEntryRow, tableKey: UploadKey, activity: string) => Promise<boolean>;
 }
 
@@ -23,8 +32,17 @@ export function RecurringStageContent({
     period,
     activities,
     rowsByActivity,
+    electricityRowsByActivity,
     columnsForActivity,
+    electricityColumns,
+    electricityError,
     onActivityRowsChange,
+    onElectricityRowsChange,
+    onRequestUpload,
+    onDeleteElectricityRow,
+    onElectricityCellChange,
+    onElectricityRowPatch,
+    onElectricityCancel,
     saveNewRow,
     renderEditor,
     accordionState,
@@ -50,6 +68,7 @@ export function RecurringStageContent({
             ) : null}
             {activities.map((activity) => {
                 const activityRows = rowsByActivity[activity] ?? [];
+                const electricityRows = electricityRowsByActivity[activity] ?? [];
                 return (
                     <TableWrapper
                         key={activity}
@@ -60,7 +79,7 @@ export function RecurringStageContent({
                         exportFileName={`Recurring_${activity}.csv`}
                         uploadKey="recurringG3"
                         renderEditor={renderEditor}
-                        onRequestUpload={() => {}}
+                        onRequestUpload={() => onRequestUpload("recurringG3", activity)}
                         onNewRowSave={(draft, key) => saveNewRow(draft, key, activity)}
                         accordionKey={activity}
                         accordionState={accordionState}
@@ -71,7 +90,30 @@ export function RecurringStageContent({
                         onDeleteRow={onDeleteRow}
                         onCellChange={onCellChange}
                         onRowPatch={onRowPatch}
-                    />
+                    >
+                        <TableWrapper
+                            title="Electricity"
+                            rows={electricityRows}
+                            setRows={(updater: SetStateAction<DataEntryRow[]>) => onElectricityRowsChange(activity, updater)}
+                            columns={electricityColumns}
+                            exportFileName={`Recurring_${activity}_Electricity.csv`}
+                            uploadKey="electricity"
+                            renderEditor={renderEditor}
+                            onRequestUpload={() => onRequestUpload("electricity", activity)}
+                            onNewRowSave={(draft, key) => saveNewRow(draft, key, activity)}
+                            accordionKey={`${activity}-electricity`}
+                            accordionState={accordionState}
+                            setAccordionState={setAccordionState}
+                            collapsible={false}
+                            error={electricityError ?? error}
+                            onCancel={onElectricityCancel ?? onCancel}
+                            readOnly={readOnly}
+                            onDeleteRow={onDeleteElectricityRow}
+                            onCellChange={onElectricityCellChange?.(activity) ?? onCellChange}
+                            onRowPatch={onElectricityRowPatch?.(activity) ?? onRowPatch}
+                        />
+                        <h3 className="mb-3 text-lg font-medium text-text-dark">All other sources</h3>
+                    </TableWrapper>
                 );
             })}
         </>

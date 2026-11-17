@@ -34,6 +34,10 @@ export function useDataEntryTableColumns(projectId: string, jurisdiction: string
 
     const columnsForRecurringActivity = (activity: string) =>
         constructionG3Config(projectId, "recurringG3", ACTIVITY_CATEGORY_MAP[activity]).columns();
+    const recurringElectricityColumns = useMemo(
+        () => electricityConfig(projectId).columns().filter((column) => column.key !== "year"),
+        [projectId],
+    );
 
     return {
         assetColumns,
@@ -53,5 +57,6 @@ export function useDataEntryTableColumns(projectId: string, jurisdiction: string
         concreteRegDetailedColumns,
         replDetailedColumns,
         columnsForRecurringActivity,
+        recurringElectricityColumns,
     };
 }

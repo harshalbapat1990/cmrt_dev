@@ -12,10 +12,13 @@ from decimal import Decimal
 from typing import Any, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from crud.activity_data import update_activity_data
 from crud.emissions_results import upsert_result
 from models.activity_data import ActivityData
+from models.project_reporting_submission import ProjectReportingSubmission
+from models.project_stage_instances import ProjectStageInstance, ProjectStage
 from schemas.activity_data import ActivityDataUpdate
 from services.electricity_detailed_calculations import (
     ElectricityDetailedCalculator,
@@ -58,6 +61,24 @@ async def recalc_electricity_activity_row(
         return None
 
     year_raw = extra.get("year")
+    if base_key == "electricity" and activity_row.submission_period_id:
+        stage_result = await db.execute(
+            select(ProjectStageInstance.stage).where(
+                ProjectStageInstance.id == activity_row.project_stage_instance_id
+            )
+        )
+        if stage_result.scalar_one_or_none() == ProjectStage.RECURRING:
+            period_result = await db.execute(
+                select(ProjectReportingSubmission.period_start_date).where(
+                    ProjectReportingSubmission.id == activity_row.submission_period_id,
+                    ProjectReportingSubmission.stage_instance_id == activity_row.project_stage_instance_id,
+                )
+            )
+            period_start = period_result.scalar_one_or_none()
+            if period_start is None:
+                raise ValueError("Recurring electricity requires a valid selected reporting period.")
+            year_raw = period_start.year
+            extra["year"] = year_raw
     if year_raw is None or year_raw == "":
         return None
     try:

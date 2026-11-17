@@ -7,14 +7,9 @@ import LookupsService, { type UnitOption } from "../../../services/Lookups.servi
 import { formatEmissionsOrQuantity } from "../../../utils/utils";
 import type { DataEntryRow } from "./dataEntryTypes";
 import { asTableConfigRecord } from "./tableConfigUtils";
+import { ELECTRICITY_EMISSION_SOURCES, type ElectricityEmissionSource } from "@/constants/electricityEmissionSources";
 
-export const ELECTRICITY_EMISSION_SOURCES = [
-  "Grid Electricity",
-  "Onsite Renewable Electricity",
-  "Offsite Renewable Electricity",
-] as const;
-
-export type ElectricityEmissionSource = (typeof ELECTRICITY_EMISSION_SOURCES)[number];
+export { ELECTRICITY_EMISSION_SOURCES, type ElectricityEmissionSource };
 
 const getYear = (value: unknown): number | null => {
   if (value == null || value === "") return null;
@@ -51,8 +46,13 @@ export const electricityConfig = (projectId: string) => ({
       tableKey: string,
       project_option_id?: string | null;
       project_stage_instance_id?: string | null;
+      active_stage?: string;
+      submission_period_id?: string | null;
     }) => {
-      if (!row.emission_source || !row.year || !row.quantity_mwh) return null;
+      if (!row.emission_source
+        || row.year === undefined || row.year === null || row.year === ""
+        || row.quantity_mwh === undefined || row.quantity_mwh === null || row.quantity_mwh === ""
+        || !Number.isFinite(Number(row.year)) || !Number.isFinite(Number(row.quantity_mwh))) return null;
       const basePayload = {
         project_id: ctx.project_id ?? projectId,
         emission_source: row.emission_source,
@@ -62,8 +62,12 @@ export const electricityConfig = (projectId: string) => ({
         project_option_id: ctx.project_option_id || null,
         project_stage_instance_id: ctx.project_stage_instance_id ?? null,
         ui_table_key: ctx.tableKey,
+        ...(ctx.active_stage === "Recurring" && ctx.submission_period_id
+          ? { submission_period_id: ctx.submission_period_id }
+          : {}),
       };
       if (ctx.tableKey === "electricity") {
+        if (ctx.active_stage === "Recurring") return basePayload;
         const constructionStartYear = getYear(ctx.construction_start_year);
         const constructionEndYear = getYear(ctx.construction_end_year);
 

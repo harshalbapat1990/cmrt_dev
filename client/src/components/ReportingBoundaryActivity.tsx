@@ -6,6 +6,11 @@ import LookupsService from "../services/Lookups.service";
 import { type EmissionRow } from "./common/EmissionTable";
 import { downloadCsv, type CsvColumn } from "../utils/downloadCsv";
 import { uploadCsv, type ParsedRow } from "../utils/uploadCsv";
+import { ELECTRICITY_EMISSION_SOURCES } from "@/constants/electricityEmissionSources";
+
+const ELECTRICITY_CATEGORY = "Electricity";
+const electricitySourceOptions = ELECTRICITY_EMISSION_SOURCES.map((name) => ({ value: name, label: name }));
+const isElectricityCategory = (name: string) => normalize(name) === normalize(ELECTRICITY_CATEGORY);
 
 /** Contractor (Recurring treated same) Activity options */
 const ACTIVITY_OPTIONS: MSOption[] = [
@@ -95,9 +100,17 @@ const RBActivityOperationPanel: React.FC<RBActivityOperationPanelProps> = ({
       return;
     }
 
+    const categoryLabel = findLabel(categoryId, categoryOptions);
+    if (isElectricityCategory(categoryLabel)) {
+      setSubCat(ELECTRICITY_CATEGORY);
+      setSubcatOptions([]);
+      setSourceOptions(electricitySourceOptions);
+      setErrorMessage(null);
+      return;
+    }
+
     try {
       setLoadingSubcats(true);
-      const categoryLabel = findLabel(categoryId, categoryOptions);
       const subs = await LookupsService.fetchGrade3Subcategories(categoryLabel, projectId);
       setSubcatOptions(subs);
     } catch (e) {
@@ -138,10 +151,12 @@ const RBActivityOperationPanel: React.FC<RBActivityOperationPanelProps> = ({
     if (!canAdd) return;
 
     // Push LABELS (not IDs) to table
+    const categoryLabel = findLabel(cat, categoryOptions);
+    const electricityCategory = isElectricityCategory(categoryLabel);
     onAddManual({
       stageOrActivity: activeActivity,
-      category: findLabel(cat, categoryOptions),
-      subCategory: findLabel(subCat, subcatOptions),
+      category: categoryLabel,
+      subCategory: electricityCategory ? ELECTRICITY_CATEGORY : findLabel(subCat, subcatOptions),
       source: findLabel(source, sourceOptions),
     });
 
@@ -205,14 +220,15 @@ const RBActivityOperationPanel: React.FC<RBActivityOperationPanelProps> = ({
         const catVal = matchByValueOrLabelToValue(catRaw, categoryOptions);
         const catLabel = catVal ? findLabel(catVal, categoryOptions) : catRaw;
 
+        const electricityCategory = isElectricityCategory(catLabel);
         let subOptions: any[] = [];
-        if (catLabel) {
+        if (catLabel && !electricityCategory) {
           subOptions = await LookupsService.fetchGrade3Subcategories(catLabel, projectId);
         }
-        const subVal = matchByValueOrLabelToValue(subRaw, subOptions);
+        const subVal = electricityCategory ? ELECTRICITY_CATEGORY : matchByValueOrLabelToValue(subRaw, subOptions);
 
-        let srcOptions: any = [];
-        if (catLabel && subVal) {
+        let srcOptions: any[] = electricityCategory ? electricitySourceOptions : [];
+        if (catLabel && subVal && !electricityCategory) {
           srcOptions = await LookupsService.fetchGrade3Sources(catLabel, subVal, projectId);
         }
         const srcVal = matchByValueOrLabelToValue(srcRaw, srcOptions);
@@ -222,7 +238,7 @@ const RBActivityOperationPanel: React.FC<RBActivityOperationPanelProps> = ({
           origin: "uploaded",
           stageOrActivity: actLabel || actRaw,
           category: catVal ? findLabel(catVal, categoryOptions) : catRaw,
-          subCategory: subVal ? findLabel(subVal, subOptions) : subRaw,
+          subCategory: electricityCategory ? ELECTRICITY_CATEGORY : subVal ? findLabel(subVal, subOptions) : subRaw,
           source: srcVal ? findLabel(srcVal, srcOptions) : srcRaw,
         });
       }
@@ -290,7 +306,7 @@ const RBActivityOperationPanel: React.FC<RBActivityOperationPanelProps> = ({
           />
         </div>
 
-        <div className="flex flex-col">
+        {!isElectricityCategory(findLabel(cat, categoryOptions)) && <div className="flex flex-col">
           <SelectListbox
             value={subCat}
             onChange={(v: string) => handleChangeSubcat(v)}
@@ -300,7 +316,7 @@ const RBActivityOperationPanel: React.FC<RBActivityOperationPanelProps> = ({
             placeholder=""
             disabled={!cat || loadingSubcats}
           />
-        </div>
+        </div>}
 
         <div className="flex flex-col">
           <SelectListbox
@@ -424,10 +440,11 @@ const ReportingBoundaryActivity: React.FC<ReportingBoundaryActivityProps> = ({
       localCatOptions.find((o) => normalize(o.label) === normalize(row.category))?.value || "";
 
     // Load subcategories from BGM grade 3
+    const electricityCategory = isElectricityCategory(row.category);
     let subOptions: any[] = [];
     try {
       setLoadingSubcats(true);
-      subOptions = await LookupsService.fetchGrade3Subcategories(row.category, projectId);
+      if (!electricityCategory) subOptions = await LookupsService.fetchGrade3Subcategories(row.category, projectId);
       setSubcatOptions(subOptions);
       setLookupError(null);
     } catch (error) {
@@ -438,11 +455,14 @@ const ReportingBoundaryActivity: React.FC<ReportingBoundaryActivityProps> = ({
     }
 
     // BGM options use name as value, so the resolved ID is the name itself
-    const subCategoryId = row.subCategory;
+    const subCategoryId = electricityCategory ? ELECTRICITY_CATEGORY : row.subCategory;
 
     // Load sources from BGM grade 3
     let srcOptions: any[] = [];
-    if (row.subCategory) {
+    if (electricityCategory) {
+      srcOptions = electricitySourceOptions;
+      setSourceOptions(srcOptions);
+    } else if (row.subCategory) {
       try {
         setLoadingSources(true);
         srcOptions = await LookupsService.fetchGrade3Sources(row.category, row.subCategory, projectId);
@@ -481,7 +501,9 @@ const ReportingBoundaryActivity: React.FC<ReportingBoundaryActivityProps> = ({
           ...r,
           // stageOrActivity: r.stageOrActivity,
           category: findLabel(draft.categoryId, categoryOptions) || r.category,
-          subCategory: findLabel(draft.subCategoryId, subcatOptions) || r.subCategory,
+          subCategory: isElectricityCategory(findLabel(draft.categoryId, categoryOptions))
+            ? ELECTRICITY_CATEGORY
+            : findLabel(draft.subCategoryId, subcatOptions) || r.subCategory,
           source: findLabel(draft.sourceId, sourceOptions) || r.source,
         }
     );
@@ -503,9 +525,16 @@ const ReportingBoundaryActivity: React.FC<ReportingBoundaryActivityProps> = ({
       setSubcatOptions([]);
       return;
     }
+    const categoryLabel = findLabel(categoryId, categoryOptions);
+    if (isElectricityCategory(categoryLabel)) {
+      setDraft((d) => ({ ...d, categoryId, subCategoryId: ELECTRICITY_CATEGORY, sourceId: "" }));
+      setSubcatOptions([]);
+      setSourceOptions(electricitySourceOptions);
+      setLookupError(null);
+      return;
+    }
     try {
       setLoadingSubcats(true);
-      const categoryLabel = findLabel(categoryId, categoryOptions);
       const subs = await LookupsService.fetchGrade3Subcategories(categoryLabel, projectId);
       setSubcatOptions(subs);
       setLookupError(null);
@@ -705,6 +734,7 @@ const ReportingBoundaryActivity: React.FC<ReportingBoundaryActivityProps> = ({
                       </div>
 
                       {/* Sub-category */}
+                      {(!isEditing || !isElectricityCategory(findLabel(draft.categoryId, categoryOptions))) &&
                       <div
                         className={!isEditing ? "ml-4 min-h-10 h-10 flex items-center text-sm text-text-dark bg-white cursor-pointer" : "ml-4"}
                         onDoubleClick={() => !isEditing && startEdit(row)}
@@ -728,7 +758,7 @@ const ReportingBoundaryActivity: React.FC<ReportingBoundaryActivityProps> = ({
                         ) : (
                           row.subCategory
                         )}
-                      </div>
+                      </div>}
 
                       {/* Source */}
                       <div

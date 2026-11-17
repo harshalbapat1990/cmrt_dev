@@ -161,6 +161,7 @@ class ActivityDataService extends BaseService {
         projectMitigationId?: string | null,
         projectOptionId?: string | null,
         submissionPeriodId?: string | null,
+        replaceStageOrActivity?: string | null,
     ): Promise<ActivityDataOut[]> {
         const params = new URLSearchParams({
             stage_instance_id: stageInstanceId,
@@ -174,6 +175,9 @@ class ActivityDataService extends BaseService {
         }
         if (submissionPeriodId) {
             params.set('submission_period_id', submissionPeriodId);
+        }
+        if (replaceStageOrActivity) {
+            params.set('replace_stage_or_activity', replaceStageOrActivity);
         }
         const rowsWithRevision: ActivityDataCreate[] = await Promise.all(
             rows.map(async (r) => {

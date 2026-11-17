@@ -59,7 +59,9 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import text
+from sqlalchemy import select, text
+from models.project_reporting_submission import ProjectReportingSubmission
+from models.project_stage_instances import ProjectStage, ProjectStageInstance
 
 from services._calc_utils import round_result
 from services.project_context_helper import ProjectContextHelper
@@ -134,6 +136,10 @@ class ElectricityDetailedRequest(BaseModel):
         # le=2100, 
         # description="Year of activity (2026–2100)"
         description="Year of activity"
+    )
+    submission_period_id: Optional[UUID] = Field(
+        None,
+        description="Recurring reporting period that determines the factor year for recurring electricity rows.",
     )
     quantity: float = Field(..., gt=0, description="Electricity quantity in the specified unit")
     unit: str = Field(
@@ -445,6 +451,24 @@ class ElectricityDetailedCalculator:
         construction_end_year = request.construction_end_year
         ops_start_year = request.ops_start_year
         ops_end_year = request.ops_end_year
+        calculation_year = request.year
+        if request.submission_period_id and request.project_stage_instance_id:
+            stage_result = await db.execute(
+                select(ProjectStageInstance.stage).where(
+                    ProjectStageInstance.id == request.project_stage_instance_id
+                )
+            )
+            if stage_result.scalar_one_or_none() == ProjectStage.RECURRING:
+                period_result = await db.execute(
+                    select(ProjectReportingSubmission.period_start_date).where(
+                        ProjectReportingSubmission.id == request.submission_period_id,
+                        ProjectReportingSubmission.stage_instance_id == request.project_stage_instance_id,
+                    )
+                )
+                period_start = period_result.scalar_one_or_none()
+                if period_start is None:
+                    raise ValueError("The selected recurring reporting period is invalid for this stage.")
+                calculation_year = period_start.year
 
         dataset_revision_id: Optional[UUID] = None
 
@@ -460,7 +484,7 @@ class ElectricityDetailedCalculator:
             db,
             jurisdiction=jurisdiction,
             region=region,
-            year=request.year,
+            year=calculation_year,
             dataset_revision_id=dataset_revision_id,
         )
 
@@ -483,7 +507,7 @@ class ElectricityDetailedCalculator:
                 db,
                 project_stage_instance_id=request.project_stage_instance_id,
                 project_option_id=request.project_option_id,
-                year=request.year,
+                year=calculation_year,
                 project_id=request.project_id,
             )
             if total_yr_mwh == 0:
@@ -542,7 +566,7 @@ class ElectricityDetailedCalculator:
             jurisdiction=jurisdiction,
             region=region,
             emission_source=request.emission_source,
-            year=request.year,
+            year=calculation_year,
             quantity_mwh=qty,
             construction_start_year=construction_start_year,
             construction_end_year=construction_end_year,
